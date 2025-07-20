@@ -1,0 +1,16 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+*.sdf
+*.dbmdl
+*.db
+*.log
+*.ncb
+*.opendb
+*.VC.db
+
+# Build
+bin/
+obj/
