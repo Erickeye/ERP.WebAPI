@@ -5,7 +5,7 @@
 *.cache
 *.sdf
 *.dbmdl
-*.db
+# *.db
 *.log
 *.ncb
 *.opendb
