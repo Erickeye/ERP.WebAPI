@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using ERP.Library.Enums.Login;
 
-namespace New_ERP.Models.AMS
+namespace ERP.Models.AMS
 {
 	public class t_user
 	{

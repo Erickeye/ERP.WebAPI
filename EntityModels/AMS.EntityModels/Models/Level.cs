@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace New_ERP.Models.AMS
+namespace ERP.Models.AMS
 {
     public class t_level
     {

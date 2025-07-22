@@ -1,3 +1,6 @@
+using System;
+using ERP.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,7 +11,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
+builder.Services.AddDbContext<AMSContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERP_AMS")));
 
 var app = builder.Build();
 
