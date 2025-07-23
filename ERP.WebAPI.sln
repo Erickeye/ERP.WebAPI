@@ -18,6 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "方案項目", "方案項�
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EntityModels", "EntityModels", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMS.EntityModels", "EntityModels\AMS.EntityModels\AMS.EntityModels.csproj", "{8FDF847D-79A8-4BC5-AF19-D911E3F42B33}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -25,9 +28,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AMS.EntityModels", "EntityM
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DB", "DB", "{5BDAFD2C-F7E6-487D-B5F2-933850E4F233}"
-	ProjectSection(SolutionItems) = preProject
-		ERP.DB\ERP.DB.sqlproj.user = ERP.DB\ERP.DB.sqlproj.user
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.EntityModels", "EntityModels\ERP.Models\ERP.EntityModels.csproj", "{13A6CBBE-3373-CAB4-CD6B-00656901DE9A}"
 EndProject

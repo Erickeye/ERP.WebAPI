@@ -20,7 +20,7 @@ namespace TLRIMOA.Library.ViewModels
         public ErrorCodeType ErrorCode { get; set; } = ErrorCodeType.None;
         public string? ErrorMessage { get; set; }
 
-        public ResultPayload<T> Payload { get; set; } = new();
+        public T? Data { get; set; }
 
         public static implicit operator bool(ResultModel<T> vm) => vm.IsSuccess;
 
@@ -28,17 +28,13 @@ namespace TLRIMOA.Library.ViewModels
         {
             ErrorCode = code;
             ErrorMessage = message ?? code.GetDisplayName();
-            Payload.Code = (int)code;
-            Payload.Data = data;
-            if (message == null) { 
-
-            }
+            Data = data;
         }
 
         public void SetSuccess(T data)
         {
             ErrorCode = ErrorCodeType.None;
-            Payload.Data = data;
+            Data = data;
         }
     }
 

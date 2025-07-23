@@ -20,7 +20,7 @@ namespace ERP.Service.Services
 {
     public interface IAuthService
     {
-        Task<LoginResponse?> AuthenticateAsync(string account, string password);
+        Task<ResultModel<LoginResponse>> AuthenticateAsync(string account, string password);
         string GenerateAccessToken(t_user user);
         string GenerateRefreshToken();
     }
@@ -36,7 +36,7 @@ namespace ERP.Service.Services
             _jwtSettings = jwtOptions.Value;
         }
 
-        public async Task<LoginResponse?> AuthenticateAsync(string account, string password)
+        public async Task<ResultModel<LoginResponse>> AuthenticateAsync(string account, string password)
         {
             var result = new ResultModel<LoginResponse>();
             var user = await _context.t_user
@@ -57,7 +57,7 @@ namespace ERP.Service.Services
 
             // 可把 refreshToken 儲存到資料庫，並與 user 關聯
 
-            return new LoginResponse
+            result.Data = new LoginResponse
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
@@ -66,6 +66,7 @@ namespace ERP.Service.Services
                 UserId = user.f_id,
                 Role = user.f_role
             };
+            return result;
         }
 
         public string GenerateAccessToken(t_user user)
