@@ -10,10 +10,10 @@ namespace ERP.Data
 			: base(options)
 		{
 		}
-		public DbSet<t_user>? t_user { get; set; }
-		public DbSet<t_role>? t_role { get; set; }
-		public DbSet<t_permission>? t_permission { get; set; }
-		public DbSet<t_level>? t_level { get; set; }
+		public DbSet<t_user> t_user { get; set; } = default!;
+		public DbSet<t_role> t_role { get; set; } = default!;
+        public DbSet<t_permission> t_permission { get; set; }  = default!;
+		public DbSet<t_level> t_level { get; set; }  = default!;
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

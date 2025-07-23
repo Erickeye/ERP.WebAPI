@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,110 +10,59 @@ using TLRIMOA.Library.Enums;
 
 namespace TLRIMOA.Library.ViewModels
 {
-	/// <summary>
-	/// 結果模型
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public class ResultModel<T>
-	{
-		/// <summary>
-		/// 建構函數
-		/// </summary>
-		/// <param name="errorCode"></param>
-		public ResultModel(ErrorCodeType? errorCode = null)
-		{
-			this.Message = new ResultMessageModel<T>();
+    /// <summary>
+    /// 結果模型
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class ResultModel<T>
+    {
+        public bool IsSuccess => ErrorCode == ErrorCodeType.None;
+        public ErrorCodeType ErrorCode { get; set; } = ErrorCodeType.None;
+        public string? ErrorMessage { get; set; }
 
-			if (errorCode != null)
-			{
-				this.SetErrorCodeType(errorCode.Value);
-			}
-		}
-		public ResultModel()
-		{
-			this.Message = new ResultMessageModel<T>();
-		}
-		public int Error { get; set; }
-		public ErrorCodeType ErrorCode { get; set; }
-		public string? ErrorMessage {  get; set; }
-        public ResultMessageModel<T> Message { get; set; }
+        public ResultPayload<T> Payload { get; set; } = new();
 
-		public static implicit operator bool(ResultModel<T> vm)
-		{
-			return vm.Error == 0;
-		}
+        public static implicit operator bool(ResultModel<T> vm) => vm.IsSuccess;
 
-		/// <summary>
-		/// 設定錯誤代碼
-		/// </summary>
-		/// <param name="errorCode"></param>
-		public void SetErrorCodeType(ErrorCodeType errorCode)
-		{
-			this.Error = 1;
-			if (this.Message == null)
-			{
-				this.Message = new ResultMessageModel<T>();
-			}
-			this.ErrorCode = errorCode;
-            this.Message.Code = (int)errorCode;
-		}
-        /// <summary>
-        /// 設定錯誤代碼
-        /// </summary>
-        /// <param name="errorCode"></param>
-        /// <param name="data"></param>
-        public void SetError(ErrorCodeType errorCode, string errorMessage)
-		{
-            this.Error = 1;
-            this.ErrorCode = errorCode;
-            this.Message.Code = (int)errorCode;
-            this.ErrorMessage = errorMessage;
-        }
-        /// <summary>
-        /// 設定錯誤代碼
-        /// </summary>
-        /// <param name="errorCode"></param>
-        /// <param name="data"></param>
-        public void SetErrorCodeType(ErrorCodeType errorCode, T data)
+        public void SetError(ErrorCodeType code, string? message = null, T? data = default)
         {
-            this.Error = 1;
-            if (this.Message == null)
-            {
-                this.Message = new ResultMessageModel<T>();
-            }
+            ErrorCode = code;
+            ErrorMessage = message ?? code.GetDisplayName();
+            Payload.Code = (int)code;
+            Payload.Data = data;
+            if (message == null) { 
 
-            this.ErrorCode = errorCode;
-            this.Message.Code = (int)errorCode;
-            if (data != null)
-            {
-                this.Message.Data = data;
             }
         }
-        /// <summary>
-        /// 設定資料
-        /// </summary>
-        /// <param name="value">資料</param>
-        public void SetData(T value)
-		{
-			this.Message = new ResultMessageModel<T>()
-			{
-				Data = value,
-			};
-		}
-	}
-	/// <summary>
-	/// 結果訊息-模型
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	public class ResultMessageModel<T>
-	{
-		/// <summary>
-		/// 資料
-		/// </summary>
-		public T? Data { get; set; } = default;
-		/// <summary>
-		/// 錯誤代碼
-		/// </summary>
-		public int Code { get; set; } = default;
-	}
+
+        public void SetSuccess(T data)
+        {
+            ErrorCode = ErrorCodeType.None;
+            Payload.Data = data;
+        }
+    }
+
+    public class ResultPayload<T>
+    {
+        public T? Data { get; set; } = default;
+        public int Code { get; set; } = 0;
+    }
+
+    public static class EnumExtensions
+    {
+        public static string GetDisplayName(this Enum enumValue)
+        {
+            var memberInfo = enumValue.GetType().GetMember(enumValue.ToString());
+            if (memberInfo.Length > 0)
+            {
+                var displayAttr = memberInfo[0].GetCustomAttributes(typeof(DisplayAttribute), false)
+                                              .FirstOrDefault() as DisplayAttribute;
+                if (displayAttr != null && !string.IsNullOrWhiteSpace(displayAttr.Name))
+                {
+                    return displayAttr.Name;
+                }
+            }
+            return enumValue.ToString();
+        }
+    }
 }
