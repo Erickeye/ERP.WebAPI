@@ -27,6 +27,9 @@ namespace TLRIMOA.Library.Enums
         [Display(Name = "不支援的驗證方法", Description = "不支援的驗證方法")]
         UnsupportedAuthenticateType = 1009,
 
+        [Display(Name = "權杖已到期", Description = "權杖已到期")]
+        TokenExpiredOrInvalid = 1010,
+
         [Display(Name = "密碼未設定", Description = "密碼未設定")]
         PasswordUnassigned = 1021,
 

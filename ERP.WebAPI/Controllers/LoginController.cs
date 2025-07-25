@@ -1,60 +1,51 @@
-﻿using ERP.Models.AMS;
+﻿using ERP.Library.ViewModels.Login;
+using ERP.Models.AMS;
 using ERP.Service.Services;
-using ERP.Library.ViewModels.Login;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TLRIMOA.Library.ViewModels;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ERP.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [SwaggerTag("登入作業")]
     [ApiController]
+    [Route("api/[controller]")]
     public class LoginController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly ILoginService _authService;
 
-        public LoginController(IAuthService authService)
+        public LoginController(ILoginService authService)
         {
             _authService = authService;
         }
 
-        [HttpPost("login")]
-        public async Task<IActionResult> AuthenticateAsync(string account, string password)
+        [AllowAnonymous]
+        [SwaggerOperation("登入")]
+        [HttpPost, Route("Login")]
+        public async Task<IActionResult> Login(LoginRequest login)
         {
-            var result = await _authService.AuthenticateAsync(account, password);
+            var result = await _authService.AuthenticateAsync(login.Account, login.Password);
+            return Ok(result);
+        }
+   
+        [SwaggerOperation("刷新Token")]
+        [HttpPost, Route("Refresh")]
+        public async Task<IActionResult> Refresh(AccessRefreshToken token)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var result = await _authService.RefreshTokenAsync(token);
             return Ok(result);
         }
 
-        // GET: api/<Login>
-        [HttpGet]
-        public IEnumerable<string> Get()
+        [SwaggerOperation("登出")]
+        [HttpPost, Route("Logout")]
+        public async Task<IActionResult> Logout()
         {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<Login>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/<Login>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<Login>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<Login>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var result = await _authService.Logout(userIdClaim);
+            return Ok(result);
         }
     }
 }

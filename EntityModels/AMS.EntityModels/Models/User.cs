@@ -14,5 +14,9 @@ namespace ERP.Models.AMS
 		public bool f_isLock { get; set; }
 		public string? f_sessionId { get; set; } = string.Empty;
 		public RoleType f_role { get; set; }
-	}
+
+        public string? f_refreshToken { get; set; }
+
+        public DateTime? f_refreshTokenExpiryTime { get; set; }
+    }
 }
