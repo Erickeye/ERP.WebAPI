@@ -1,4 +1,5 @@
 ﻿using ERP.EntityModels.Models._1000Company;
+using ERP.EntityModels.Models._2000Customer;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ namespace ERP.Data
         public DbSet<t_1710ActionInfo>? t_1710ActionInfo { get; set; }
         public DbSet<t_1200PettyCash>? t_1200PettyCash { get; set; }
         public DbSet<t_1201PettyCashDetail>? t_1201PettyCashDetail { get; set; }
+        public DbSet<t_2000customer>? t_2000customer { get; set; }
+        public DbSet<t_2010custemploy>? t_2010custemploy { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
