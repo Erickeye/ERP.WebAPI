@@ -7,12 +7,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TLRIMOA.Library.Enums;
+using TLRIMOA.Library.ViewModels;
+using static ERP.Service.Services.UserService;
 
 namespace ERP.Service.Services
 {
     public interface IUserService
     {
-        Task<UserInfo?> GetUserInfoAsync(int userId);
+        Task<ResultModel<UserInfo>> GetUserInfo(int userId);
     }
     public class UserService : IUserService
     {
@@ -22,14 +25,15 @@ namespace ERP.Service.Services
         {
             _context = context;
         }
-
-        public async Task<UserInfo?> GetUserInfoAsync(int userId)
+        public async Task<ResultModel<UserInfo>> GetUserInfo(int userId)
         {
-            var userInfo =  await(
+            var result = new ResultModel<UserInfo>();
+
+            var userInfo = await (
                 from user in _context.t_user
                 join role in _context.t_role
                 on (int)user.f_role equals role.f_id
-                where(user.f_id == role.f_id)
+                where (user.f_id == role.f_id)
                 select new UserInfo
                 {
                     UserId = userId,
@@ -40,7 +44,13 @@ namespace ERP.Service.Services
                 })
                 .FirstOrDefaultAsync();
 
-            return userInfo;
+            if (userInfo == null)
+            {
+                result.SetError(ErrorCodeType.UserNotFound);
+            }
+            result.Data = userInfo;
+
+            return result;
         }
     }
 }

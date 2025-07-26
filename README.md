@@ -6,5 +6,12 @@ dotnet ef dbcontext scaffold "Server=DESKTOP-V510SQ3;Database=ERP;User Id=sa;Pas
 
 # migrations
 dotnet tool install --global dotnet-ef
+dotnet ef migrations add ERP_1000_ --project EntityModels/ERP.EntityModels --startup-project ERP.WebAPI
 dotnet ef migrations add AddNewModels --project EntityModels/AMS.EntityModels --startup-project ERP.WebAPI
-dotnet ef database update
+
+dotnet ef database update `
+  --project EntityModels\ERP.EntityModels\ERP.EntityModels.csproj `
+  --startup-project ERP.WebAPI\ERP.WebAPI.csproj `
+  --context ERPContext
+
+dotnet ef database update --startup-project ERP.WebAPI

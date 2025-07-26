@@ -115,6 +115,8 @@ builder.Services.AddAuthentication(options =>
 });
 //--------------------JWT Settings-------------------
 
+builder.Services.AddDbContext<ERPContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ERP")));
 builder.Services.AddDbContext<AMSContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP_AMS")));
 
