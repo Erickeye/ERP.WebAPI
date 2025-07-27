@@ -15,3 +15,7 @@ dotnet ef database update `
   --context ERPContext
 
 dotnet ef database update --startup-project ERP.WebAPI
+
+# Vue3
+npm init vue@lastest
+npm install
