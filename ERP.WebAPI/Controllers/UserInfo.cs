@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using static ERP.Service.Services.UserService;
 
 namespace ERP.WebAPI.Controllers
 {

@@ -1,5 +1,6 @@
 using ERP.Data;
 using ERP.Library.ViewModels.Login;
+using ERP.Service.API._1000Company;
 using ERP.Service.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -18,12 +19,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Version = "v1",
-        Title = "ToDo API",
-        Description = "An ASP.NET Core Web API for managing ToDo items",
-    });
+    options.SwaggerDoc("v1", new OpenApiInfo { Version = "v1", Title = "API首頁", });
+    options.SwaggerDoc("_1000Company", new OpenApiInfo { Version = "v1", Title = "公司相關", });
     options.EnableAnnotations();
 
     // 加入 Bearer token 認證方式
@@ -121,6 +118,7 @@ builder.Services.AddDbContext<AMSContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP_AMS")));
 
 builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddScoped<I_1000Service, _1000Service>();
 
 var app = builder.Build();
 
@@ -130,7 +128,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ToDo API v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Default API");
+        options.SwaggerEndpoint("/swagger/_1000Company/swagger.json", "_1000Company API");
         options.RoutePrefix = "swagger";
     });
 }

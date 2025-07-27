@@ -1,5 +1,4 @@
 ﻿using ERP.Library.ViewModels.Login;
-using ERP.Models.AMS;
 using ERP.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

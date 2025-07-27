@@ -4,11 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TLRIMOA.Library.Enums;
-//using TLRIMOA.Library.ViewModels.AnimalManagement.GrassManagement;
-//using X.PagedList;
+using ERP.Library.Enums;
 
-namespace TLRIMOA.Library.ViewModels
+namespace ERP.Library.ViewModels
 {
     /// <summary>
     /// 結果模型

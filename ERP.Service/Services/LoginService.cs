@@ -14,8 +14,8 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using TLRIMOA.Library.Enums;
-using TLRIMOA.Library.ViewModels;
+using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 
 namespace ERP.Service.Services
 {

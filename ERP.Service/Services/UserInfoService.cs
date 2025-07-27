@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TLRIMOA.Library.Enums;
-using TLRIMOA.Library.ViewModels;
+using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using static ERP.Service.Services.UserService;
 
 namespace ERP.Service.Services

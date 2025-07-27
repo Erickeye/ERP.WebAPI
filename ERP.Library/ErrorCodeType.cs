@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TLRIMOA.Library.Enums
+namespace ERP.Library.Enums
 {
     public enum ErrorCodeType
     {
