@@ -170,10 +170,10 @@ namespace ERP.Library.Enums
         FieldValueIsInvalid = 4000,
 
         /// <summary>
-        /// 使用者名稱或密碼或驗證碼錯誤
+        /// 找不到該資料
         /// </summary>
-        [Display(Name = "使用者名稱或密碼或驗證碼錯誤", Description = "使用者名稱或密碼或驗證碼錯誤")]
-        IncorrectUsernameOrPasswordOrCaptcha = 4001,
+        [Display(Name = "找不到該資料", Description = "找不到該資料")]
+        NotFoundData = 4001,
 
         /// <summary>
         /// 必須為有效單位

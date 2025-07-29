@@ -18,6 +18,8 @@ namespace ERP.Service.API._1000Company
     public interface I_1000Service
     {
         Task<ResultModel<List<StaffIndex>>> GetStaffIndex(string deptID, bool isResignation);
+        Task<ResultModel<string>> CreateOrEdit(t_1000Staff data);
+        Task<ResultModel<string>> Delete(int id);
     }
     public class _1000Service : I_1000Service
     {
@@ -81,6 +83,41 @@ namespace ERP.Service.API._1000Company
             }
             result.Data = await query.ToListAsync();
 
+            return result;
+        }
+
+        public async Task<ResultModel<string>> CreateOrEdit(t_1000Staff data)
+        {
+            var result = new ResultModel<string>();
+
+            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.f_staff_ID == data.f_staff_ID);
+            if (hasData == null) {
+                _context.Add(data);
+                result.SetSuccess("資料成功新增");
+            }
+            else
+            {
+                _context.Entry(hasData).CurrentValues.SetValues(data);
+                result.SetSuccess("資料成功修改");
+            }
+            await _context.SaveChangesAsync();
+            return result;
+        }
+        public async Task<ResultModel<string>> Delete(int id)
+        {
+            var result = new ResultModel<string>();
+            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.f_staff_ID == id);
+            if (hasData == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData);
+                return result;
+            }
+            else
+            {
+                _context.Remove(hasData);
+                await _context.SaveChangesAsync();
+            }
+                result.SetSuccess("資料已刪除");
             return result;
         }
 

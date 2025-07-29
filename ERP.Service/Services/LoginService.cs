@@ -45,13 +45,20 @@ namespace ERP.Service.Services
 
             if (user == null)
             {
-                result.SetError(ErrorCodeType.IncorrectUsernameOrPassword);
+                result.SetError(ErrorCodeType.UserNotFound);
                 return result;
             }
 
-            // 密碼比對 (建議加密比對，這裡示範明文比對)
-            if (user.f_pwd != password) return null;
-            if (user.f_isLock) return null;
+            if (IsPasswordValid(password,user.f_pwd))
+            {
+                result.SetError(ErrorCodeType.IncorrectUsernameOrPassword);
+                return result;
+            }
+            if (user.f_isLock)
+            {
+                result.SetError(ErrorCodeType.UserLocked);
+                return result;
+            }
 
             var accessToken = GenerateAccessToken(user);
             var refreshToken = GenerateRefreshToken();
@@ -204,6 +211,19 @@ namespace ERP.Service.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
+        }
+
+        internal static string HashPassword(string password)
+        {
+            using SHA256 sha256Hash = SHA256.Create();
+            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+
+            StringBuilder builder = new();
+            return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+        }
+        private static bool IsPasswordValid(string pwd, string hashpwd)
+        {
+            return HashPassword(pwd) == hashpwd;
         }
     }
 
