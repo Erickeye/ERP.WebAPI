@@ -57,5 +57,21 @@ namespace ERP.WebAPI.Controllers._1000Company
             var result = await _service.Delete(id);
             return result;
         }
+
+        [SwaggerOperation("上傳大頭照")]
+        [HttpPost,Route("uploadImg")]
+        public async Task<ResultModel<string>> uploadImg(uploadImg data)
+        {
+            var result = await _service.uploadImg(data);
+            return result;
+        }
+
+        [SwaggerOperation("上傳證照")]
+        [HttpPost,Route("UploadCertificate")]
+        public async Task<ResultModel<string>> UploadCertificate(UploadCertificate data)
+        {
+            var result = await _service.UploadCertificate(data);
+            return result;
+        }
     }
 }

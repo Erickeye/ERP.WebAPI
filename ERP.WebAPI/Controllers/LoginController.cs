@@ -11,6 +11,7 @@ namespace ERP.WebAPI.Controllers
     [SwaggerTag("登入作業")]
     [ApiController]
     [Route("api/[controller]")]
+    [ApiExplorerSettings(GroupName = "Default API")]
     public class LoginController : ControllerBase
     {
         private readonly ILoginService _authService;

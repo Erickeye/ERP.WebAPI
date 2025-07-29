@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ERP.Service.API._1000Company
 {
@@ -20,6 +21,8 @@ namespace ERP.Service.API._1000Company
         Task<ResultModel<List<StaffIndex>>> GetStaffIndex(string deptID, bool isResignation);
         Task<ResultModel<string>> CreateOrEdit(t_1000Staff data);
         Task<ResultModel<string>> Delete(int id);
+        Task<ResultModel<string>> uploadImg(uploadImg data);
+        Task<ResultModel<string>> UploadCertificate(UploadCertificate data);
     }
     public class _1000Service : I_1000Service
     {
@@ -118,6 +121,82 @@ namespace ERP.Service.API._1000Company
                 await _context.SaveChangesAsync();
             }
                 result.SetSuccess("資料已刪除");
+            return result;
+        }
+        public async Task<ResultModel<string>> uploadImg(uploadImg data)
+        {
+            var result = new ResultModel<string>();
+
+            const long maxSize = 2 * 1024 * 1024; // 最大 2MB
+
+            // 檢查圖片是否存在
+            if (data.image == null || data.image.Length == 0)
+            {
+                result.SetError(ErrorCodeType.ImgNotFound);
+                return result;
+            }
+            // 檢查圖片大小
+            if (data.image.Length > maxSize)
+            {
+                result.SetError(ErrorCodeType.ImgOver2MB);
+                return result;
+            }
+            // 檢查圖片格式
+            var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" }; // 可接受的圖片格式
+            if (!allowedContentTypes.Contains(data.image.ContentType))
+            {
+                result.SetError(ErrorCodeType.ImgNotSupport);
+                return result;
+            }
+            //查詢是否有此使用者
+            var staff = _context.t_1000Staff.Find(data.StaffId);
+            if (staff == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData, "找不到該使用者");
+            }
+            try
+            {
+                // 將圖片轉換為 Byte 陣列
+                using (var memoryStream = new MemoryStream())
+                {
+                    using var ms = new MemoryStream();
+                    await data.image.CopyToAsync(ms);
+                    byte[] imageBytes = ms.ToArray();
+                    staff!.f_staff_Headshot = imageBytes;
+                    await _context.SaveChangesAsync();
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                // 錯誤處理
+                result.SetError(ErrorCodeType.ImgNotFound, $"上傳過程中發生錯誤：{ex.Message}");
+                return result;
+            }
+        }
+        public async Task<ResultModel<string>> UploadCertificate(UploadCertificate data)
+        {
+            var result = new ResultModel<string>();
+
+            if (data.CertificateFile != null && data.CertificateFile.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await data.CertificateFile.CopyToAsync(ms);
+                var cert = new t_1001StaffCertificates
+                {
+                    StaffId = data.StaffId,
+                    CertificateName =  data.CertificateName,
+                    CertificateDate =  data.CertificateDate,
+                    EffectiveDate =  data.EffectiveDate,
+                    Certificate =  ms.ToArray(),
+                };
+
+                _context.t_1001StaffCertificates!.Add(cert);
+                await _context.SaveChangesAsync();
+                result.SetSuccess("證照已成功上傳");
+            }
+
             return result;
         }
 

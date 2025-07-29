@@ -191,159 +191,36 @@ namespace ERP.Library.Enums
         /// </summary>
         [Display(Name = "查無單位", Description = "查無單位")]
         UnitNotFound = 4005,
-        /// <summary>
-        /// 請選擇所屬上層
-        /// </summary>
-        [Display(Name = "請選擇所屬上層", Description = "請選擇所屬上層")]
-        UnChooseParentId = 4006,
-        /// <summary>
-        /// 請輸入名稱
-        /// </summary>
-        [Display(Name = "請輸入名稱", Description = "請輸入名稱")]
-        UnFillName = 4007,
-        /// <summary>
-        /// 請輸入代碼
-        /// </summary>
-        [Display(Name = "請輸入代碼", Description = "請輸入代碼")]
-        UnFillCode = 4008,
-        /// <summary>
-        /// 請輸入排序
-        /// </summary>
-        [Display(Name = "請輸入排序", Description = "請輸入排序")]
-        UnFillSort = 4009,
-        /// <summary>
-        /// 請先移除子部門與人員
-        /// </summary>
-        [Display(Name = "請先移除子部門與人員", Description = "請先移除子部門與人員")]
-        RomoveSubItemsFirst = 4010,
-        /// <summary>
-        /// 單位名稱含有非法字元
-        /// </summary>
-        [Display(Name = "單位名稱含有非法字元", Description = "單位名稱含有非法字元")]
-        UnitNameIsInvalid = 4011,
-        /// <summary>
-        /// 查無人員
-        /// </summary>
-        [Display(Name = "查無人員", Description = "查無人員")]
-        MemberNotFound = 4012,
-        /// <summary>
-        /// 請輸入帳號
-        /// </summary>
-        [Display(Name = "請輸入帳號", Description = "請輸入帳號")]
-        UnFillAC = 4013,
-        /// <summary>
-        /// 請輸入信箱
-        /// </summary>
-        [Display(Name = "請輸入信箱", Description = "請輸入信箱")]
-        UnFillEmail = 4014,
-        /// <summary>
-        /// 帳號名稱已被使用
-        /// </summary>
-        [Display(Name = "帳號名稱已被使用", Description = "帳號名稱已被使用")]
-        AcIsUsed = 4015,
-        /// <summary>
-        /// 身分字號無效
-        /// </summary>
-        [Display(Name = "身分字號無效", Description = "身分字號無效")]
-        IdCardNumberInvalid = 4016,
-        /// <summary>
-        /// 已存在相同的身分證字號
-        /// </summary>
-        [Display(Name = "已存在相同的身分證字號", Description = "已存在相同的身分證字號")]
-        SameIdCardNumber = 4017,
-
-        /// <summary>
-        /// 必須為單位才可刪除
-        /// </summary>
-        [Display(Name = "必須為單位才可刪除", Description = "必須為單位才可刪除")]
-        MustBeOrganizationToDelete = 4018,
-
-        /// <summary>
-        /// 檔案為空
-        /// </summary>
-        [Display(Name = "檔案為空", Description = "檔案為空")]
-        FileIsEmpty = 4019,
-
-        /// <summary>
-        /// 檔案無效
-        /// </summary>
-        [Display(Name = "檔案無效", Description = "檔案無效")]
-        FileIsInvalid = 4020,
-
-        /// <summary>
-        /// 檔案壓縮失敗
-        /// </summary>
-        [Display(Name = "檔案壓縮失敗", Description = "檔案壓縮失敗")]
-        CompressionFailed = 4021,
-
-        /// <summary>
-        /// 帳號不能用身分證字號
-        /// </summary>
-        [Display(Name = "帳號不能用身分證字號", Description = "帳號不能用身分證字號")]
-        AcCannotUseIdCardNumber = 4022,
-
-        /// <summary>
-        /// 檔案類型錯誤
-        /// </summary>
-        [Display(Name = "檔案類型錯誤", Description = "檔案類型錯誤")]
-        UnValidFileTypeError = 4023,
 
         /// <summary>
         /// 必填欄位
         /// </summary>
         [Display(Name = "必填欄位", Description = "必填欄位")]
-        FieldMustBeFilled = 4024,
+        FieldMustBeFilled = 4006,
 
-        /// <summary>
-        /// 查無孳生物
-        /// </summary>
-        [Display(Name = "查無孳生物", Description = "查無孳生物")]
-        AnimalNotFound = 4025,
         /// <summary>
         /// 查無資料
         /// </summary>
         [Display(Name = "查無資料", Description = "查無資料")]
-        DataEmpty = 4026,
+        DataEmpty = 4007,
+
         /// <summary>
-        /// 查無原料
+        /// 沒有上傳圖片或圖片無效
         /// </summary>
-        [Display(Name = "查無原料", Description = "查無原料")]
-        UnFoundMaterialRaw = 4050,
+        [Display(Name = "沒有上傳圖片或圖片無效", Description = "沒有上傳圖片或圖片無效")]
+        ImgNotFound = 4008,
+
         /// <summary>
-        /// 已存在相同代碼
+        /// 圖片大小不能超過 2MB
         /// </summary>
-        [Display(Name = "已存在相同代碼", Description = "已存在相同代碼")]
-        SameCode = 4051,
+        [Display(Name = "圖片大小不能超過 2MB", Description = "圖片大小不能超過 2MB")]
+        ImgOver2MB = 4009,
+
         /// <summary>
-        /// 項目已被選擇過
+        /// 圖片格式不支援，只接受 JPEG、PNG 和 GIF 格式
         /// </summary>
-        [Display(Name = "項目已被選擇過", Description = "項目已被選擇過")]
-        ChoosedItem = 4052,
-        /// <summary>
-        /// 此帳號尚未驗證信箱，或填入之信箱與驗證信箱不同
-        /// </summary>
-        [Display(Name = "此帳號尚未驗證信箱，或填入之信箱與驗證信箱不同", Description = "此帳號尚未驗證信箱，或填入之信箱與驗證信箱不同")]
-        ForgetSwEmailError = 4053,
-        /// <summary>
-        /// 尚未設定原物料定價設定
-        /// </summary>
-        [Display(Name = "尚未設定原物料定價設定", Description = "尚未設定原物料定價設定")]
-        NotFoundRawPricing = 4054,
-        /// <summary>
-        /// 您選擇的資料中，部分數量不足
-        /// </summary>
-        [Display(Name = "您選擇的資料中，部分數量不足", Description = "您選擇的資料中，部分數量不足")]
-        AmountNotEnough = 4101,
-        /// <summary>
-        /// 接收單位無該畜禽種類或品種
-        /// </summary>
-        [Display(Name = "接收單位無該畜禽種類或品種", Description = "接收單位無該畜禽種類或品種")]
-        ReceivingUnitNotHaveVariety = 4102,
-        /// <summary>
-        /// 請選擇多租戶機關
-        /// </summary>
-        [Display(Name = "請選擇多租戶機關", Description = "請選擇多租戶機關")]
-        UnChooseTenacyId = 5000,
+        [Display(Name = "圖片格式不支援，只接受 JPEG、PNG 和 GIF 格式", Description = "圖片格式不支援，只接受 JPEG、PNG 和 GIF 格式")]
+        ImgNotSupport = 4010,
 
         [Display(Name = "指定的紀錄已異動", Description = "指定的紀錄已異動")]
         SpecificRecordChanged = 9501,
