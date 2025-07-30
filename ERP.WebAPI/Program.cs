@@ -2,6 +2,7 @@ using ERP.Data;
 using ERP.Library.ViewModels.Login;
 using ERP.Service.API._1000Company;
 using ERP.Service.Services;
+using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -120,6 +121,8 @@ builder.Services.AddDbContext<AMSContext>(options =>
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<I_1000Service, _1000Service>();
 
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -137,6 +140,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<ActionLoggingMiddleware>();
 
 app.MapControllers();
 

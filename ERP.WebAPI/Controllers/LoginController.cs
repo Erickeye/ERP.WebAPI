@@ -25,7 +25,7 @@ namespace ERP.WebAPI.Controllers
         [HttpPost, Route("Login")]
         public async Task<IActionResult> Login(LoginRequest login)
         {
-            var result = await _authService.AuthenticateAsync(login.Account, login.Password);
+            var result = await _authService.AuthenticateAsync(login);
             return Ok(result);
         }
    

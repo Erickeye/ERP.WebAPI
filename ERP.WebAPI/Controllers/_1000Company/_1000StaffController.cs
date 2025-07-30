@@ -1,6 +1,8 @@
-﻿using ERP.Library.ViewModels;
+﻿using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Service.API._1000Company;
+using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -19,8 +21,9 @@ namespace ERP.WebAPI.Controllers._1000Company
             _service = service;
         }
 
-        [SwaggerOperation("取得員工列表")]
+        [SwaggerOperation("檢視員工列表")]
         [HttpGet, Route("Index")]
+        [Log(OperationActionType.View, "檢視員工列表")]
         public async Task<ResultModel<List<StaffIndex>>> Index(string? deptID, bool isResignation = false)
         {
             var result = await _service.GetStaffIndex(deptID, isResignation);

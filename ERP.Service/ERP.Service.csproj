@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\EntityModels\AMS.EntityModels\AMS.EntityModels.csproj" />
     <ProjectReference Include="..\EntityModels\ERP.EntityModels\ERP.EntityModels.csproj" />
     <ProjectReference Include="..\ERP.Library\ERP.Library.csproj" />

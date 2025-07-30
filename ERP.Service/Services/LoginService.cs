@@ -1,6 +1,11 @@
 ﻿using ERP.Data;
+using ERP.EntityModels.Models;
+using ERP.EntityModels.Models._1000Company;
+using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Login;
 using ERP.Models.AMS;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -10,18 +15,17 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using ERP.Library.Enums;
-using ERP.Library.ViewModels;
 
 namespace ERP.Service.Services
 {
     public interface ILoginService
     {
-        Task<ResultModel<LoginResponse>> AuthenticateAsync(string account, string password);
+        Task<ResultModel<LoginResponse>> AuthenticateAsync(LoginRequest login);
         Task<ResultModel<AccessRefreshToken>> RefreshTokenAsync(AccessRefreshToken toekn);
         Task<ResultModel<String>> Logout(string userId);
     }
@@ -29,19 +33,23 @@ namespace ERP.Service.Services
     public class LoginService : ILoginService
     {
         private readonly AMSContext _context;
+        private readonly ERPContext _eRPContext;
         private readonly JwtSettings _jwtSettings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LoginService(AMSContext context, IOptions<JwtSettings> jwtOptions)
+        public LoginService(AMSContext context, IOptions<JwtSettings> jwtOptions, ERPContext eRPContext, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
+            _eRPContext = eRPContext;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<ResultModel<LoginResponse>> AuthenticateAsync(string account, string password)
+        public async Task<ResultModel<LoginResponse>> AuthenticateAsync(LoginRequest login)
         {
             var result = new ResultModel<LoginResponse>();
             var user = await _context.t_user
-                .FirstOrDefaultAsync(u => u.f_account == account);
+                .FirstOrDefaultAsync(u => u.f_account == login.Account);
 
             if (user == null)
             {
@@ -50,7 +58,7 @@ namespace ERP.Service.Services
             }
 
             // 密碼比對 (建議加密比對，這裡示範明文比對)
-            if (user.f_pwd != password) return null;
+            if (user.f_pwd != login.Password) return null;
             if (user.f_isLock) return null;
 
             var accessToken = GenerateAccessToken(user);
@@ -71,6 +79,8 @@ namespace ERP.Service.Services
                 UserId = user.f_id,
                 Role = user.f_role
             };
+            //紀錄登入Log
+            LoginLog(login);
             return result;
         }
 
@@ -204,6 +214,29 @@ namespace ERP.Service.Services
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(randomBytes);
             return Convert.ToBase64String(randomBytes);
+        }
+
+        private void LoginLog(LoginRequest login)
+        {
+            var log = new t_1700LoginLog
+            {
+                f_staff_Account = login.Account,
+                f_login_IP = "",
+                f_login_CrateDate = DateTime.Now
+            };
+            _eRPContext.t_1700LoginLog!.Add(log);
+            _eRPContext.SaveChangesAsync();
+        }
+        public string GetClientIp()
+        {
+            var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+            if (_httpContextAccessor.HttpContext?.Request.Headers.ContainsKey("X-Forwarded-For") == true)
+            {
+                ip = _httpContextAccessor.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            }
+
+            return ip ?? "Unknown";
         }
     }
 
