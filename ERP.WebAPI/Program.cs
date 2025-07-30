@@ -20,7 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Version = "v1", Title = "API首頁", });
+    options.SwaggerDoc("Default API", new OpenApiInfo { Version = "v1", Title = "API首頁", });
     options.SwaggerDoc("_1000Company", new OpenApiInfo { Version = "v1", Title = "公司相關", });
     options.EnableAnnotations();
 
@@ -131,7 +131,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Default API");
+        options.SwaggerEndpoint("/swagger/Default API/swagger.json", "Default API");
         options.SwaggerEndpoint("/swagger/_1000Company/swagger.json", "_1000Company API");
         options.RoutePrefix = "swagger";
     });

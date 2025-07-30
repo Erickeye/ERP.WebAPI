@@ -7,6 +7,7 @@ namespace ERP.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [ApiExplorerSettings(GroupName = "Default API")]
     public class UserInfo : ControllerBase
     {
         private IUserService _userService;

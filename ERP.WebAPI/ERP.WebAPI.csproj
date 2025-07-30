@@ -24,4 +24,8 @@
     <ProjectReference Include="..\ERP.Service\ERP.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="NewFolder\" />
+  </ItemGroup>
+
 </Project>
