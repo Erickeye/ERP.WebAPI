@@ -57,7 +57,7 @@ namespace ERP.Service.Services
                 return result;
             }
 
-            if (IsPasswordValid(password,user.f_pwd))
+            if (IsPasswordValid(login.Password, user.f_pwd))
             {
                 result.SetError(ErrorCodeType.IncorrectUsernameOrPassword);
                 return result;
@@ -69,7 +69,7 @@ namespace ERP.Service.Services
             }
 
             // 密碼比對 (建議加密比對，這裡示範明文比對)
-            if (user.f_pwd != password) return null;
+            if (user.f_pwd != login.Password) return null;
             if (user.f_isLock) return null;
 
             var accessToken = GenerateAccessToken(user);
