@@ -4,6 +4,7 @@ using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Login;
+using ERP.Library.Helpers;
 using ERP.Models.AMS;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -57,7 +58,7 @@ namespace ERP.Service.Services
                 return result;
             }
 
-            if (IsPasswordValid(login.Password, user.f_pwd))
+            if (PasswordHelper.IsPasswordValid(login.Password, user.f_pwd))
             {
                 result.SetError(ErrorCodeType.IncorrectUsernameOrPassword);
                 return result;
@@ -67,10 +68,6 @@ namespace ERP.Service.Services
                 result.SetError(ErrorCodeType.UserLocked);
                 return result;
             }
-
-            // 密碼比對 (建議加密比對，這裡示範明文比對)
-            if (user.f_pwd != login.Password) return null;
-            if (user.f_isLock) return null;
 
             var accessToken = GenerateAccessToken(user);
             var refreshToken = GenerateRefreshToken();
@@ -250,18 +247,18 @@ namespace ERP.Service.Services
             return ip ?? "Unknown";
         }
 
-        internal static string HashPassword(string password)
-        {
-            using SHA256 sha256Hash = SHA256.Create();
-            byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
+        //internal static string HashPassword(string password)
+        //{
+        //    using SHA256 sha256Hash = SHA256.Create();
+        //    byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(password));
 
-            StringBuilder builder = new();
-            return BitConverter.ToString(bytes).Replace("-", "").ToLower();
-        }
-        private static bool IsPasswordValid(string pwd, string hashpwd)
-        {
-            return HashPassword(pwd) == hashpwd;
-        }
+        //    StringBuilder builder = new();
+        //    return BitConverter.ToString(bytes).Replace("-", "").ToLower();
+        //}
+        //private static bool IsPasswordValid(string pwd, string hashpwd)
+        //{
+        //    return HashPassword(pwd) == hashpwd;
+        //}
     }
 
 }

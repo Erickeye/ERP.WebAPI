@@ -23,6 +23,9 @@ namespace ERP.Service.API._1000Company
         Task<ResultModel<string>> Delete(int id);
         Task<ResultModel<string>> uploadImg(uploadImg data);
         Task<ResultModel<string>> UploadCertificate(UploadCertificate data);
+        Task<ResultModel<string>> EditCertificate(EditCertificate data);
+        Task<ResultModel<string>> DeleteCertificate(int id);
+        Task<ResultModel<string>> GetCertificate(int id);
     }
     public class _1000Service : I_1000Service
     {
@@ -175,6 +178,22 @@ namespace ERP.Service.API._1000Company
                 return result;
             }
         }
+        public async Task<ResultModel<string>> GetCertificate(int id)
+        {
+            var result = new ResultModel<string>();
+            var cert = await _context.t_1001StaffCertificates!.FirstOrDefaultAsync(c => c.Id == id);
+            if (cert?.Certificate != null)
+            {
+                string base64 = Convert.ToBase64String(cert.Certificate);
+                string imageDataUrl = $"data:image/jpeg;base64,{base64}";
+                result.Data = imageDataUrl;
+            }
+            else
+            {
+                result.SetError(ErrorCodeType.NotFoundData);
+            }
+            return result;
+        }
         public async Task<ResultModel<string>> UploadCertificate(UploadCertificate data)
         {
             var result = new ResultModel<string>();
@@ -197,6 +216,29 @@ namespace ERP.Service.API._1000Company
                 result.SetSuccess("證照已成功上傳");
             }
 
+            return result;
+        }
+        public async Task<ResultModel<string>> EditCertificate(EditCertificate data)
+        {
+            var result = new ResultModel<string>();
+            var _1001 = _context.t_1001StaffCertificates!.Find(data.Id);
+            if (_1001 != null)
+            {
+                _1001.CertificateName = data.CertificateName;
+                _1001.CertificateDate = data.CertificateDate;
+                _1001.EffectiveDate = data.EffectiveDate;
+            }
+            await _context.SaveChangesAsync();
+            result.SetSuccess("證照已成功修改");
+            return result;
+        }
+        public async Task<ResultModel<string>> DeleteCertificate(int id)
+        {
+            var result = new ResultModel<string>();
+            var _1001 = _context.t_1001StaffCertificates!.Find(id)!;
+            _context.Remove(_1001);
+            await _context.SaveChangesAsync();
+            result.SetSuccess("證照已成功刪除");
             return result;
         }
 

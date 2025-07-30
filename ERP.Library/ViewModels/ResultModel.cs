@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ERP.Library.Enums;
+using ERP.Library.Extensions;
 
 namespace ERP.Library.ViewModels
 {
@@ -40,23 +41,5 @@ namespace ERP.Library.ViewModels
     {
         public T? Data { get; set; } = default;
         public int Code { get; set; } = 0;
-    }
-
-    public static class EnumExtensions
-    {
-        public static string GetDisplayName(this Enum enumValue)
-        {
-            var memberInfo = enumValue.GetType().GetMember(enumValue.ToString());
-            if (memberInfo.Length > 0)
-            {
-                var displayAttr = memberInfo[0].GetCustomAttributes(typeof(DisplayAttribute), false)
-                                              .FirstOrDefault() as DisplayAttribute;
-                if (displayAttr != null && !string.IsNullOrWhiteSpace(displayAttr.Name))
-                {
-                    return displayAttr.Name;
-                }
-            }
-            return enumValue.ToString();
-        }
     }
 }
