@@ -15,6 +15,6 @@ namespace ERP.Library.ViewModels.Login
         public DateTime Expiration { get; set; }
         public string UserName { get; set; } = string.Empty;
         public int UserId { get; set; }
-        public RoleType Role { get; set; }
+        public int Role { get; set; }
     }
 }

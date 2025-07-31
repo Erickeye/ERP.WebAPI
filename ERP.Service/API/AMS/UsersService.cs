@@ -38,11 +38,11 @@ namespace ERP.Service.API.AMS
             var result = new ResultModel<ListResult<UserViewModel>>();
 
             var userName = _currentUserService.UserName;
-            var userRole = _currentUserService.Role;
+            var userRoleId = _currentUserService.RoleId;
 
             //當不是管理者時只顯示自己的帳號
             var userQuery = _context.t_user!.AsQueryable();
-            if (userRole != nameof(RoleType.管理者))
+            if (userRoleId != 0)
             {
                 userQuery = _context.t_user.Where(c => c.f_name == userName);
             }
@@ -63,7 +63,7 @@ namespace ERP.Service.API.AMS
                         RoleName = role.f_roleName
                     })
                 .ToListAsync();
-            var listResult = new ListResult<UserViewModel> { Items =  viewModel };
+            var listResult = new ListResult<UserViewModel> { Items = viewModel };
             result.SetSuccess(listResult);
 
             return result;
@@ -89,7 +89,7 @@ namespace ERP.Service.API.AMS
         {
             var result = new ResultModel<string>();
 
-            var user = await _context.t_user.FirstOrDefaultAsync();
+            var user = await _context.t_user.FirstOrDefaultAsync(c => c.f_id == data.f_id);
             if (user != null)
             {
                 _context.Entry(user).CurrentValues.SetValues(data);
@@ -100,20 +100,20 @@ namespace ERP.Service.API.AMS
         public async Task<ResultModel<string>> Delete(int id)
         {
             var result = new ResultModel<string>();
-            var user = _context.t_user.FirstOrDefault(c => c.f_id == id);
-            if (user != null) {
-                if(user.f_name == "管理員")
-                {
-                    result.SetError(0,"無法刪除管理員");
-                }
-                _context.Remove(user);
-                await _context.SaveChangesAsync();
-            }
-            else
+            var user = await _context.t_user.FirstOrDefaultAsync(c => c.f_id == id);
+            if (user == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
+                return result;
             }
+            if (user!.f_name == "管理員")
+            {
+                result.SetError(0, "無法刪除管理員");
+                return result;
+            }
+            _context.Remove(user);
+            await _context.SaveChangesAsync();
             return result;
-        } 
+        }
     }
 }

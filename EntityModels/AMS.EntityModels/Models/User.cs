@@ -12,8 +12,7 @@ namespace ERP.Models.AMS
 		public string f_account { get; set; } = string.Empty;
 		public string f_pwd { get; set; } = string.Empty;
 		public bool f_isLock { get; set; }
-		public string? f_sessionId { get; set; } = string.Empty;
-		public RoleType f_role { get; set; }
+		public int f_role { get; set; }
 
         public string? f_refreshToken { get; set; }
 

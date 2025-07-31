@@ -32,8 +32,11 @@ namespace ERP.Service.API.AMS
         {
             var result = new ResultModel<UserInfo>();
             var userIdString = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int userId = int.Parse(userIdString!);
-
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                result.SetError(ErrorCodeType.Unauthorized);
+                return result;
+            }
             var userInfo = await (
                 from user in _context.t_user
                 join role in _context.t_role
@@ -53,7 +56,6 @@ namespace ERP.Service.API.AMS
                 result.SetError(ErrorCodeType.UserNotFound);
             }
             result.Data = userInfo;
-
             return result;
         }
     }

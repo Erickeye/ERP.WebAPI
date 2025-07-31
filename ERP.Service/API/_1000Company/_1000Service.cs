@@ -39,6 +39,8 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<ListResult<StaffIndex>>> GetStaffIndex(string? deptID, bool isResignation) { 
             var result = new ResultModel<ListResult<StaffIndex>>();
 
+            var _1000 = _context.t_1000Staff.ToList();
+
             IQueryable<StaffIndex> query;
 
             //未離職員工
@@ -123,12 +125,9 @@ namespace ERP.Service.API._1000Company
                 result.SetError(ErrorCodeType.NotFoundData);
                 return result;
             }
-            else
-            {
-                _context.Remove(hasData);
-                await _context.SaveChangesAsync();
-            }
-                result.SetSuccess("資料已刪除");
+            _context.Remove(hasData);
+            await _context.SaveChangesAsync();
+            result.SetSuccess("資料已刪除");
             return result;
         }
         public async Task<ResultModel<string>> uploadImg(uploadImg data)
@@ -240,7 +239,7 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<string>> DeleteCertificate(int id)
         {
             var result = new ResultModel<string>();
-            var _1001 = _context.t_1001StaffCertificates!.Find(id)!;
+            var _1001 = _context.t_1001StaffCertificates!.Find(id);
             _context.Remove(_1001);
             await _context.SaveChangesAsync();
             result.SetSuccess("證照已成功刪除");
