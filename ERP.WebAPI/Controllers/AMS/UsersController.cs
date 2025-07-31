@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
 using Microsoft.Extensions.Primitives;
+using ERP.Library.ViewModels.AMS;
 
 namespace ERP.WebAPI.Controllers.AMS
 {
@@ -22,6 +23,16 @@ namespace ERP.WebAPI.Controllers.AMS
         public UsersController(IUserService service)
         {
             _service = service;
+        }
+
+        [SwaggerOperation("檢視")]
+        [HttpGet,Route("Index")]
+        [Log(OperationActionType.View, "檢視使用者")]
+        public async Task<ResultModel<List<UserViewModel>>> Index(string? inputUser)
+        {
+            var result = new ResultModel<List<UserViewModel>>();
+            result = await _service.Index(inputUser!);
+            return result;
         }
 
         [SwaggerOperation("新增")]

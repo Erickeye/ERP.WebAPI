@@ -1,39 +1,43 @@
 ﻿using ERP.Data;
+using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.UserInfo;
 using ERP.Models.AMS;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using ERP.Library.Enums;
-using ERP.Library.ViewModels;
-using static ERP.Service.Services.UserService;
 
-namespace ERP.Service.Services
+namespace ERP.Service.API.AMS
 {
-    public interface IUserService
+    public interface IUserInfoService
     {
-        Task<ResultModel<UserInfo>> GetUserInfo(int userId);
+        Task<ResultModel<UserInfo>> GetUserInfo();
     }
-    public class UserService : IUserService
+    public class UserInfoService : IUserInfoService
     {
         private readonly AMSContext _context;
+        private readonly IHttpContextAccessor httpContextAccessor;
 
-        public UserService(AMSContext context)
+        public UserInfoService(AMSContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            this.httpContextAccessor = httpContextAccessor;
         }
-        public async Task<ResultModel<UserInfo>> GetUserInfo(int userId)
+        public async Task<ResultModel<UserInfo>> GetUserInfo()
         {
             var result = new ResultModel<UserInfo>();
+            var userIdString = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int userId = int.Parse(userIdString!);
 
             var userInfo = await (
                 from user in _context.t_user
                 join role in _context.t_role
                 on (int)user.f_role equals role.f_id
-                where (user.f_id == role.f_id)
                 select new UserInfo
                 {
                     UserId = userId,

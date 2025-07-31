@@ -200,6 +200,7 @@ namespace ERP.Service.Services
             new Claim(ClaimTypes.NameIdentifier, user.f_id.ToString()),
             new Claim(ClaimTypes.Name, user.f_name),
             new Claim(ClaimTypes.Role, user.f_role.ToString()),
+            new Claim("RoleId", ((int)user.f_role).ToString()),
             new Claim("account", user.f_account)
         };
 
@@ -229,7 +230,7 @@ namespace ERP.Service.Services
             var log = new t_1700LoginLog
             {
                 f_staff_Account = login.Account,
-                f_login_IP = "",
+                f_login_IP = GetClientIp(),
                 f_login_CrateDate = DateTime.Now
             };
             _eRPContext.t_1700LoginLog!.Add(log);

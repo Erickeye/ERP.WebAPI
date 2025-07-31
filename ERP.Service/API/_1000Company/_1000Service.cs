@@ -54,6 +54,7 @@ namespace ERP.Service.API._1000Company
                             dept => dept.f_staff_UID,
                             (staff, dept) => staff
                         )
+                        .AsNoTracking()
                         .Select(StaffSelector());
                 }
                 else
@@ -71,8 +72,9 @@ namespace ERP.Service.API._1000Company
                             (x, dept) => new { x.staff, dept }
                         )
                         .Where(x => x.dept == null)
-                         .Select(x => x.staff)
-                         .Select(StaffSelector());
+                        .AsNoTracking()
+                        .Select(x => x.staff)
+                        .Select(StaffSelector());
                 }
             }
             else
@@ -80,6 +82,7 @@ namespace ERP.Service.API._1000Company
                 // 取得已離職員工
                 query = _context.t_1000Staff!
                     .Where(q => q.f_staff_ResignationDay.HasValue)
+                    .AsNoTracking()
                     .Select(StaffSelector());
             }
             if (query == null)

@@ -1,4 +1,4 @@
-﻿using ERP.Service.Services;
+﻿using ERP.Service.API.AMS;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -10,18 +10,18 @@ namespace ERP.WebAPI.Controllers
     [ApiExplorerSettings(GroupName = "Default API")]
     public class UserInfo : ControllerBase
     {
-        private IUserService _userService;
+        private IUserInfoService _userInfoService;
 
-        public UserInfo(IUserService userService)
+        public UserInfo(IUserInfoService userInfoService)
         {
-            _userService = userService;
+            _userInfoService = userInfoService;
         }
 
         [SwaggerOperation("取得使用者資訊")]
         [HttpGet, Route("GetUserInfo")]
-        public async Task<IActionResult> GetUserInfo(int userId)
+        public async Task<IActionResult> GetUserInfo()
         {
-            var result = await _userService.GetUserInfo(userId);
+            var result = await _userInfoService.GetUserInfo();
             return Ok(result);
         }
     }
