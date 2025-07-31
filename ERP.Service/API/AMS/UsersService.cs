@@ -17,9 +17,10 @@ namespace ERP.Service.API.AMS
 {
     public interface IUserService
     {
-        Task<ResultModel<List<UserViewModel>>> Index(string inputUser);
+        Task<ResultModel<ListResult<UserViewModel>>> Index(string inputUser);
         Task<ResultModel<string>> Create(t_user data);
         Task<ResultModel<string>> Edit(t_user data);
+        Task<ResultModel<string>> Delete(int id);
     }
     public class UserService : IUserService
     {
@@ -32,9 +33,9 @@ namespace ERP.Service.API.AMS
             _currentUserService = currentUserService;
         }
 
-        public async Task<ResultModel<List<UserViewModel>>> Index(string? inputUser)
+        public async Task<ResultModel<ListResult<UserViewModel>>> Index(string? inputUser)
         {
-            var result = new ResultModel<List<UserViewModel>>();
+            var result = new ResultModel<ListResult<UserViewModel>>();
 
             var userName = _currentUserService.UserName;
             var userRole = _currentUserService.Role;
@@ -62,7 +63,8 @@ namespace ERP.Service.API.AMS
                         RoleName = role.f_roleName
                     })
                 .ToListAsync();
-            result.Data = viewModel;
+            var listResult = new ListResult<UserViewModel> { Items =  viewModel };
+            result.SetSuccess(listResult);
 
             return result;
         }
@@ -95,5 +97,23 @@ namespace ERP.Service.API.AMS
             result.SetSuccess("資料成功修改");
             return result;
         }
+        public async Task<ResultModel<string>> Delete(int id)
+        {
+            var result = new ResultModel<string>();
+            var user = _context.t_user.FirstOrDefault(c => c.f_id == id);
+            if (user != null) {
+                if(user.f_name == "管理員")
+                {
+                    result.SetError(0,"無法刪除管理員");
+                }
+                _context.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                result.SetError(ErrorCodeType.NotFoundData);
+            }
+            return result;
+        } 
     }
 }

@@ -18,7 +18,7 @@ namespace ERP.Service.API._1000Company
 {
     public interface I_1000Service
     {
-        Task<ResultModel<List<StaffIndex>>> GetStaffIndex(string deptID, bool isResignation);
+        Task<ResultModel<ListResult<StaffIndex>>> GetStaffIndex(string deptID, bool isResignation);
         Task<ResultModel<string>> CreateOrEdit(t_1000Staff data);
         Task<ResultModel<string>> Delete(int id);
         Task<ResultModel<string>> uploadImg(uploadImg data);
@@ -36,8 +36,8 @@ namespace ERP.Service.API._1000Company
             _context = context;
         }
 
-        public async Task<ResultModel<List<StaffIndex>>> GetStaffIndex(string? deptID, bool isResignation) { 
-            var result = new ResultModel<List<StaffIndex>>();
+        public async Task<ResultModel<ListResult<StaffIndex>>> GetStaffIndex(string? deptID, bool isResignation) { 
+            var result = new ResultModel<ListResult<StaffIndex>>();
 
             IQueryable<StaffIndex> query;
 
@@ -90,7 +90,9 @@ namespace ERP.Service.API._1000Company
                 result.SetError(0, "找不到資料");
                 return result;
             }
-            result.Data = await query.ToListAsync();
+            var viewModel = await query.ToListAsync();
+            var listResult = new ListResult<StaffIndex> { Items = viewModel };
+            result.Data = listResult;
 
             return result;
         }

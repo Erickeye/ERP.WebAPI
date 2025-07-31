@@ -37,6 +37,11 @@ namespace ERP.Library.ViewModels
         }
     }
 
+    public class ListResult<T>
+    {
+        public List<T> Items { get; set; } = new();
+    }
+
     public class ResultPayload<T>
     {
         public T? Data { get; set; } = default;

@@ -26,7 +26,7 @@ namespace ERP.WebAPI.Controllers._1000Company
         [SwaggerOperation("檢視員工列表")]
         [HttpGet, Route("Index")]
         [Log(OperationActionType.View, "檢視員工列表")]
-        public async Task<ResultModel<List<StaffIndex>>> Index(string? deptID, bool isResignation = false)
+        public async Task<ResultModel<ListResult<StaffIndex>>> Index(string? deptID, bool isResignation = false)
         {
             var result = await _service.GetStaffIndex(deptID, isResignation);
             return result;

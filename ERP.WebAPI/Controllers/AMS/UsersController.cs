@@ -28,9 +28,9 @@ namespace ERP.WebAPI.Controllers.AMS
         [SwaggerOperation("檢視")]
         [HttpGet,Route("Index")]
         [Log(OperationActionType.View, "檢視使用者")]
-        public async Task<ResultModel<List<UserViewModel>>> Index(string? inputUser)
+        public async Task<ResultModel<ListResult<UserViewModel>>> Index(string? inputUser)
         {
-            var result = new ResultModel<List<UserViewModel>>();
+            var result = new ResultModel<ListResult<UserViewModel>>();
             result = await _service.Index(inputUser!);
             return result;
         }
@@ -62,6 +62,15 @@ namespace ERP.WebAPI.Controllers.AMS
                 return result;
             }
             result = await _service.Edit(data);
+            return result;
+        }
+
+        [SwaggerOperation("刪除")]
+        [HttpPost,Route("Delete")]
+        [Log(OperationActionType.Edit, "刪除使用者")]
+        public async Task<ResultModel<string>> Delete(int id)
+        {
+            var result = await _service.Delete(id);
             return result;
         }
     }
