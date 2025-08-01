@@ -22,13 +22,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ERP.Service.Services
+namespace ERP.Service.API.AMS
 {
     public interface ILoginService
     {
         Task<ResultModel<LoginResponse>> AuthenticateAsync(LoginRequest login);
         Task<ResultModel<AccessRefreshToken>> RefreshTokenAsync(AccessRefreshToken toekn);
-        Task<ResultModel<String>> Logout(string userId);
+        Task<ResultModel<string>> Logout(string userId);
     }
 
     public class LoginService : ILoginService
@@ -200,7 +200,7 @@ namespace ERP.Service.Services
             new Claim(ClaimTypes.NameIdentifier, user.f_id.ToString()),
             new Claim(ClaimTypes.Name, user.f_name),
             new Claim(ClaimTypes.Role, user.f_role.ToString()),
-            new Claim("RoleId", ((int)user.f_role).ToString()),
+            new Claim("RoleId", user.f_role.ToString()),
             new Claim("account", user.f_account)
         };
 

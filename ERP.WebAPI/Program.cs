@@ -1,8 +1,9 @@
 using ERP.Data;
 using ERP.Library.ViewModels.Login;
+using ERP.Library.ViewModels.Sftp;
 using ERP.Service.API._1000Company;
 using ERP.Service.API.AMS;
-using ERP.Service.Services;
+using ERP.Service.Sftp;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -119,11 +120,13 @@ builder.Services.AddDbContext<ERPContext>(options =>
 builder.Services.AddDbContext<AMSContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP_AMS")));
 
+builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddScoped<I_1000Service, _1000Service>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISftpService, SftpService>();
 
 builder.Services.AddHttpContextAccessor();
 

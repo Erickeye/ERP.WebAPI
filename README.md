@@ -19,3 +19,6 @@ dotnet ef database update --startup-project ERP.WebAPI
 # Vue3
 npm init vue@lastest
 npm install
+
+#SFTP
+參考: https://blog.ite2.com/2023/11/22/quick-setup-ftp-sftp-server/

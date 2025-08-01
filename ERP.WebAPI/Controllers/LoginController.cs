@@ -1,5 +1,5 @@
 ﻿using ERP.Library.ViewModels.Login;
-using ERP.Service.Services;
+using ERP.Service.API.AMS;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;

@@ -83,5 +83,37 @@ namespace ERP.Service.API.AMS
 
             return result;
         }
+
+        public async Task<ResultModel<string>> UpdateLevels(List<t_level> data)
+        {
+            var result = new ResultModel<string>();
+            foreach (var level in data)
+            {
+                var hasLevel = await _context.t_level.FirstOrDefaultAsync(c => c.f_permissionLevel == level.f_permissionLevel);
+                if (hasLevel != null) {
+                    hasLevel.f_levelAmount = level.f_levelAmount;
+                }
+            }
+            result.SetSuccess("權限金額已修改成功");
+            await _context.SaveChangesAsync();
+            return result;
+        }
+
+            public Ttarget? test<Tsource,Ttarget>(Tsource obj)
+            {
+                if(typeof(Tsource) == typeof(int) && typeof(Ttarget) == typeof(string))
+                {
+                    string str1 = obj.ToString() ?? "";
+                    return (Ttarget)(object)str1;
+                }
+                else if (typeof(Tsource) == typeof(string) && typeof(Ttarget) == typeof(int))
+                {
+                    string str = obj.ToString();
+                    int.TryParse(str, out int num);
+                    object obj2 = num;
+                    return (Ttarget)obj2;
+                }
+                return default;
+            }
     }
 }
