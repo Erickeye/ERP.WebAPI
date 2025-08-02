@@ -28,7 +28,7 @@ namespace ERP.Service.API.AMS
     {
         Task<ResultModel<LoginResponse>> AuthenticateAsync(LoginRequest login);
         Task<ResultModel<AccessRefreshToken>> RefreshTokenAsync(AccessRefreshToken toekn);
-        Task<ResultModel<string>> Logout(string userId);
+        Task<ResultModel<string>> Logout(string? userId);
     }
 
     public class LoginService : ILoginService
@@ -136,7 +136,7 @@ namespace ERP.Service.API.AMS
             return result;
         }
 
-        public async Task<ResultModel<string>> Logout(string userId)
+        public async Task<ResultModel<string>> Logout(string? userId)
         {
             var result = new ResultModel<string>();
             // 從 JWT Claims 取得使用者 Id

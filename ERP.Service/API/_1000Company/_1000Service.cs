@@ -186,16 +186,15 @@ namespace ERP.Service.API._1000Company
         {
             var result = new ResultModel<string>();
             var cert = await _context.t_1001StaffCertificates!.FirstOrDefaultAsync(c => c.Id == id);
-            if (cert?.Certificate != null)
-            {
-                string base64 = Convert.ToBase64String(cert.Certificate);
-                string imageDataUrl = $"data:image/jpeg;base64,{base64}";
-                result.Data = imageDataUrl;
-            }
-            else
+            if (cert?.Certificate == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
+                return result;
+                
             }
+            string base64 = Convert.ToBase64String(cert.Certificate);
+            string imageDataUrl = $"data:image/jpeg;base64,{base64}";
+            result.Data = imageDataUrl;
             return result;
         }
         public async Task<ResultModel<string>> UploadCertificate(UploadCertificate data)
@@ -225,7 +224,7 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<string>> EditCertificate(EditCertificate data)
         {
             var result = new ResultModel<string>();
-            var _1001 = _context.t_1001StaffCertificates!.Find(data.Id);
+            var _1001 = await  _context.t_1001StaffCertificates!.FindAsync(data.Id);
             if (_1001 != null)
             {
                 _1001.CertificateName = data.CertificateName;
@@ -239,7 +238,12 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<string>> DeleteCertificate(int id)
         {
             var result = new ResultModel<string>();
-            var _1001 = _context.t_1001StaffCertificates!.Find(id);
+            var _1001 = await _context.t_1001StaffCertificates!.FindAsync(id);
+            if(_1001 == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData);
+                return result;
+            }
             _context.Remove(_1001);
             await _context.SaveChangesAsync();
             result.SetSuccess("證照已成功刪除");

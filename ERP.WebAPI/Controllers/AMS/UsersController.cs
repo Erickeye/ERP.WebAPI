@@ -66,7 +66,7 @@ namespace ERP.WebAPI.Controllers.AMS
         }
 
         [SwaggerOperation("刪除")]
-        [HttpPost,Route("Delete")]
+        [HttpDelete,Route("Delete")]
         [Log(OperationActionType.Edit, "刪除使用者")]
         public async Task<ResultModel<string>> Delete(int id)
         {

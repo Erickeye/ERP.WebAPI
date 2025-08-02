@@ -28,7 +28,7 @@ namespace ERP.WebAPI.Controllers._1000Company
         [Log(OperationActionType.View, "檢視員工列表")]
         public async Task<ResultModel<ListResult<StaffIndex>>> Index(string? deptID, bool isResignation = false)
         {
-            var result = await _service.GetStaffIndex(deptID, isResignation);
+            var result = await _service.GetStaffIndex(deptID!, isResignation);
             return result;
         }
 
@@ -67,7 +67,7 @@ namespace ERP.WebAPI.Controllers._1000Company
         }
 
         [SwaggerOperation("刪除")]
-        [HttpPost,Route("Delete")]
+        [HttpDelete,Route("Delete")]
         [Log(OperationActionType.Delete, "刪除員工列表")]
         public async Task<ResultModel<string>> Delete(int id)
         {
@@ -111,7 +111,7 @@ namespace ERP.WebAPI.Controllers._1000Company
         }
 
         [SwaggerOperation("刪除證照")]
-        [HttpPost, Route("DeleteCertificate")]
+        [HttpDelete, Route("DeleteCertificate")]
         [Log(OperationActionType.Delete, "刪除證照")]
         public async Task<ResultModel<string>> DeleteCertificate(int id)
         {

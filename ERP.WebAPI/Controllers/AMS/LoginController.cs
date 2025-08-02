@@ -6,7 +6,7 @@ using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace ERP.WebAPI.Controllers
+namespace ERP.WebAPI.Controllers.AMS
 {
     [SwaggerTag("登入作業")]
     [ApiController]

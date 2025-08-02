@@ -222,6 +222,9 @@ namespace ERP.Library.Enums
         [Display(Name = "圖片格式不支援，只接受 JPEG、PNG 和 GIF 格式", Description = "圖片格式不支援，只接受 JPEG、PNG 和 GIF 格式")]
         ImgNotSupport = 4010,
 
+        [Display(Name = "資料不完整", Description = "資料不完整")]
+        IncompleteInfo= 4011,
+
         [Display(Name = "指定的紀錄已異動", Description = "指定的紀錄已異動")]
         SpecificRecordChanged = 9501,
 

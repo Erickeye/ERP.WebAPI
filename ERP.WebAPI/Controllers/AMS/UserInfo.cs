@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace ERP.WebAPI.Controllers
+namespace ERP.WebAPI.Controllers.AMS
 {
     [ApiController]
     [Route("api/[controller]")]
