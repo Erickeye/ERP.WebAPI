@@ -126,6 +126,7 @@ builder.Services.AddScoped<I_1000Service, _1000Service>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ISftpService, SftpService>();
 
 builder.Services.AddHttpContextAccessor();

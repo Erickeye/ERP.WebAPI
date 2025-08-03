@@ -14,7 +14,16 @@ using Newtonsoft.Json;
 
 namespace ERP.Service.API.AMS
 {
-    public class RoleService
+    public interface IRoleService
+    {
+        Task<ResultModel<ListResult<RoleViewModel>>> Index();
+        Task<ResultModel<string>> Create(t_role data);
+        Task<ResultModel<string>> Edit(t_role data);
+        Task<ResultModel<string>> PermissionsEdit(RolePermissions data);
+        Task<ResultModel<string>> Delete(int id);
+        Task<ResultModel<string>> UpdatePermissionsAmount(List<t_level> data);
+    }
+    public class RoleService : IRoleService
     {
         private readonly AMSContext _context;
 
@@ -39,54 +48,74 @@ namespace ERP.Service.API.AMS
 
             return result;
         }
-        public async Task<ResultModel<string>> Create(t_user data)
+        public async Task<ResultModel<string>> Create(t_role data)
         {
             var result = new ResultModel<string>();
             _context.Add(data);
-            await _context.SaveChangesAsync();
             //建立該腳色權限
-            foreach (PermissionType permissionType in Enum.GetValues(typeof(PermissionType)))
-            {
-                _context.t_permission?.Add(new t_permission
-                {
-                    f_roleId = data.f_id,
-                    f_pageId = permissionType,
-                    f_type = false,
-                });
-            }
+            //foreach (PermissionType permissionType in Enum.GetValues(typeof(PermissionType)))
+            //{
+            //    _context.t_permission?.Add(new t_permission
+            //    {
+            //        f_roleId = data.f_id,
+            //        f_pageId = permissionType,
+            //        f_type = false,
+            //    });
+            //}
+            await _context.SaveChangesAsync();
             result.SetSuccess("角色新增成功");
             return result;
         }
         public async Task<ResultModel<string>> Edit(t_role data)
         {
-            var reuslt = new ResultModel<string>();
+            var result = new ResultModel<string>();
             var role = await _context.t_role.FirstOrDefaultAsync(c => c.f_id == data.f_id);
             if (role != null)
             {
                 _context.Entry(role).CurrentValues.SetValues(data);
                 await _context.SaveChangesAsync();
             }
-
-            return reuslt;
+            result.SetSuccess("角色修改成功");
+            return result;
         }
         public async Task<ResultModel<string>> PermissionsEdit(RolePermissions data)
         {
             var result = new ResultModel<string>();
-            var perms = _context.t_permission!.Where(p => p.f_roleId == data.RoleId).ToList();
-            if(data.RoleContent == null)
+            if (data.RoleContent == null || !data.RoleContent.Any())
             {
                 result.SetError(ErrorCodeType.IncompleteInfo);
                 return result;
             }
-            foreach (var kv in data.RoleContent.Split(';'))
+
+            var permissions = _context.t_permission!.Where(p => p.f_roleId == data.RoleId).ToList();
+            foreach (var item in data.RoleContent)
             {
-                if (kv != "")
+                var existingPerm = permissions.FirstOrDefault(p => p.f_pageId == item.PermissionType);
+                if (item.HasPermission)
                 {
-                    string[] roleData = kv.Split(',');
-                    PermissionType permType = (PermissionType)int.Parse(roleData[0]);
-                    bool hasPermission = bool.Parse(roleData[1]);
-                    var perm = perms.Where(p => p.f_pageId == permType).First();
-                    perm.f_type = hasPermission;
+                    // 如果要有權限但資料不存在 → 新增
+                    if (existingPerm == null)
+                    {
+                        _context.t_permission!.Add(new t_permission
+                        {
+                            f_roleId = data.RoleId,
+                            f_pageId = item.PermissionType,
+                            f_type = true
+                        });
+                    }
+                    // 若已有資料但權限為 false，則改成 true
+                    else if (!existingPerm.f_type)
+                    {
+                        existingPerm.f_type = true;
+                    }
+                }
+                else
+                {
+                    // 如果不需要權限但資料存在 → 刪除
+                    if (existingPerm != null)
+                    {
+                        _context.t_permission!.Remove(existingPerm);
+                    }
                 }
             }
 
@@ -124,6 +153,21 @@ namespace ERP.Service.API.AMS
             }
             return result;
         }
+        public async Task<ResultModel<string>> UpdatePermissionsAmount(List<t_level> data)
+        {
+            var result = new ResultModel<string>();
+            foreach (var level in data)
+            {
+                var hasLevel = await _context.t_level.FirstOrDefaultAsync(c => c.f_permissionLevel == level.f_permissionLevel);
+                if (hasLevel != null)
+                {
+                    hasLevel.f_levelAmount = level.f_levelAmount;
+                }
+            }
+            result.SetSuccess("權限金額已修改成功");
+            await _context.SaveChangesAsync();
+            return result;
+        }
         public async Task<ResultModel<string>> Delete(int id)
         {
             var result = new ResultModel<string>();
@@ -137,21 +181,6 @@ namespace ERP.Service.API.AMS
             await _context.SaveChangesAsync();
             result.SetSuccess("成功刪除角色");
 
-            return result;
-        }
-
-        public async Task<ResultModel<string>> UpdateLevels(List<t_level> data)
-        {
-            var result = new ResultModel<string>();
-            foreach (var level in data)
-            {
-                var hasLevel = await _context.t_level.FirstOrDefaultAsync(c => c.f_permissionLevel == level.f_permissionLevel);
-                if (hasLevel != null) {
-                    hasLevel.f_levelAmount = level.f_levelAmount;
-                }
-            }
-            result.SetSuccess("權限金額已修改成功");
-            await _context.SaveChangesAsync();
             return result;
         }
     }
