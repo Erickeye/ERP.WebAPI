@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,8 +15,9 @@ namespace ERP.EntityModels.Models._1000Company
         [Display(Name = "流水號")]
         public int Id { get; set; }
 
+        [Required]
         [Display(Name = "員工Id")]
-        public int? StaffId { get; set; }
+        public int StaffId { get; set; }
 
         [Display(Name = "證書圖片")]
         public byte[]? Certificate { get; set; }
@@ -28,6 +31,7 @@ namespace ERP.EntityModels.Models._1000Company
         public DateTime? CertificateDate { get; set; }
 
         [Display(Name = "有效期限（月）")]
+        [Range(0, 1200, ErrorMessage = "有效期限需為 0~1200 月之間")]
         public int? EffectiveDate { get; set; }
 
         [Display(Name = "是否提醒")]
@@ -36,5 +40,8 @@ namespace ERP.EntityModels.Models._1000Company
         [Display(Name = "提醒日期")]
         [DataType(DataType.Date)]
         public DateTime? NotifyDate { get; set; }
+
+        [ForeignKey(nameof(StaffId))]
+        public virtual t_1000Staff? Staff { get; set; }
     }
 }

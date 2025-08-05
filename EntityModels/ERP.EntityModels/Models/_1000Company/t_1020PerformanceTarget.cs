@@ -13,7 +13,7 @@ namespace ERP.EntityModels.Models._1000Company
         public string? f_staff_UID { get; set; }
         [Display(Name = "員工中文名")]
         [Required(ErrorMessage = "必填欄位")]
-        [Compare(nameof(t_1000Staff.f_staff_ChineseName))]
+        [Compare(nameof(t_1000Staff.ChineseName))]
         public string? f_staff_ChineseName { get; set; }
         [Display(Name = "年度")]
         [Required(ErrorMessage = "必填欄位")]

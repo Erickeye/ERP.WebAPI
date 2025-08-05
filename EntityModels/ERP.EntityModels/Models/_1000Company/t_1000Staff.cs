@@ -2,145 +2,162 @@
 
 namespace ERP.EntityModels.Models._1000Company
 {
+    public enum Gender
+    {
+        Unknown = 0,
+        Male = 1,
+        Female = 2
+    }
+
+    public enum BloodType
+    {
+        Unknown = 0,
+        A = 1,
+        B = 2,
+        AB = 3,
+        O = 4
+    }
+
     public class t_1000Staff
     {
         [Key]
         [Display(Name = "流水號")]
-        public int f_staff_ID { get; set; }
+        public int StaffId { get; set; }
 
         [Display(Name = "員工編號")]
-        public string? f_staff_UID { get; set; }
+        public string? StaffUid { get; set; }
 
-        [Display(Name = "員工中文名 ")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_ChineseName { get; set; }
+        [Required]
+        [StringLength(32)]
+        [Display(Name = "員工中文名")]
+        public string? ChineseName { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "員工英文名")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_EnglishName { get; set; }
+        public string? EnglishName { get; set; }
 
+        [Required]
         [Display(Name = "性別")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_Gender { get; set; }
+        public Gender Gender { get; set; }
 
+        [Required]
+        [StringLength(32)]
         [Display(Name = "使用者帳號")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_Account { get; set; }
+        public string? Account { get; set; }
 
+        [Required]
+        [StringLength(32)]
         [Display(Name = "連絡電話")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
 
+        [Required]
+        [StringLength(32)]
         [Display(Name = "銀行帳號")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_BankAccount { get; set; }
+        public string? BankAccount { get; set; }
 
+        [Required]
+        [StringLength(64)]
         [Display(Name = "通訊地址")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_ContactAddress { get; set; }
+        public string? ContactAddress { get; set; }
 
+        [Required]
+        [StringLength(64)]
+        [EmailAddress]
         [Display(Name = "電子郵件")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_Email { get; set; }
+        public string? Email { get; set; }
 
+        [StringLength(64)]
+        [EmailAddress]
         [Display(Name = "公務郵件")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_OfficialMail { get; set; }
+        public string? OfficialEmail { get; set; }
 
+        [Required]
+        [DataType(DataType.Date)]
         [Display(Name = "生日")]
-        [DataType(DataType.Date)]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        [Required(ErrorMessage = "必填欄位")]
-        public System.DateTime? f_staff_Bitrthday { get; set; }
+        public DateTime? Birthday { get; set; }
 
+        [Required]
+        [StringLength(32)]
         [Display(Name = "最高學歷")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_HighestEducation { get; set; }
+        public string? HighestEducation { get; set; }
 
+        [Required]
+        [DataType(DataType.Date)]
         [Display(Name = "到職日")]
-        [DataType(DataType.Date)]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        [Required(ErrorMessage = "必填欄位")]
-        public System.DateTime? f_staff_OnBoardDay { get; set; }
+        public DateTime? OnBoardDate { get; set; }
 
+        [DataType(DataType.Date)]
         [Display(Name = "離職日")]
-        [DataType(DataType.Date)]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        public System.DateTime? f_staff_ResignationDay { get; set; }
+        public DateTime? ResignationDate { get; set; }
 
+        [Required]
+        [StringLength(16)]
         [Display(Name = "身分證字號")]
-        [StringLength(10, ErrorMessage = "必須在10位數以內")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_staff_IDCard { get; set; }
+        public string? IdCard { get; set; }
 
+        [Required]
+        [Range(0, 999999999999)]
         [Display(Name = "員工自行提撥勞退")]
-        [DisplayFormat(DataFormatString = "{0:0}", ApplyFormatInEditMode = true)]
-        [Range(0, 999999999999, ErrorMessage = "必須在12位數以內")]
-        [Required(ErrorMessage = "必填欄位")]
-        public decimal? f_staff_LaborPension { get; set; }
+        public decimal? LaborPension { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "緊急連絡人1姓名")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_EC1Name { get; set; }
+        public string? EmergencyContact1Name { get; set; }
 
+        [StringLength(16)]
         [Display(Name = "緊急連絡人1關係")]
-        [StringLength(10, ErrorMessage = "必須在10位數以內")]
-        public string? f_staff_EC1Relationship { get; set; }
+        public string? EmergencyContact1Relationship { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "緊急連絡人1電話")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_EC1Cellphone { get; set; }
+        public string? EmergencyContact1Phone { get; set; }
 
+        [StringLength(64)]
         [Display(Name = "緊急連絡人1住址")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_EC1Address { get; set; }
+        public string? EmergencyContact1Address { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "緊急連絡人2姓名")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_EC2Name { get; set; }
+        public string? EmergencyContact2Name { get; set; }
 
+        [StringLength(16)]
         [Display(Name = "緊急連絡人2關係")]
-        [StringLength(10, ErrorMessage = "必須在10位數以內")]
-        public string? f_staff_EC2Relationship { get; set; }
+        public string? EmergencyContact2Relationship { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "緊急連絡人2電話")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_EC2Cellphone { get; set; }
+        public string? EmergencyContact2Phone { get; set; }
 
+        [StringLength(64)]
         [Display(Name = "緊急連絡人2住址")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_EC2Address { get; set; }
+        public string? EmergencyContact2Address { get; set; }
 
-        [Display(Name = "LineID")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_LineID { get; set; }
+        [StringLength(64)]
+        [Display(Name = "Line ID")]
+        public string? LineId { get; set; }
 
         [Display(Name = "分機號碼")]
-        [DisplayFormat(DataFormatString = "{0:0}", ApplyFormatInEditMode = true)]
-        public decimal? f_staff_ExtensionNumber { get; set; }
+        public int? ExtensionNumber { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "公務手機")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_BusinessPhone { get; set; }
+        public string? BusinessPhone { get; set; }
 
         [Display(Name = "大頭照")]
-        public byte[]? f_staff_Headshot { get; set; }
+        public byte[]? Headshot { get; set; }
 
+        [StringLength(64)]
         [Display(Name = "銀行名稱")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_staff_BankName { get; set; }
+        public string? BankName { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "分行別")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_staff_SubBankName { get; set; }
+        public string? SubBankName { get; set; }
 
         [Display(Name = "血型")]
-        public string? f_staff_BloodType { get; set; }
+        public BloodType BloodType { get; set; }
+
+        public virtual ICollection<t_1001StaffCertificates> StaffCertificates { get; set; } = new List<t_1001StaffCertificates>();
     }
+
 }

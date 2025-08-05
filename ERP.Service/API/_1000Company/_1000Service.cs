@@ -52,7 +52,7 @@ namespace ERP.Service.API._1000Company
                     query = _context.t_1000Staff!
                         .Join(
                             _context.t_1101Deprtmt!.Where(d => d.f_deprtmt_ID == deptID),
-                            staff => staff.f_staff_UID,
+                            staff => staff.StaffUid,
                             dept => dept.f_staff_UID,
                             (staff, dept) => staff
                         )
@@ -65,7 +65,7 @@ namespace ERP.Service.API._1000Company
                     query = _context.t_1000Staff!
                         .GroupJoin(
                             _context.t_1101Deprtmt!,
-                            staff => staff.f_staff_UID,
+                            staff => staff.StaffUid,
                             dept => dept.f_staff_UID,
                             (staff, deptGroup) => new { staff, deptGroup }
                         )
@@ -83,7 +83,7 @@ namespace ERP.Service.API._1000Company
             {
                 // 取得已離職員工
                 query = _context.t_1000Staff!
-                    .Where(q => q.f_staff_ResignationDay.HasValue)
+                    .Where(q => q.ResignationDate.HasValue)
                     .AsNoTracking()
                     .Select(StaffSelector());
             }
@@ -103,7 +103,7 @@ namespace ERP.Service.API._1000Company
         {
             var result = new ResultModel<string>();
 
-            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.f_staff_ID == data.f_staff_ID);
+            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == data.StaffId);
             if (hasData == null) {
                 _context.Add(data);
                 result.SetSuccess("資料成功新增");
@@ -119,7 +119,7 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<string>> Delete(int id)
         {
             var result = new ResultModel<string>();
-            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.f_staff_ID == id);
+            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == id);
             if (hasData == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
@@ -169,7 +169,7 @@ namespace ERP.Service.API._1000Company
                     using var ms = new MemoryStream();
                     await data.image.CopyToAsync(ms);
                     byte[] imageBytes = ms.ToArray();
-                    staff!.f_staff_Headshot = imageBytes;
+                    staff!.Headshot = imageBytes;
                     await _context.SaveChangesAsync();
 
                     return result;
@@ -239,7 +239,7 @@ namespace ERP.Service.API._1000Company
         {
             var result = new ResultModel<string>();
             var _1001 = await _context.t_1001StaffCertificates!.FindAsync(id);
-            if(_1001 == null)
+            if (_1001 == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
                 return result;
@@ -254,15 +254,15 @@ namespace ERP.Service.API._1000Company
         {
             return staff => new StaffIndex
             {
-                StaffUid = staff.f_staff_UID,
-                Name = staff.f_staff_ChineseName,
-                IdCard = staff.f_staff_IDCard,
-                Gender = staff.f_staff_Gender,
-                Bitrthday = staff.f_staff_Bitrthday,
-                ContactPhone = staff.f_staff_ContactPhone,
-                LineId = staff.f_staff_LineID,
-                Email = staff.f_staff_Email,
-                ContactAddress = staff.f_staff_ContactAddress
+                StaffUid = staff.StaffUid,
+                Name = staff.ChineseName,
+                IdCard = staff.IdCard,
+                Gender = staff.Gender.ToString(),
+                Bitrthday = staff.Birthday,
+                ContactPhone = staff.ContactPhone,
+                LineId = staff.LineId,
+                Email = staff.Email,
+                ContactAddress = staff.ContactAddress
             };
         }
     }

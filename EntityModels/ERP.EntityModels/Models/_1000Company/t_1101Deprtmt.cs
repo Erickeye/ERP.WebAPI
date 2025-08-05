@@ -22,12 +22,12 @@ namespace ERP.EntityModels.Models._1000Company
         [Key]
         [Display(Name = "員工編號")]
         [Required(ErrorMessage = "必填欄位")]
-        [Compare(nameof(t_1000Staff.f_staff_UID))]
+        [Compare(nameof(t_1000Staff.StaffUid))]
         public string? f_staff_UID { get; set; }
         [Display(Name = "員工中文名")]
         [StringLength(20, ErrorMessage = "必須在20位數以內")]
         [Required(ErrorMessage = "必填欄位")]
-        [Compare(nameof(t_1000Staff.f_staff_ChineseName))]
+        [Compare(nameof(t_1000Staff.ChineseName))]
         public string? f_staff_ChineseName { get; set; }
         [Display(Name = "部門主管")]
         [Required(ErrorMessage = "必填欄位")]
