@@ -23,8 +23,9 @@ namespace ERP.Data
         public DbSet<t_1039DayoffProxy> t_1039DayoffProxy { get; set; }
         public DbSet<t_1040Document> t_1040Document { get; set; }
         public DbSet<t_1050WorkOver> t_1050WorkOver { get; set; }
+        public DbSet<t_1080Company> t_1080Company { get; set; }
         public DbSet<t_1100Department> t_1100Department { get; set; }
-        public DbSet<t_1101Deprtmt> t_1101Deprtmt { get; set; }
+        public DbSet<t_1101DepartmentUnit> t_1101DepartmentUnit { get; set; }
         public DbSet<t_1700LoginLog> t_1700LoginLog { get; set; }
         public DbSet<t_1710ActionInfo> t_1710ActionInfo { get; set; }
         public DbSet<t_1200PettyCash> t_1200PettyCash { get; set; }

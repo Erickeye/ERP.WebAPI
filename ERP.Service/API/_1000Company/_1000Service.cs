@@ -51,9 +51,9 @@ namespace ERP.Service.API._1000Company
                     // Inner Join
                     query = _context.t_1000Staff!
                         .Join(
-                            _context.t_1101Deprtmt!.Where(d => d.f_deprtmt_ID == deptID),
-                            staff => staff.StaffUid,
-                            dept => dept.f_staff_UID,
+                            _context.t_1101DepartmentUnit!.Where(d => d.DepartmentId == deptID),
+                            staff => staff.StaffId,
+                            dept => dept.StaffId,
                             (staff, dept) => staff
                         )
                         .AsNoTracking()
@@ -64,9 +64,9 @@ namespace ERP.Service.API._1000Company
                     // Left Join + where dept == null
                     query = _context.t_1000Staff!
                         .GroupJoin(
-                            _context.t_1101Deprtmt!,
-                            staff => staff.StaffUid,
-                            dept => dept.f_staff_UID,
+                            _context.t_1101DepartmentUnit!,
+                            staff => staff.StaffId,
+                            dept => dept.StaffId,
                             (staff, deptGroup) => new { staff, deptGroup }
                         )
                         .SelectMany(

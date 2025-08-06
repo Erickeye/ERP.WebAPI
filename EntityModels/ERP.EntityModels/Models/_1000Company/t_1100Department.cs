@@ -6,12 +6,15 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "部門代碼")]
-        [StringLength(10, ErrorMessage = "必須在10位數以內")]
+        [StringLength(16, ErrorMessage = "必須在16位數以內")]
         [Required(ErrorMessage = "必填欄位")]
-        public string? f_deprtmt_ID { get; set; }
+        public string? Id { get; set; }
+
         [Display(Name = "部門名稱")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
+        [StringLength(32, ErrorMessage = "必須在32位數以內")]
         [Required(ErrorMessage = "必填欄位")]
-        public string? f_deprtmt_Name { get; set; }
+        public string? Name { get; set; }
+
+        public virtual ICollection<t_1101DepartmentUnit> DepartmentUnit { get; set; } = new List<t_1101DepartmentUnit>();
     }
 }

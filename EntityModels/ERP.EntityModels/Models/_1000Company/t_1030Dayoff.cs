@@ -16,7 +16,7 @@ namespace ERP.EntityModels.Models._1000Company
         public DateTime? ApplicationDate { get; set; }
 
         [ForeignKey(nameof(Staff))]
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "請假人")]
         public int StaffId { get; set; }
 
@@ -43,13 +43,13 @@ namespace ERP.EntityModels.Models._1000Company
         [StringLength(128)]
         public string? ProxySignature { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "開始日期")]
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
         public DateTime BeginDate { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "結束日期")]
         [DataType(DataType.DateTime)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]

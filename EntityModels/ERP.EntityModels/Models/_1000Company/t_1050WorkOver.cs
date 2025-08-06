@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ERP.Library.Enums._1000Company;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ERP.EntityModels.Models._1000Company
 {
@@ -6,56 +8,57 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "流水號")]
-        public int f_WorkOver_ID { get; set; }
+        public int WorkOverId { get; set; }
 
         [Display(Name = "申請人")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
+        [StringLength(32, ErrorMessage = "必須在32位字以內")]
         [Required(ErrorMessage = "必填欄位")]
-        public string? f_WorkOver_Applicant { get; set; }
+        public string? Applicant { get; set; }
 
         [Display(Name = "部門")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_WorkOver_Department { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32位字以內")]
+        public string? Department { get; set; }
 
         [Display(Name = "職稱")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_WorkOver_JobTitle { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32位字以內")]
+        public string? JobTitle { get; set; }
 
         [Display(Name = "加班日期")]
         [DataType(DataType.Date)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        public System.DateTime? f_WorkOver_OvertimeDate { get; set; }
+        public DateTime? OvertimeDate { get; set; }
 
         [Display(Name = "加班類別")]
-        public string? f_WorkOver_OvertimeType { get; set; }
+        [Required(ErrorMessage = "必填欄位")]
+        public OvertimeType OvertimeType { get; set; }
 
-        [Display(Name = "開始")]
+        [Display(Name = "開始時間")]
         [Required(ErrorMessage = "必填欄位")]
         [DataType(DataType.Time)]
-        //[DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:HH:mm:ss}")]
-        public TimeSpan? f_WorkOver_StartTime { get; set; }
+        public TimeSpan? StartTime { get; set; }
 
-        [Display(Name = "結束")]
+        [Display(Name = "結束時間")]
         [Required(ErrorMessage = "必填欄位")]
         [DataType(DataType.Time)]
-        //[DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:HH:mm:ss}")]
-        public TimeSpan? f_WorkOver_EndTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
 
         [Display(Name = "加班時數")]
         [DisplayFormat(DataFormatString = "{0:0}", ApplyFormatInEditMode = true)]
-        public decimal? f_WorkOver_Time { get; set; }
+        public decimal? OverTimeHours { get; set; }
 
-        [Display(Name = "事由")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_WorkOver_Reason { get; set; }
+        [Display(Name = "加班事由")]
+        [StringLength(64, ErrorMessage = "必須在64位字以內")]
+        public string? Reason { get; set; }
 
         [Display(Name = "申請人簽名")]
-        public string? f_WorkOver_Signature { get; set; }
+        [StringLength(64)]
+        public string? SignaturePath { get; set; }
 
         [Display(Name = "簽核主管")]
-        public string? f_WorkOver_Authorizator { get; set; }
+        [StringLength(32)]
+        public string? Authorizator { get; set; }
 
-        [Display(Name = "簽核")]
-        public bool? f_WorkOver_Approval { get; set; }
+        [Display(Name = "是否核准")]
+        public bool? IsApproved { get; set; }
     }
 }

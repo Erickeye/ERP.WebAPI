@@ -15,7 +15,7 @@ namespace ERP.EntityModels.Models._1000Company
         [Display(Name = "流水號")]
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "員工Id")]
         public int StaffId { get; set; }
 

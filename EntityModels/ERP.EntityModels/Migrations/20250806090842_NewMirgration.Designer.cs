@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERP.EntityModels.Migrations
 {
     [DbContext(typeof(ERPContext))]
-    [Migration("20250806074557_Fix_1030~_1040")]
-    partial class Fix_1030_1040
+    [Migration("20250806090842_NewMirgration")]
+    partial class NewMirgration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -491,105 +491,190 @@ namespace ERP.EntityModels.Migrations
 
             modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1050WorkOver", b =>
                 {
-                    b.Property<int>("f_WorkOver_ID")
+                    b.Property<int>("WorkOverId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("f_WorkOver_ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WorkOverId"));
 
-                    b.Property<string>("f_WorkOver_Applicant")
+                    b.Property<string>("Applicant")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
-                    b.Property<bool?>("f_WorkOver_Approval")
+                    b.Property<string>("Authorizator")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Department")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool?>("IsApproved")
                         .HasColumnType("bit");
 
-                    b.Property<string>("f_WorkOver_Authorizator")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("JobTitle")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
-                    b.Property<string>("f_WorkOver_Department")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<TimeSpan>("f_WorkOver_EndTime")
-                        .HasColumnType("time");
-
-                    b.Property<string>("f_WorkOver_JobTitle")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime?>("f_WorkOver_OvertimeDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("f_WorkOver_OvertimeType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("f_WorkOver_Reason")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("f_WorkOver_Signature")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeSpan>("f_WorkOver_StartTime")
-                        .HasColumnType("time");
-
-                    b.Property<decimal?>("f_WorkOver_Time")
+                    b.Property<decimal?>("OverTimeHours")
                         .HasPrecision(12, 2)
                         .HasColumnType("decimal(12,2)");
 
-                    b.HasKey("f_WorkOver_ID");
+                    b.Property<DateTime?>("OvertimeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OvertimeType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("SignaturePath")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("WorkOverId");
 
                     b.ToTable("t_1050WorkOver");
                 });
 
+            modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1080Company", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("AttribName")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("CheckingAccount")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("DeliveryAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("FaxPhone")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime?>("FoundedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InvoiceForm")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("PayDays")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("RegisteredAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("RemittanceAccount")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("TaxInvoiceAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("TaxInvoiceNumber")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<string>("TaxSerialNumber")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("nvarchar(9)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("t_1080Company");
+                });
+
             modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1100Department", b =>
                 {
-                    b.Property<string>("f_deprtmt_ID")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<string>("Id")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
-                    b.Property<string>("f_deprtmt_Name")
+                    b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
 
-                    b.HasKey("f_deprtmt_ID");
+                    b.HasKey("Id");
 
                     b.ToTable("t_1100Department");
                 });
 
-            modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1101Deprtmt", b =>
+            modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1101DepartmentUnit", b =>
                 {
-                    b.Property<string>("f_staff_UID")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.Property<string>("f_deprtmt_ID")
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DepartmentId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
-                    b.Property<bool>("f_deprtmt_MG")
+                    b.Property<bool>("IsManager")
                         .HasColumnType("bit");
 
-                    b.Property<string>("f_deprtmt_Name")
+                    b.Property<string>("JobTitle")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
 
-                    b.Property<string>("f_deprtmt_Seniority")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.Property<int>("StaffId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("f_staff_ChineseName")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                    b.HasKey("Id");
 
-                    b.HasKey("f_staff_UID");
+                    b.HasIndex("DepartmentId");
 
-                    b.ToTable("t_1101Deprtmt");
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("t_1101DepartmentUnit");
                 });
 
             modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1200PettyCash", b =>
@@ -970,9 +1055,33 @@ namespace ERP.EntityModels.Migrations
                     b.Navigation("Dayoff");
                 });
 
+            modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1101DepartmentUnit", b =>
+                {
+                    b.HasOne("ERP.EntityModels.Models._1000Company.t_1100Department", "Department")
+                        .WithMany("DepartmentUnit")
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ERP.EntityModels.Models._1000Company.t_1000Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1000Staff", b =>
                 {
                     b.Navigation("StaffCertificates");
+                });
+
+            modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1100Department", b =>
+                {
+                    b.Navigation("DepartmentUnit");
                 });
 #pragma warning restore 612, 618
         }

@@ -10,11 +10,11 @@ namespace ERP.EntityModels.Models._1000Company
         public int Id { get; set; }
 
         [ForeignKey(nameof(Dayoff))]
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "請假單編號")]
         public int DayoffId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "代理人Id")]
         public int ProxyId { get; set; }
 
@@ -26,7 +26,7 @@ namespace ERP.EntityModels.Models._1000Company
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
         public DateTime? DateTime { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "請假人Id")]
         public int SelfId { get; set; }
 
