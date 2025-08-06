@@ -32,29 +32,29 @@ namespace ERP.WebAPI.Middleware
                 {
                     // 取得基本資訊
                     var userAccount = context.User.Claims.FirstOrDefault(c => c.Type == "account")?.Value ?? "Anonymous";
-                    var ip = context.Connection.RemoteIpAddress?.ToString();
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "";
                     var date = DateTime.Now;
-                    var controller = context.Request.Path.Value;
+                    var location = context.Request.Path.Value;
                     var method = context.Request.Method;
-                    var controllerId = context.Request.Query["id"].FirstOrDefault(); //依需求改
-                    var describe = $"Request to {controller} [{method}]";
+                    var keyId = context.Request.Query["id"].FirstOrDefault(); //依需求改
+                    var describe = $"Request to {location}";
 
                     var logEntity = new t_1710ActionInfo
                     {
                         f_ActionInfo_Account = userAccount,
-                        f_ActionInfo_IP = ip,
-                        f_ActionInfo_Date = date,
-                        f_ActionInfo_Controller = controller,
-                        f_ActionInfo_Function = actionLogAttr.ActionCode.ToString(),
-                        f_ActionInfo_ControllerID = controllerId,
-                        f_ActionInfo_describe = $"{actionLogAttr.Description}[${method}]"
+                        IpAddress = ip,
+                        CrateDate = date,
+                        Location = location,
+                        ActionType = actionLogAttr.ActionCode,
+                        KeyId = keyId,
+                        Memo = $"{actionLogAttr.Description}[{method}]"
                     };
 
                     dbContext.t_1710ActionInfo.Add(logEntity);
                     await dbContext.SaveChangesAsync();
 
                     // Optional: Console log
-                    _logger.LogInformation("Logged action: {Controller} {Method} by {User}", controller, method, userAccount);
+                    //_logger.LogInformation("Logged action: {Controller} {Method} by {User}", controller, method, userAccount);
                 }
                 catch (Exception ex)
                 {

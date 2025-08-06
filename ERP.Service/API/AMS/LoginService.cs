@@ -88,7 +88,7 @@ namespace ERP.Service.API.AMS
                 Role = user.f_role
             };
             //紀錄登入Log
-            LoginLog(login);
+            LoginLog(login, user.f_id);
             return result;
         }
 
@@ -225,13 +225,14 @@ namespace ERP.Service.API.AMS
             return Convert.ToBase64String(randomBytes);
         }
 
-        private void LoginLog(LoginRequest login)
+        private void LoginLog(LoginRequest login, int userId)
         {
             var log = new t_1700LoginLog
             {
-                f_staff_Account = login.Account,
-                f_login_IP = GetClientIp(),
-                f_login_CrateDate = DateTime.Now
+                UserId = userId,
+                Account = login.Account,
+                IpAddress = GetClientIp(),
+                CrateDate = DateTime.Now
             };
             _eRPContext.t_1700LoginLog!.Add(log);
             _eRPContext.SaveChangesAsync();
