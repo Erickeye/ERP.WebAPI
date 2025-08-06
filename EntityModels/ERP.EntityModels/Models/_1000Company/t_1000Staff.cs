@@ -1,23 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ERP.Library.Enums._1000Company;
+using System.ComponentModel.DataAnnotations;
 
 namespace ERP.EntityModels.Models._1000Company
 {
-    public enum Gender
-    {
-        Unknown = 0,
-        Male = 1,
-        Female = 2
-    }
-
-    public enum BloodType
-    {
-        Unknown = 0,
-        A = 1,
-        B = 2,
-        AB = 3,
-        O = 4
-    }
-
     public class t_1000Staff
     {
         [Key]
@@ -158,6 +143,8 @@ namespace ERP.EntityModels.Models._1000Company
         public BloodType BloodType { get; set; }
 
         public virtual ICollection<t_1001StaffCertificates> StaffCertificates { get; set; } = new List<t_1001StaffCertificates>();
+        //public virtual ICollection<t_1030Dayoff> Dayoff { get; set; } = new List<t_1030Dayoff>();
+        //public virtual ICollection<t_1039DayoffProxy> DayoffProxy { get; set; } = new List<t_1039DayoffProxy>();
     }
 
 }

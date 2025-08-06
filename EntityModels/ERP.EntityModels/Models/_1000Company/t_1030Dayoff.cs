@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using ERP.Library.Enums._1000Company;
 
 namespace ERP.EntityModels.Models._1000Company
 {
@@ -6,57 +8,59 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "請假單編號")]
-        public int? f_Dayoff_ID { get; set; }
+        public int DayOffId { get; set; }
 
         [Display(Name = "申請日期")]
         [DataType(DataType.Date)]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        public System.DateTime? f_Dayoff_Date { get; set; }
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        public DateTime? ApplicationDate { get; set; }
 
+        [ForeignKey(nameof(Staff))]
+        [Required]
         [Display(Name = "請假人")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Dayoff_Name { get; set; }
+        public int StaffId { get; set; }
 
         [Display(Name = "申請者")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Dayoff_Applicant { get; set; }
+        [StringLength(32)]
+        public string? Applicant { get; set; }
 
         [Display(Name = "部門")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Dayoff_Department { get; set; }
+        [StringLength(32)]
+        public string? Department { get; set; }
 
         [Display(Name = "代理人")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Dayoff_Position { get; set; }
+        [StringLength(32)]
+        public string? Proxy { get; set; }
 
         [Display(Name = "假別")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Dayoff_LeaveType { get; set; }
+        public LeaveType LeaveType { get; set; }
 
         [Display(Name = "事由")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_Dayoff_Reason { get; set; }
+        [StringLength(64)]
+        public string? Reason { get; set; }
 
         [Display(Name = "代理人簽章")]
-        public string? f_Dayoff_ProxySign { get; set; }
+        [StringLength(128)]
+        public string? ProxySignature { get; set; }
 
+        [Required]
         [Display(Name = "開始日期")]
         [DataType(DataType.DateTime)]
-        [Required(ErrorMessage = "必填欄位")]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd HH:mm}")]
-        public System.DateTime? f_Dayoff_BeginDate { get; set; }
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
+        public DateTime BeginDate { get; set; }
 
+        [Required]
         [Display(Name = "結束日期")]
         [DataType(DataType.DateTime)]
-        [Required(ErrorMessage = "必填欄位")]
-        [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd HH:mm}")]
-        public System.DateTime? f_Dayoff_EndDate { get; set; }
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
+        public DateTime EndDate { get; set; }
 
         [Display(Name = "簽核主管")]
-        public string? f_Dayoff_Authorizator { get; set; }
+        public string? Authorizer { get; set; }
 
         [Display(Name = "簽核")]
-        public bool? f_Dayoff_Approval { get; set; }
+        public bool? ApprovalStatus { get; set; }
+
+        public virtual t_1000Staff? Staff { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ERP.Library.Enums._1000Company;
+using System.ComponentModel.DataAnnotations;
+
 
 namespace ERP.EntityModels.Models._1000Company
 {
@@ -6,60 +8,65 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "發文字號")]
-        public int? f_Document_ID { get; set; }
+        public int? DocumentId { get; set; }
 
+        [Required]
         [Display(Name = "公司名稱")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_Document_Company { get; set; }
+        [StringLength(64, ErrorMessage = "必須在 64 位數以內")]
+        public string? Company { get; set; }
 
+        [Required]
         [Display(Name = "聯絡人")]
-        [StringLength(20, ErrorMessage = "必須在50位數以內")]
-        public string? f_Document_ContactPerson { get; set; }
+        [StringLength(32, ErrorMessage = "必須在 32 位數以內")]
+        public string? ContactPerson { get; set; }
 
+        [Required]
         [Display(Name = "受文者")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_Document_Recipient { get; set; }
+        [StringLength(64, ErrorMessage = "必須在 64 位數以內")]
+        public string? Recipient { get; set; }
 
+        [Required]
         [Display(Name = "發文日期")]
         [DataType(DataType.Date)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        public System.DateTime? f_Document_Date { get; set; }
+        public DateTime? DocumentDate { get; set; }
 
+        [Required]
         [Display(Name = "速別")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Document_Level { get; set; }
+        public DocumentLevelType Level { get; set; }
 
         [Display(Name = "附件")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Document_Attachment { get; set; }
+        [StringLength(32, ErrorMessage = "必須在 32 位數以內")]
+        public string? Attachment { get; set; }
 
         [Display(Name = "主旨")]
-        [StringLength(200, ErrorMessage = "必須在200位數以內")]
-        public string? f_Document_Subject { get; set; }
+        [StringLength(256, ErrorMessage = "必須在 256 位數以內")]
+        public string? Subject { get; set; }
 
         [Display(Name = "正本")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_Document_Original { get; set; }
+        [StringLength(64, ErrorMessage = "必須在 64 位數以內")]
+        public string? Original { get; set; }
 
         [Display(Name = "說明")]
-        public string? f_Document_Remark1 { get; set; }
+        public string? Remark1 { get; set; }
 
         [Display(Name = "副本")]
-        [StringLength(50, ErrorMessage = "必須在50位數以內")]
-        public string? f_Document_Remark2 { get; set; }
+        [StringLength(64, ErrorMessage = "必須在 64 位數以內")]
+        public string? Remark2 { get; set; }
 
         [Display(Name = "圖片")]
-        public string? f_Document_File { get; set; }
+        public string? File { get; set; }
 
         [Display(Name = "專案編號")]
-        [StringLength(50, ErrorMessage = "必須在20位數以內")]
-        public string? f_Document_Contract { get; set; }
+        [StringLength(32, ErrorMessage = "必須在 32 位數以內")]
+        public string? Contract { get; set; }
 
         [Display(Name = "主管簽核")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_Document_Authorizator { get; set; }
+        [StringLength(32, ErrorMessage = "必須在 32 位數以內")]
+        public string? Authorizator { get; set; }
 
         [Display(Name = "簽核")]
-        public bool? f_Document_Approval { get; set; }
+        public bool? Approval { get; set; }
     }
+
 }
