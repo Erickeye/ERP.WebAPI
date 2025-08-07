@@ -1,74 +1,70 @@
-﻿using System;
+﻿using ERP.EntityModels.Models._1000Company;
+using ERP.Library.Enums._1000Company;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ERP.EntityModels.Models._2000Customer
 {
-    public class t_2010custemploy
+    public class t_2010Custemploy
     {
         [Key]
-        [Display(Name = "客戶排序")]
+        [Display(Name = "流水號")]
 
-        public int f_custemploy_ID { get; set; }
+        public int Id { get; set; }
 
+        [ForeignKey(nameof(Customer))]
         [Display(Name = "客戶編號")]
         [Required(ErrorMessage = "必填欄位")]
-        public int? f_customer_ID { get; set; }
-
-        [Display(Name = "公司簡稱")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_customer_AttribName { get; set; }
-
-        [Display(Name = "公司名稱")]
-        [Required(ErrorMessage = "必填欄位")]
-        public string? f_customer_Name { get; set; }
+        public int CustomerId { get; set; }
 
         [Display(Name = "聯絡人")]
         [Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_Name { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? Name { get; set; }
 
         [Display(Name = "部門")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_Department { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? Department { get; set; }
 
         [Display(Name = "職稱")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_Post { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? JobTitle { get; set; }
 
         [Display(Name = "主要工作")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_Job { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? Job { get; set; }
 
         [Display(Name = "分機號碼")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_ExtNum { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? ExtNum { get; set; }
 
         [Display(Name = "行動電話")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_MobilePhone { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? MobilePhone { get; set; }
 
         [Display(Name = "使用者帳號")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_custemploy_Account { get; set; }
+        [StringLength(32, ErrorMessage = "必須在32個字以內")]
+        public string? Account { get; set; }
 
         [Display(Name = "電子郵件")]
-        [StringLength(50, ErrorMessage = "必須在50個字以內")]
-        public string? f_custemploy_Email { get; set; }
+        [StringLength(64, ErrorMessage = "必須在64個字以內")]
+        public string? Email { get; set; }
 
         [Display(Name = "婚姻狀況")]
-        [StringLength(10, ErrorMessage = "必須在10個字以內")]
-        public string? f_custemploy_EmotionState { get; set; }
+        public MarriageStatus? MarriageStatus { get; set; }
 
         [Display(Name = "在職狀況")]
-        [StringLength(100, ErrorMessage = "必須在100個字以內")]
-        public string? f_custemploy_Remark { get; set; }
+        public JobStatus? JobStatus { get; set; } = 0;
 
         [Display(Name = "備註")]
-        [StringLength(100, ErrorMessage = "必須在100個字以內")]
-        public string? f_custemploy_Momo { get; set; }
+        [StringLength(256, ErrorMessage = "必須在256個字以內")]
+        public string? Momo { get; set; }
+
+        public virtual t_2000Customer? Customer { get; set; }
     }
 }

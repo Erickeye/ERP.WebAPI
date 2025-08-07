@@ -4,6 +4,7 @@ using ERP.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERP.EntityModels.Migrations
 {
     [DbContext(typeof(ERPContext))]
-    partial class ERPContextModelSnapshot : ModelSnapshot
+    [Migration("20250807010807_Fix_2000")]
+    partial class Fix_2000
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -872,6 +875,7 @@ namespace ERP.EntityModels.Migrations
                         .HasColumnType("decimal(12,2)");
 
                     b.Property<string>("AttribName")
+                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
@@ -903,7 +907,7 @@ namespace ERP.EntityModels.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<int?>("InvoiceForm")
+                    b.Property<int>("InvoiceForm")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("LastDeliveryDate")
@@ -933,6 +937,7 @@ namespace ERP.EntityModels.Migrations
                         .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("StaffChineseName")
+                        .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
@@ -981,14 +986,14 @@ namespace ERP.EntityModels.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<int?>("JobStatus")
+                    b.Property<int>("JobStatus")
                         .HasColumnType("int");
 
                     b.Property<string>("JobTitle")
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
-                    b.Property<int?>("MarriageStatus")
+                    b.Property<int>("MarriageStatus")
                         .HasColumnType("int");
 
                     b.Property<string>("MobilePhone")

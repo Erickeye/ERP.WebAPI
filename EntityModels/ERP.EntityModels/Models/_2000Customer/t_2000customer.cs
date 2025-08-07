@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ERP.EntityModels.Models._1000Company;
+using ERP.Library.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,102 +9,88 @@ using System.Threading.Tasks;
 
 namespace ERP.EntityModels.Models._2000Customer
 {
-    public class t_2000customer
+    public class t_2000Customer
     {
-        [Display(Name = "客戶編號")]
         [Key]
-        public int f_customer_ID { get; set; }
-
         [Display(Name = "流水號")]
-        public string? f_customer_UID { get; set; }
+        public int Id { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "客戶簡稱")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_customer_AttribName { get; set; }
+        public string? AttribName { get; set; }
 
+        [Required, StringLength(64)]
         [Display(Name = "客戶名稱")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_customer_Name { get; set; }
+        public string Name { get; set; } = null!;
 
+        [Required, StringLength(8)]
         [Display(Name = "統一編號")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(8, ErrorMessage = "必須在8位數以內")]
-        public string? f_customer_TaxInvoiceNumber { get; set; }
+        public string? TaxInvoiceNumber { get; set; }
 
+        [Required, StringLength(32)]
         [Display(Name = "負責人")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_customer_Owner { get; set; }
+        public string? Owner { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "連絡電話")]
-        //[Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_customer_ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "傳真電話")]
-        [StringLength(20, ErrorMessage = "必須在20位數以內")]
-        public string? f_customer_FaxPhone { get; set; }
+        public string? FaxPhone { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "責任業務員")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_staff_ChineseName { get; set; }
+        public string? StaffChineseName { get; set; }
 
+        [Required, StringLength(64)]
         [Display(Name = "公司地址")]
-        [Required(ErrorMessage = "必填欄位")]
-        [StringLength(50, ErrorMessage = "必須在50個字以內")]
-        public string? f_customer_RegisteredAddress { get; set; }
+        public string? RegisteredAddress { get; set; }
 
+        [StringLength(64)]
         [Display(Name = "出貨地址")]
-        //[Required(ErrorMessage = "必填欄位")]
-        [StringLength(50, ErrorMessage = "必須在50個字以內")]
-        public string? f_customer_DeliveryAddress { get; set; }
+        public string? DeliveryAddress { get; set; }
 
+        [StringLength(64)]
         [Display(Name = "發票地址")]
-        [StringLength(50, ErrorMessage = "必須在50個字以內")]
-        public string? f_customer_TaxInvoiceAddress { get; set; }
+        public string? TaxInvoiceAddress { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "銀行名稱")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_customer_BankName { get; set; }
+        public string? BankName { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "支票帳戶")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_customer_CheckingAccount { get; set; }
+        public string? CheckingAccount { get; set; }
 
+        [StringLength(32)]
         [Display(Name = "匯款帳戶")]
-        [StringLength(20, ErrorMessage = "必須在20個字以內")]
-        public string? f_customer_RemittanceAccount { get; set; }
+        public string? RemittanceAccount { get; set; }
 
+        [StringLength(8)]
         [Display(Name = "付款票期")]
-        [StringLength(8, ErrorMessage = "必須在8個字以內")]
-        public string? f_customer_PayDays { get; set; }
+        public string? PayDays { get; set; }
 
+        [Range(0, 999999999999)]
         [Display(Name = "信用額度")]
-        [DisplayFormat(DataFormatString = "{0:0}", ApplyFormatInEditMode = true)]
-        [Range(0, 999999999999, ErrorMessage = "必須在12位數以內")]
+        public decimal? CreditLine { get; set; }
 
-        public Nullable<decimal> f_customer_CreditLine { get; set; }
-
+        [Range(0, 999999999999)]
         [Display(Name = "信用餘額")]
-        [DisplayFormat(DataFormatString = "{0:0}", ApplyFormatInEditMode = true)]
-        [Range(0, 999999999999, ErrorMessage = "必須在12位數以內")]
-        public Nullable<decimal> f_customer_CreditBalance { get; set; }
+        public decimal? CreditBalance { get; set; }
 
-        [Display(Name = "最後交易日")]
         [DataType(DataType.Date)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
-        public Nullable<System.DateTime> f_customer_LastDeliveryDate { get; set; }
+        [Display(Name = "最後交易日")]
+        public DateTime? LastDeliveryDate { get; set; }
 
+        [Range(0, 999999999999)]
         [Display(Name = "暫收款")]
-        [DisplayFormat(DataFormatString = "{0:0}", ApplyFormatInEditMode = true)]
-        [Range(0, 999999999999, ErrorMessage = "必須在12位數以內")]
-        public Nullable<decimal> f_customer_Advance { get; set; }
+        public decimal? Advance { get; set; }
 
         [Display(Name = "發票格式")]
-        [StringLength(8, ErrorMessage = "必須在8個字以內")]
-        public string? f_custome_InvoiceForm { get; set; }
+        public InvoiceFormType? InvoiceForm{ get; set; }
+
+        public virtual ICollection<t_2010Custemploy> StaffCertificates { get; set; } = new List<t_2010Custemploy>();
     }
 }
