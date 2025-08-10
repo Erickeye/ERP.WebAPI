@@ -10,7 +10,7 @@ namespace ERP.WebAPI.Controllers.SFTP
     [SwaggerTag("SFTP檔案")]
     [ApiController]
     [Route("api/[controller]")]
-    [ApiExplorerSettings(GroupName = "Default API")]
+    [ApiExplorerSettings(GroupName = "_1000Company")]
     public class SftpController : ControllerBase
     {
         private readonly ISftpService _sftpService;

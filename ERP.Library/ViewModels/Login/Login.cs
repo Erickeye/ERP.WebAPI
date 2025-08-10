@@ -16,5 +16,6 @@ namespace ERP.Library.ViewModels.Login
         public string UserName { get; set; } = string.Empty;
         public int UserId { get; set; }
         public int Role { get; set; }
+        public List<int> Permissions { get; set; } = new();
     }
 }

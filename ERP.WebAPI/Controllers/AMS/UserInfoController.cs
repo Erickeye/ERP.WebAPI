@@ -8,11 +8,11 @@ namespace ERP.WebAPI.Controllers.AMS
     [ApiController]
     [Route("api/[controller]")]
     [ApiExplorerSettings(GroupName = "Default API")]
-    public class UserInfo : ControllerBase
+    public class UserInfoController : ControllerBase
     {
         private IUserInfoService _userInfoService;
 
-        public UserInfo(IUserInfoService userInfoService)
+        public UserInfoController(IUserInfoService userInfoService)
         {
             _userInfoService = userInfoService;
         }

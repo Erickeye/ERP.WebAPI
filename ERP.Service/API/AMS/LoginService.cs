@@ -78,6 +78,11 @@ namespace ERP.Service.API.AMS
             user.f_refreshTokenExpiryTime = RefreshTokenExpirationTime;
             _context.SaveChanges();
 
+            var permissions = _context.t_permission.Where(c => c.f_roleId == user.f_role)
+                .AsNoTracking()
+                .Select(c => (int)c.f_pageId)
+                .ToList();
+
             result.Data = new LoginResponse
             {
                 AccessToken = accessToken,
@@ -85,7 +90,8 @@ namespace ERP.Service.API.AMS
                 Expiration = AccessTokenExpirationTime,
                 UserName = user.f_name,
                 UserId = user.f_id,
-                Role = user.f_role
+                Role = user.f_role,
+                Permissions = permissions
             };
             //紀錄登入Log
             LoginLog(login, user.f_id);
@@ -155,7 +161,9 @@ namespace ERP.Service.API.AMS
             // 清除使用者的 refresh token 及過期時間
             user.f_refreshToken = null;
             user.f_refreshTokenExpiryTime = null;
+            await _context.SaveChangesAsync();
 
+            result.SetSuccess("成功登出");
             return result;
         }
 

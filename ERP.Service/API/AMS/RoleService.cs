@@ -19,6 +19,7 @@ namespace ERP.Service.API.AMS
         Task<ResultModel<ListResult<RoleViewModel>>> Index();
         Task<ResultModel<string>> Create(t_role data);
         Task<ResultModel<string>> Edit(t_role data);
+        Task<ResultModel<RolePermissions>> GetRolePermissions(int roleId);
         Task<ResultModel<string>> PermissionsEdit(RolePermissions data);
         Task<ResultModel<string>> Delete(int id);
         Task<ResultModel<string>> UpdatePermissionsAmount(List<t_level> data);
@@ -78,6 +79,36 @@ namespace ERP.Service.API.AMS
             result.SetSuccess("角色修改成功");
             return result;
         }
+        public async Task<ResultModel<RolePermissions>> GetRolePermissions(int roleId)
+        {
+            var result = new ResultModel<RolePermissions>();
+            var role = await _context.t_role.FirstOrDefaultAsync(c => c.f_id == roleId);
+            if (role == null)
+            {
+                result.SetError(ErrorCodeType.UserRoleAlreadyExists);
+                return result;
+            }
+            var permissions = await _context.t_permission.Where(c => c.f_roleId == roleId).ToListAsync();
+
+            var permissionsList = new RolePermissions
+            {
+                RoleId = roleId,
+                RoleContent = permissions.Select(c => new RolePermissionItem()
+                {
+                    PermissionType = c.f_pageId,
+                    HasPermission = c.f_type,
+                })
+                .ToList(),
+                Permission = role.f_permissionLevel,
+                Approval = role.f_approvalLevel,
+                Quotation = role.f_quotationLevel,
+                Procurement = role.f_procurementLevel,
+            };
+
+            result.Data = permissionsList;
+
+            return result;
+        }
         public async Task<ResultModel<string>> PermissionsEdit(RolePermissions data)
         {
             var result = new ResultModel<string>();
@@ -134,16 +165,7 @@ namespace ERP.Service.API.AMS
                 _context.t_permission!.UpdateRange();
                 await _context.SaveChangesAsync();
                 //資料序列化
-                result.Data = JsonConvert.SerializeObject(new
-                {
-
-                    Table = new List<Dictionary<string, int>>
-                    {
-                        new() {
-                            {"f_msg", 1 }
-                        }
-                    }
-                });
+                result.SetSuccess("角色權限已修正");
             }
             catch (Exception ex)
             {

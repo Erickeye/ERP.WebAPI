@@ -62,6 +62,15 @@ namespace ERP.WebAPI.Controllers.AMS
             return result;
         }
 
+        [SwaggerOperation("檢視角色權限")]
+        [HttpPost, Route("GetRolePermissions")]
+        [Log(OperationActionType.View, "檢視角色權限")]
+        public async Task<ResultModel<RolePermissions>> GetRolePermissions(int roleId)
+        {
+            var result = await _servsice.GetRolePermissions(roleId);
+            return result;
+        }
+
         [SwaggerOperation("修改角色權限")]
         [HttpPost, Route("PermissionsEdit")]
         [Log(OperationActionType.Edit, "修改角色權限")]
