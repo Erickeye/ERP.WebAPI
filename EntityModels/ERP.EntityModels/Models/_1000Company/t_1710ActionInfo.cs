@@ -12,14 +12,14 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "流水號")]
-        public int f_ActionInfo_UID { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "使用者Id")]
         public int UserId { get; set; }
 
         [StringLength(32)]
         [Display(Name = "使用者帳號")]
-        public string f_ActionInfo_Account { get; set; } = null!;
+        public string Account { get; set; } = null!;
 
         [StringLength(64)]
         [Display(Name = "登入IP")]

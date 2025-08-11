@@ -13,7 +13,7 @@ namespace ERP.EntityModels.Models._1000Company
         [Display(Name = "代墊款編號")]
         [Required(ErrorMessage = "必填欄位")]
         [StringLength(32, ErrorMessage = "必須在32位數以內")]
-        public string? PettyCashId { get; set; }
+        public string? Id { get; set; }
 
         [Display(Name = "付款對象")]
         [Required(ErrorMessage = "必填欄位")]

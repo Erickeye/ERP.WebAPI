@@ -6,7 +6,7 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Display(Name = "編號")]
         [Key]
-        public int ID { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "公司簡稱")]
         [Required(ErrorMessage = "必填欄位")]

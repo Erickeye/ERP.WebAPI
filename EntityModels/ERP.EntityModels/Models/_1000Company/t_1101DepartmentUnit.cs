@@ -11,7 +11,7 @@ namespace ERP.EntityModels.Models._1000Company
     public class t_1101DepartmentUnit
     {
         [Key]
-        [Display(Name = "請假單編號")]
+        [Display(Name = "編號")]
         public int Id { get; set; }
 
         [ForeignKey(nameof(Staff))]

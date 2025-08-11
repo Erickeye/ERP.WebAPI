@@ -8,7 +8,7 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "發文字號")]
-        public int? DocumentId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [Display(Name = "公司名稱")]

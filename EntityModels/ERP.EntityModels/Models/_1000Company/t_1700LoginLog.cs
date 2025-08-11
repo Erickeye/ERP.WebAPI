@@ -11,7 +11,7 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "流水號")]
-        public int LoginId { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "時間")]
         [DataType(DataType.Date)]

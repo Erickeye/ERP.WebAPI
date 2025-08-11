@@ -8,7 +8,7 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "請假單編號")]
-        public int DayOffId { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "申請日期")]
         [DataType(DataType.Date)]

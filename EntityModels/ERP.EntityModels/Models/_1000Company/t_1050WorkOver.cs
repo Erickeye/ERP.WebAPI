@@ -8,7 +8,7 @@ namespace ERP.EntityModels.Models._1000Company
     {
         [Key]
         [Display(Name = "流水號")]
-        public int WorkOverId { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "申請人")]
         [StringLength(32, ErrorMessage = "必須在32位字以內")]

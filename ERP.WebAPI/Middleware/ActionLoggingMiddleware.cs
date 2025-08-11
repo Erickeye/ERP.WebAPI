@@ -41,7 +41,7 @@ namespace ERP.WebAPI.Middleware
 
                     var logEntity = new t_1710ActionInfo
                     {
-                        f_ActionInfo_Account = userAccount,
+                        Account = userAccount,
                         IpAddress = ip,
                         CrateDate = date,
                         Location = location,
