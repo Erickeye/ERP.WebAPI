@@ -3,6 +3,7 @@ using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
 using ERP.Service.API._1000Company;
 using ERP.Service.API.AMS;
+using ERP.Service.Helpers;
 using ERP.Service.Sftp;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,6 +12,8 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -121,13 +124,33 @@ builder.Services.AddDbContext<AMSContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP_AMS")));
 
 builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));
-builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddScoped<I_1000Service, _1000Service>();
-builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-builder.Services.AddScoped<IUserInfoService, UserInfoService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<ISftpService, SftpService>();
+//builder.Services.AddScoped<ILoginService, LoginService>();
+//builder.Services.AddScoped<I_1000Service, _1000Service>();
+//builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+//builder.Services.AddScoped<IUserInfoService, UserInfoService>();
+//builder.Services.AddScoped<IUserService, UserService>();
+//builder.Services.AddScoped<IRoleService, RoleService>();
+//builder.Services.AddScoped<ISftpService, SftpService>();
+
+// 註冊介面跟服務(自動註冊服務)
+var assembly = Assembly.GetAssembly(typeof(EnumHelper));
+var types = assembly!.GetTypes()
+            .Where(c => c.Namespace != null)
+            .Where(c => c.Namespace!.StartsWith("ERP.Service"))
+            .Where(c => c.GetInterfaces().Any(x => x.Name == $"I{c.Name}"))
+            .Where(c => !c.IsAbstract)
+            .Where(c => !c.IsInterface)
+            ;
+
+foreach (var type in types)
+{
+    var interfaceType = type.GetInterfaces().FirstOrDefault(c => c.Name != null);
+    if(interfaceType != null)
+    {
+        builder.Services.AddScoped(interfaceType,type);
+        Console.WriteLine($"已註冊 {interfaceType.Name} -> {type.Name}");
+    }
+}
 
 builder.Services.AddHttpContextAccessor();
 

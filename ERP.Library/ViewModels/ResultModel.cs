@@ -39,11 +39,10 @@ namespace ERP.Library.ViewModels
     {
         public List<T> Items { get; set; } = new();
     }
-
-    public class ResultPayload<T>
+    public class SelectModel
     {
-        public T? Data { get; set; } = default;
-        public int Code { get; set; } = 0;
+        public int Value { get; set; }
+        public string Text { get; set; } = string.Empty;
     }
 
     public static class EnumExtensions
