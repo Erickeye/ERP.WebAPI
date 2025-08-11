@@ -30,7 +30,7 @@ namespace ERP.EntityModels.Models._1000Company
 
         [Display(Name = "加班類別")]
         [Required(ErrorMessage = "必填欄位")]
-        public OvertimeType OvertimeType { get; set; }
+        public OverTimeType OvertimeType { get; set; }
 
         [Display(Name = "開始時間")]
         [Required(ErrorMessage = "必填欄位")]
