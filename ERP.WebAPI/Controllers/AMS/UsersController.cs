@@ -28,50 +28,50 @@ namespace ERP.WebAPI.Controllers.AMS
         [SwaggerOperation("檢視")]
         [HttpGet,Route("Index")]
         [Log(OperationActionType.View, "檢視使用者")]
-        public async Task<ResultModel<ListResult<UserViewModel>>> Index(string? inputUser)
+        public async Task<IActionResult> Index(string? inputUser)
         {
             var result = new ResultModel<ListResult<UserViewModel>>();
             result = await _service.Index(inputUser!);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("新增")]
         [HttpPost,Route("Create")]
         [Log(OperationActionType.Create, "新增使用者")]
-        public async Task<ResultModel<string>> Create(t_user data)
+        public async Task<IActionResult> Create(t_user data)
         {
             var result = new ResultModel<string>();
             if (!ModelState.IsValid)
             {
                 result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return result;
+                return Ok(result);
             }
             result = await _service.Create(data);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("修改")]
         [HttpPost,Route("Edit")]
         [Log(OperationActionType.Edit, "修改使用者")]
-        public async Task<ResultModel<string>> Edit(t_user data)
+        public async Task<IActionResult> Edit(t_user data)
         {
             var result = new ResultModel<string>();
             if (!ModelState.IsValid)
             {
                 result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return result;
+                return Ok(result);
             }
             result = await _service.Edit(data);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("刪除")]
         [HttpDelete,Route("Delete")]
         [Log(OperationActionType.Edit, "刪除使用者")]
-        public async Task<ResultModel<string>> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var result = await _service.Delete(id);
-            return result;
+            return Ok(result);
         }
     }
 }

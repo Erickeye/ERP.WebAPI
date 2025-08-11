@@ -24,18 +24,18 @@ namespace ERP.WebAPI.Controllers.SFTP
         [SwaggerOperation("上傳檔案")]
         [HttpPost,Route("Upload")]
         [Log(OperationActionType.Export,"上傳檔案")]
-        public ResultModel<string> UploadFile(IFormFile file)
+        public IActionResult UploadFile(IFormFile file)
         {
             var result = new ResultModel<string>();
             if (file == null || file.Length == 0)
             {
                 result.SetError(ErrorCodeType.ImgNotFound);
-                return result;
+                return Ok(result);
             }
 
             using var stream = file.OpenReadStream();
             result = _sftpService.UploadFile(file);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("下載檔案")]
@@ -58,19 +58,19 @@ namespace ERP.WebAPI.Controllers.SFTP
 
         [SwaggerOperation("刪除檔案")]
         [HttpDelete("delete/{fileName}")]
-        public ResultModel<string> DeleteFile(string fileName)
+        public IActionResult DeleteFile(string fileName)
         {
             var remotePath = "/" + fileName;
             var result = _sftpService.DeleteFile(remotePath);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("檢視檔案清單")]
         [HttpGet,Route("list")]
-        public ResultModel<List<string>> ListFiles()
+        public IActionResult ListFiles()
         {
             var result = _sftpService.ListFiles();
-            return result;
+            return Ok(result);
         }
     }
 }

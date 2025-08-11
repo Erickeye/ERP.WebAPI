@@ -27,75 +27,75 @@ namespace ERP.WebAPI.Controllers.AMS
         [SwaggerOperation("檢視")]
         [HttpGet,Route("Index")]
         [Log(OperationActionType.View,"檢視角色表單")]
-        public async Task<ResultModel<ListResult<RoleViewModel>>> Index()
+        public async Task<IActionResult> Index()
         {
             var result = await _servsice.Index();
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("新增名稱")]
         [HttpPost, Route("Create")]
         [Log(OperationActionType.Create, "新增角色名稱")]
-        public async Task<ResultModel<string>> Create(t_role data)
+        public async Task<IActionResult> Create(t_role data)
         {
             var result = new ResultModel<string>();
             if (ModelState.IsValid)
             {
                 result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return result;
+                return Ok(result);
             }
             result = await _servsice.Create(data);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("修改名稱")]
         [HttpPost, Route("Edit")]
         [Log(OperationActionType.Edit, "修改角色名稱")]
-        public async Task<ResultModel<string>> Edit(t_role data)
+        public async Task<IActionResult> Edit(t_role data)
         {
             var result = new ResultModel<string>();
             if (ModelState.IsValid) {
                 result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return result;
+                return Ok(result);
             }
             result = await _servsice.Edit(data);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("檢視角色權限")]
         [HttpPost, Route("GetRolePermissions")]
         [Log(OperationActionType.View, "檢視角色權限")]
-        public async Task<ResultModel<RolePermissions>> GetRolePermissions(int roleId)
+        public async Task<IActionResult> GetRolePermissions(int roleId)
         {
             var result = await _servsice.GetRolePermissions(roleId);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("修改角色權限")]
         [HttpPost, Route("PermissionsEdit")]
         [Log(OperationActionType.Edit, "修改角色權限")]
-        public async Task<ResultModel<string>> PermissionsEdit(RolePermissions data)
+        public async Task<IActionResult> PermissionsEdit(RolePermissions data)
         {
             var result = await _servsice.PermissionsEdit(data);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("修改權限金額")]
         [HttpPost, Route("UpdatePermissionsAmount")]
         [Log(OperationActionType.Edit, "修改權限金額")]
-        public async Task<ResultModel<string>> UpdatePermissionsAmount(List<t_level> data)
+        public async Task<IActionResult> UpdatePermissionsAmount(List<t_level> data)
         {
             var result = await _servsice.UpdatePermissionsAmount(data);
-            return result;
+            return Ok(result);
         }
 
         [SwaggerOperation("刪除")]
         [HttpDelete, Route("Delete")]
         [Log(OperationActionType.Delete, "刪除")]
-        public async Task<ResultModel<string>> Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var result = await _servsice.Delete(id);
-            return result;
+            return Ok(result);
         }
     }
 }
