@@ -84,16 +84,14 @@ namespace ERP.Service.API._1000Company
         public void MapToEntity(DayOffInputVM source, t_1030Dayoff target)
         {
             target.ApplicationDate = source.ApplicationDate;
-            target.LeaveTaker = source.LeaveTaker;
+            target.LeaveTaker = (int)source.LeaveTaker!;
             target.Applicant = source.Applicant;
             target.Proxy = source.Proxy;
             target.LeaveType = source.LeaveType;
             target.Reason = source.Reason;
             target.ProxySignature = source.ProxySignature;
-            target.BeginDate = source.BeginDate;
-            target.EndDate = source.EndDate;
-            target.Authorizer = source.Authorizer;
-            target.ApprovalStatus = source.ApprovalStatus;
+            target.BeginDate = (DateTime)source.BeginDate!;
+            target.EndDate = (DateTime)source.EndDate!;
         }
     }
 }

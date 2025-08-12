@@ -66,7 +66,12 @@ builder.Services.AddControllers(options =>
         .RequireAuthenticatedUser()
         .Build();
     options.Filters.Add(new AuthorizeFilter(policy));
-});
+})
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // 關閉自動 400 回應，使進到 Controller 裡手動處理 ModelState
+        options.SuppressModelStateInvalidFilter = true;
+    });
 
 //--------------------JWT Settings-------------------
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));

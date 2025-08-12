@@ -36,8 +36,7 @@ namespace ERP.Library.ViewModels._1000Company
     }
     public class DayOffInputVM
     {
-        /// <summary>請假單編號</summary>
-        public int? Id { get; set; }  // 修改時需要，新增時可不傳或 null
+        public int? Id { get; set; }
 
         [Display(Name = "申請日期")]
         [DataType(DataType.Date)]
@@ -46,7 +45,7 @@ namespace ERP.Library.ViewModels._1000Company
 
         [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "請假人")]
-        public int LeaveTaker { get; set; }
+        public int? LeaveTaker { get; set; }
 
         [Display(Name = "申請者")]
         public int? Applicant { get; set; }
@@ -59,30 +58,22 @@ namespace ERP.Library.ViewModels._1000Company
         public LeaveType LeaveType { get; set; }
 
         [Display(Name = "事由")]
-        [StringLength(64)]
+        [StringLength(64, ErrorMessage = "長度不可超過 64 個字元")]
         public string? Reason { get; set; }
 
         [Display(Name = "代理人簽章")]
-        [StringLength(128)]
+        [StringLength(128, ErrorMessage = "長度不可超過 128 個字元")]
         public string? ProxySignature { get; set; }
 
         [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "開始日期")]
         [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
-        public DateTime BeginDate { get; set; }
+        public DateTime? BeginDate { get; set; }
 
         [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "結束日期")]
         [DataType(DataType.DateTime)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
-        public DateTime EndDate { get; set; }
+        public DateTime? EndDate { get; set; }
 
-        [Display(Name = "簽核主管")]
-        [StringLength(64)]
-        public string? Authorizer { get; set; }
-
-        [Display(Name = "簽核")]
-        public bool? ApprovalStatus { get; set; }
     }
 }

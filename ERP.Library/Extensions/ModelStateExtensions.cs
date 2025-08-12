@@ -16,5 +16,17 @@ namespace ERP.Library.Extensions
         {
             return string.Join(separator, modelState.GetAllErrorMessages());
         }
+
+        public static Dictionary<string, List<string>> GetErrorsDictionary(this ModelStateDictionary modelState)
+        {
+            return modelState
+                .Where(kvp => kvp.Value.Errors.Any())
+                .ToDictionary(
+                    kvp => kvp.Key, // 欄位名稱
+                    kvp => kvp.Value.Errors
+                               .Select(e => e.ErrorMessage)
+                               .ToList()
+                );
+        }
     }
 }

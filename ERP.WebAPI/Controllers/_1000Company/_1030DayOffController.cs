@@ -1,11 +1,12 @@
 ﻿using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Service.API._1000Company;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using ERP.Library.Extensions;
 
 namespace ERP.WebAPI.Controllers._1000Company
 {
@@ -26,6 +27,13 @@ namespace ERP.WebAPI.Controllers._1000Company
         [HttpPost,Route("Create")]
         public async Task<IActionResult> Create(DayOffInputVM data)
         {
+            // 檢查 ModelState 是否有效
+            if (!ModelState.IsValid)
+            {
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
+            }
             var result = await _service.CreateOrEdit(data);
             return Ok(result);
         }
@@ -34,6 +42,13 @@ namespace ERP.WebAPI.Controllers._1000Company
         [HttpPost, Route("Edit")]
         public async Task<IActionResult> Edit(DayOffInputVM data)
         {
+            // 檢查 ModelState 是否有效
+            if (!ModelState.IsValid)
+            {
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
+            }
             var result = await _service.CreateOrEdit(data);
             return Ok(result);
         }
