@@ -23,7 +23,7 @@ namespace ERP.EntityModels.Models._1000Company
         public byte[]? Certificate { get; set; }
 
         [Display(Name = "證書名稱")]
-        [StringLength(128)]
+        [StringLength(128, ErrorMessage = "長度不可超過 128 個字元")]
         public string? CertificateName { get; set; }
 
         [Display(Name = "證書取得日")]

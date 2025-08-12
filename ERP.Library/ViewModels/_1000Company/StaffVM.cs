@@ -1,13 +1,30 @@
 ﻿using ERP.Library.Enums._1000Company;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace ERP.EntityModels.Models._1000Company
+namespace ERP.Library.ViewModels._1000Company
 {
-    public class t_1000Staff
+    public class StaffListVM
     {
-        [Key]
+        public string? StaffUid { get; set; }
+        public string? Name { get; set; }
+        public string? IdCard { get; set; }
+        public string? Gender { get; set; }
+        public System.DateTime? Bitrthday { get; set; }
+        public string? ContactPhone { get; set; }
+        public string? LineId { get; set; }
+        public string? Email { get; set; }
+        public string? ContactAddress { get; set; }
+    }
+    public class StaffInputVM
+    {
         [Display(Name = "流水號")]
-        public int StaffId { get; set; }
+        public int? StaffId { get; set; }
 
         [Display(Name = "員工編號")]
         public string? StaffUid { get; set; }
@@ -129,7 +146,7 @@ namespace ERP.EntityModels.Models._1000Company
         public string? BusinessPhone { get; set; }
 
         [Display(Name = "大頭照")]
-        public byte[]? Headshot { get; set; }
+        public byte[]? Headshot { get; set; } = null!;
 
         [StringLength(64, ErrorMessage = "長度不可超過 64 個字元")]
         [Display(Name = "銀行名稱")]
@@ -141,8 +158,11 @@ namespace ERP.EntityModels.Models._1000Company
 
         [Display(Name = "血型")]
         public BloodType BloodType { get; set; }
-
-        public virtual ICollection<t_1001StaffCertificates> StaffCertificates { get; set; } = new List<t_1001StaffCertificates>();
     }
 
+    public class UploadImg
+    {
+        public int StaffId { get; set; }
+        public IFormFile? image { get; set; }
+    }
 }

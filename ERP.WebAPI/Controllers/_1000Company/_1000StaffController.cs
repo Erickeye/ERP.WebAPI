@@ -35,16 +35,16 @@ namespace ERP.WebAPI.Controllers._1000Company
         [SwaggerOperation("新增")]
         [HttpPost, Route("Create")]
         [Log(OperationActionType.Create, "新增員工")]
-        public async Task<IActionResult> Create(t_1000Staff data)
+        public async Task<IActionResult> Create(StaffInputVM data)
         {
-            var result = new ResultModel<string>();
             // 檢查 ModelState 是否有效
             if (!ModelState.IsValid)
             {
-                result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return Ok(result);
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
             }
-            result = await _service.CreateOrEdit(data);
+            var result = await _service.CreateOrEdit(data);
 
             return Ok(result);
         }
@@ -52,16 +52,16 @@ namespace ERP.WebAPI.Controllers._1000Company
         [SwaggerOperation("修改")]
         [HttpPost, Route("Edit")]
         [Log(OperationActionType.Create, "修改員工")]
-        public async Task<IActionResult> Edit(t_1000Staff data)
+        public async Task<IActionResult> Edit(StaffInputVM data)
         {
-            var result = new ResultModel<string>();
             // 檢查 ModelState 是否有效
             if (!ModelState.IsValid)
             {
-                result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return Ok(result);
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
             }
-            result = await _service.CreateOrEdit(data);
+            var result = await _service.CreateOrEdit(data);
 
             return Ok(result);
         }

@@ -1,6 +1,7 @@
 ﻿using ERP.Data;
 using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
+using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Library.ViewModels.UserInfo;
@@ -19,7 +20,7 @@ namespace ERP.Service.API._1000Company
     public interface I_1000Service
     {
         Task<ResultModel<ListResult<StaffListVM>>> GetStaffIndex(string deptID, bool isResignation);
-        Task<ResultModel<string>> CreateOrEdit(t_1000Staff data);
+        Task<ResultModel<string>> CreateOrEdit(StaffInputVM data);
         Task<ResultModel<string>> Delete(int id);
         Task<ResultModel<string>> uploadImg(UploadImg data);
         Task<ResultModel<string>> UploadCertificate(UploadCertificate data);
@@ -99,18 +100,20 @@ namespace ERP.Service.API._1000Company
             return result;
         }
 
-        public async Task<ResultModel<string>> CreateOrEdit(t_1000Staff data)
+        public async Task<ResultModel<string>> CreateOrEdit(StaffInputVM data)
         {
             var result = new ResultModel<string>();
 
-            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == data.StaffId);
-            if (hasData == null) {
-                _context.Add(data);
+            var entity = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == data.StaffId);
+            if (entity == null) {
+                entity = new t_1000Staff();
+                ObjectHelper.CopyProperties(data, entity, "StaffCertificates");
+                _context.Add(entity);
                 result.SetSuccess("資料成功新增");
             }
             else
             {
-                _context.Entry(hasData).CurrentValues.SetValues(data);
+                ObjectHelper.CopyProperties(data, entity, "StaffCertificates");
                 result.SetSuccess("資料成功修改");
             }
             await _context.SaveChangesAsync();
@@ -119,13 +122,13 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<string>> Delete(int id)
         {
             var result = new ResultModel<string>();
-            var hasData = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == id);
-            if (hasData == null)
+            var entity = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == id);
+            if (entity == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
                 return result;
             }
-            _context.Remove(hasData);
+            _context.Remove(entity);
             await _context.SaveChangesAsync();
             result.SetSuccess("資料已刪除");
             return result;

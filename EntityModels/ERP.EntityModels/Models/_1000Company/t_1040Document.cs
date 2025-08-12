@@ -10,28 +10,28 @@ namespace ERP.EntityModels.Models._1000Company
         [Display(Name = "發文字號")]
         public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "公司名稱")]
         [StringLength(64, ErrorMessage = "必須在 64 位數以內")]
         public string? Company { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "聯絡人")]
         [StringLength(32, ErrorMessage = "必須在 32 位數以內")]
         public string? ContactPerson { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "受文者")]
         [StringLength(64, ErrorMessage = "必須在 64 位數以內")]
         public string? Recipient { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "發文日期")]
         [DataType(DataType.Date)]
         [DisplayFormat(ApplyFormatInEditMode = true, DataFormatString = "{0:yyyy-MM-dd}")]
         public DateTime? DocumentDate { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "必填欄位")]
         [Display(Name = "速別")]
         public DocumentLevelType Level { get; set; }
 

@@ -40,13 +40,14 @@ namespace ERP.WebAPI.Controllers.AMS
         [Log(OperationActionType.Create, "新增使用者")]
         public async Task<IActionResult> Create(t_user data)
         {
-            var result = new ResultModel<string>();
+            // 檢查 ModelState 是否有效
             if (!ModelState.IsValid)
             {
-                result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return Ok(result);
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
             }
-            result = await _service.Create(data);
+            var result = await _service.Create(data);
             return Ok(result);
         }
 
@@ -55,13 +56,14 @@ namespace ERP.WebAPI.Controllers.AMS
         [Log(OperationActionType.Edit, "修改使用者")]
         public async Task<IActionResult> Edit(t_user data)
         {
-            var result = new ResultModel<string>();
+            // 檢查 ModelState 是否有效
             if (!ModelState.IsValid)
             {
-                result.SetError(ErrorCodeType.FieldValueIsInvalid, ModelState.GetAllErrorMessagesAsString());
-                return Ok(result);
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
             }
-            result = await _service.Edit(data);
+            var result = await _service.Edit(data);
             return Ok(result);
         }
 
