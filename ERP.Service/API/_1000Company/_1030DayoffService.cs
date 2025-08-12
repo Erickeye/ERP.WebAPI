@@ -1,10 +1,12 @@
 ﻿using ERP.Data;
 using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
+using ERP.Library.Enums._1000Company;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,6 +19,7 @@ namespace ERP.Service.API._1000Company
         Task<ResultModel<string>> CreateOrEdit(DayOffInputVM data);
         Task<ResultModel<ListResult<DayOffListVM>>> Index();
         Task<ResultModel<string>> Delete(int id);
+        Task<ResultModel<double>> GetRemainSpecialDays(int staffId);
     }
     public class _1030DayoffService : I_1030DayoffService
     {
@@ -70,7 +73,7 @@ namespace ERP.Service.API._1000Company
         {
             var result = new ResultModel<string>();
             var entity = await _context.t_1030Dayoff.FirstOrDefaultAsync(c => c.Id == id);
-            if(entity == null)
+            if (entity == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
                 return result;
@@ -78,6 +81,50 @@ namespace ERP.Service.API._1000Company
             _context.Remove(entity);
             await _context.SaveChangesAsync();
             result.SetSuccess("資料刪除成功");
+            return result;
+        }
+        public async Task<ResultModel<double>> GetRemainSpecialDays(int staffId)
+        {
+            var result = new ResultModel<double>();
+            //今年已請特休數量
+            var currentYear = DateTime.Now.Year;
+            var startOfYear = new DateTime(currentYear, 1, 1);
+            var endOfYear = new DateTime(currentYear, 12, 31);
+
+            var list = await _context.t_1030Dayoff!
+           .Where(c => c.LeaveType == LeaveType.特休 &&
+                       c.LeaveTaker == staffId &&
+                       c.BeginDate >= startOfYear &&
+                       c.BeginDate <= endOfYear)
+           .ToListAsync();
+
+            var dayOffHours = list
+           .Sum(c =>
+           {
+               var begin = c.BeginDate;
+               var end = c.EndDate;
+
+               // 請假總時數
+               var total = (end - begin).TotalHours;
+
+               // 午休時間：12:30 - 13:30
+               var restStart = new DateTime(begin.Year, begin.Month, begin.Day, 12, 30, 0);
+               var restEnd = new DateTime(begin.Year, begin.Month, begin.Day, 13, 30, 0);
+
+               // 計算重疊時間（取交集）
+               var overlapStart = (begin > restStart) ? begin : restStart;
+               var overlapEnd = (end < restEnd) ? end : restEnd;
+
+               if (overlapEnd > overlapStart)
+               {
+                   var overlap = (overlapEnd - overlapStart).TotalHours;
+                   total -= overlap; // 扣除實際重疊時間（最多 1 小時）
+               }
+
+               return total;
+           });
+            var dayOff = dayOffHours / 8.0; // 每 8 小時算 1 天
+            result.SetSuccess(dayOff);
             return result;
         }
 

@@ -1,12 +1,13 @@
 ﻿using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
+using ERP.Library.Extensions;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Service.API._1000Company;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using ERP.Library.Extensions;
 
 namespace ERP.WebAPI.Controllers._1000Company
 {
@@ -68,6 +69,14 @@ namespace ERP.WebAPI.Controllers._1000Company
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _service.Delete(id);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得剩餘特休天數")]
+        [HttpGet,Route("GetRemainSpecialDays")]
+        public async Task<IActionResult> GetRemainSpecialDays(int staffId)
+        {
+            var result = await _service.GetRemainSpecialDays(staffId);
             return Ok(result);
         }
     }
