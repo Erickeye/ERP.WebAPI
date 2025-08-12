@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ERP.Library.ViewModels._1000Company
 {
-    public class uploadImg
+    public class UploadImg
     {
         public int StaffId {  get; set; }
         public IFormFile? image { get; set; }

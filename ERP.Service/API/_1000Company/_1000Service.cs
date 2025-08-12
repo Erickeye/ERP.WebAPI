@@ -21,7 +21,7 @@ namespace ERP.Service.API._1000Company
         Task<ResultModel<ListResult<StaffIndex>>> GetStaffIndex(string deptID, bool isResignation);
         Task<ResultModel<string>> CreateOrEdit(t_1000Staff data);
         Task<ResultModel<string>> Delete(int id);
-        Task<ResultModel<string>> uploadImg(uploadImg data);
+        Task<ResultModel<string>> uploadImg(UploadImg data);
         Task<ResultModel<string>> UploadCertificate(UploadCertificate data);
         Task<ResultModel<string>> EditCertificate(EditCertificate data);
         Task<ResultModel<string>> DeleteCertificate(int id);
@@ -130,7 +130,7 @@ namespace ERP.Service.API._1000Company
             result.SetSuccess("資料已刪除");
             return result;
         }
-        public async Task<ResultModel<string>> uploadImg(uploadImg data)
+        public async Task<ResultModel<string>> uploadImg(UploadImg data)
         {
             var result = new ResultModel<string>();
 

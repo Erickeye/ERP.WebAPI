@@ -78,7 +78,7 @@ namespace ERP.WebAPI.Controllers._1000Company
         [SwaggerOperation("上傳大頭照")]
         [HttpPost,Route("uploadImg")]
         [Log(OperationActionType.Create, "上傳大頭照")]
-        public async Task<IActionResult> uploadImg(uploadImg data)
+        public async Task<IActionResult> uploadImg(UploadImg data)
         {
             var result = await _service.uploadImg(data);
             return Ok(result);
