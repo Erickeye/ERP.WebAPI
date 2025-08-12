@@ -18,7 +18,7 @@ namespace ERP.Service.API._1000Company
 {
     public interface I_1000Service
     {
-        Task<ResultModel<ListResult<StaffIndex>>> GetStaffIndex(string deptID, bool isResignation);
+        Task<ResultModel<ListResult<StaffListVM>>> GetStaffIndex(string deptID, bool isResignation);
         Task<ResultModel<string>> CreateOrEdit(t_1000Staff data);
         Task<ResultModel<string>> Delete(int id);
         Task<ResultModel<string>> uploadImg(UploadImg data);
@@ -36,12 +36,12 @@ namespace ERP.Service.API._1000Company
             _context = context;
         }
 
-        public async Task<ResultModel<ListResult<StaffIndex>>> GetStaffIndex(string? deptID, bool isResignation) { 
-            var result = new ResultModel<ListResult<StaffIndex>>();
+        public async Task<ResultModel<ListResult<StaffListVM>>> GetStaffIndex(string? deptID, bool isResignation) { 
+            var result = new ResultModel<ListResult<StaffListVM>>();
 
             var _1000 = _context.t_1000Staff.ToList();
 
-            IQueryable<StaffIndex> query;
+            IQueryable<StaffListVM> query;
 
             //未離職員工
             if (!isResignation)
@@ -93,7 +93,7 @@ namespace ERP.Service.API._1000Company
                 return result;
             }
             var viewModel = await query.ToListAsync();
-            var listResult = new ListResult<StaffIndex> { Items = viewModel };
+            var listResult = new ListResult<StaffListVM> { Items = viewModel };
             result.Data = listResult;
 
             return result;
@@ -250,9 +250,9 @@ namespace ERP.Service.API._1000Company
             return result;
         }
 
-        private static Expression<Func<t_1000Staff, StaffIndex>> StaffSelector()
+        private static Expression<Func<t_1000Staff, StaffListVM>> StaffSelector()
         {
-            return staff => new StaffIndex
+            return staff => new StaffListVM
             {
                 StaffUid = staff.StaffUid,
                 Name = staff.ChineseName,

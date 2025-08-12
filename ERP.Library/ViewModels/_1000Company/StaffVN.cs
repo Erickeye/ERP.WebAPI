@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ERP.Library.ViewModels._1000Company
 {
-    public class StaffIndex
+    public class StaffListVM
     {
         public string? StaffUid { get; set; }
         public string? Name { get; set; }
@@ -17,5 +18,11 @@ namespace ERP.Library.ViewModels._1000Company
         public string? LineId { get; set; }
         public string? Email { get; set; }
         public string? ContactAddress { get; set; }
+    }
+
+    public class UploadImg
+    {
+        public int StaffId { get; set; }
+        public IFormFile? image { get; set; }
     }
 }

@@ -36,7 +36,7 @@ namespace ERP.Library.ViewModels._1000Company
     }
     public class DayOffInputVM
     {
-        [Display(Name = "請假單編號")]
+        /// <summary>請假單編號</summary>
         public int? Id { get; set; }  // 修改時需要，新增時可不傳或 null
 
         [Display(Name = "申請日期")]
