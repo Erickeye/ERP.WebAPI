@@ -27,6 +27,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("Default API", new OpenApiInfo { Version = "v1", Title = "API首頁", });
     options.SwaggerDoc("_1000Company", new OpenApiInfo { Version = "v1", Title = "公司相關", });
+    options.SwaggerDoc("_2000Costomer", new OpenApiInfo { Version = "v1", Title = "客戶資料", });
     options.EnableAnnotations();
 
     // 加入 Bearer token 認證方式
@@ -169,6 +170,7 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/swagger/Default API/swagger.json", "Default API");
         options.SwaggerEndpoint("/swagger/_1000Company/swagger.json", "_1000Company API");
+        options.SwaggerEndpoint("/swagger/_2000Costomer/swagger.json", "_2000Costomer API");
         options.RoutePrefix = "swagger";
     });
 }

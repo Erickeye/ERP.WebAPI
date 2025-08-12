@@ -1,5 +1,4 @@
-﻿using ERP.EntityModels.Models._1000Company;
-using ERP.Library.Enums;
+﻿using ERP.Library.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -7,13 +6,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ERP.EntityModels.Models._2000Customer
+namespace ERP.Library.ViewModels._2000Customer
 {
-    public class t_2000Customer
+    public class CustomerListVM
+    {
+        [Key]
+        public int? Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string? TaxInvoiceNumber { get; set; }
+        public string? ContactPhone { get; set; }
+        public string? RegisteredAddress { get; set; }
+    }
+    public class CustomerInputVM
     {
         [Key]
         [Display(Name = "流水號")]
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         [StringLength(32)]
         [Display(Name = "客戶簡稱")]
@@ -89,8 +97,7 @@ namespace ERP.EntityModels.Models._2000Customer
         public decimal? Advance { get; set; }
 
         [Display(Name = "發票格式")]
-        public InvoiceFormType? InvoiceForm{ get; set; }
+        public InvoiceFormType? InvoiceForm { get; set; }
 
-        public virtual ICollection<t_2010Custemploy> Custemploy { get; set; } = new List<t_2010Custemploy>();
     }
 }
