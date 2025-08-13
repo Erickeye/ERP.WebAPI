@@ -21,6 +21,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace ERP.Service.API.AMS
 {
@@ -69,7 +70,9 @@ namespace ERP.Service.API.AMS
                 return result;
             }
 
-            var accessToken = GenerateAccessToken(user);
+            var permissions = GetPermissions(user.f_role);
+
+            var accessToken = GenerateAccessToken(user, permissions);
             var refreshToken = GenerateRefreshToken();
             var AccessTokenExpirationTime = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes).ToLocalTime();
             var RefreshTokenExpirationTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays).ToLocalTime();
@@ -77,11 +80,6 @@ namespace ERP.Service.API.AMS
             user.f_refreshToken = refreshToken;
             user.f_refreshTokenExpiryTime = RefreshTokenExpirationTime;
             _context.SaveChanges();
-
-            var permissions = _context.t_permission.Where(c => c.f_roleId == user.f_role)
-                .AsNoTracking()
-                .Select(c => (int)c.f_pageId)
-                .ToList();
 
             result.Data = new LoginResponse
             {
@@ -124,8 +122,9 @@ namespace ERP.Service.API.AMS
                 return result;
             }
 
+            var permissions = GetPermissions(user.f_role);
             // 發新 token
-            var newAccessToken = GenerateAccessToken(user);
+            var newAccessToken = GenerateAccessToken(user, permissions);
             var newRefreshToken = GenerateRefreshToken();
 
             // 更新 DB 的 refresh token
@@ -198,18 +197,19 @@ namespace ERP.Service.API.AMS
         }
 
 
-        public string GenerateAccessToken(t_user user)
+        public string GenerateAccessToken(t_user user, List<int> permissions)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
-
+            var permissionJson = JsonSerializer.Serialize(permissions);
             var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.f_id.ToString()),
             new Claim(ClaimTypes.Name, user.f_name),
             new Claim(ClaimTypes.Role, user.f_role.ToString()),
-            new Claim("RoleId", user.f_role.ToString()),
-            new Claim("account", user.f_account)
+            new Claim("roleId", user.f_role.ToString()),
+            new Claim("account", user.f_account),
+            new Claim("permissions", permissionJson)
         };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -255,6 +255,14 @@ namespace ERP.Service.API.AMS
             }
 
             return ip ?? "Unknown";
+        }
+        private List<int> GetPermissions(int roleId) {
+            var permissions = _context.t_permission
+                .Where(c => c.f_roleId == roleId)
+                .AsNoTracking()
+                .Select(c => (int)c.f_pageId)
+                .ToList();
+            return permissions;
         }
 
         //internal static string HashPassword(string password)

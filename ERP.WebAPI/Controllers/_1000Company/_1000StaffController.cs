@@ -1,8 +1,9 @@
 ﻿using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
+using ERP.Library.Enums.Login;
+using ERP.Library.Extensions;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
-using ERP.Library.Extensions;
 using ERP.Service.API._1000Company;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
@@ -25,6 +26,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("檢視員工列表")]
         [HttpGet, Route("Index")]
+        [PermissionAuthorize((int)PermissionType.員工檢視)]
         [Log(OperationActionType.View, "檢視員工列表")]
         public async Task<IActionResult> Index(string? deptID, bool isResignation = false)
         {
@@ -34,6 +36,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("新增")]
         [HttpPost, Route("Create")]
+        [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Create, "新增員工")]
         public async Task<IActionResult> Create(StaffInputVM data)
         {
@@ -51,6 +54,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("修改")]
         [HttpPost, Route("Edit")]
+        [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Create, "修改員工")]
         public async Task<IActionResult> Edit(StaffInputVM data)
         {
@@ -68,6 +72,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("刪除")]
         [HttpDelete,Route("Delete")]
+        [PermissionAuthorize((int)PermissionType.員工刪除)]
         [Log(OperationActionType.Delete, "刪除員工列表")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -77,6 +82,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("上傳大頭照")]
         [HttpPost,Route("uploadImg")]
+        [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Create, "上傳大頭照")]
         public async Task<IActionResult> uploadImg(UploadImg data)
         {
@@ -94,6 +100,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("上傳證照")]
         [HttpPost,Route("UploadCertificate")]
+        [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Create, "上傳證照")]
         public async Task<IActionResult> UploadCertificate(UploadCertificate data)
         {
@@ -103,6 +110,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("修改證照")]
         [HttpPost,Route("EditCertificate")]
+        [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Edit, "修改證照")]
         public async Task<IActionResult> EditCertificate(EditCertificate data)
         {
@@ -112,6 +120,7 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("刪除證照")]
         [HttpDelete, Route("DeleteCertificate")]
+        [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Delete, "刪除證照")]
         public async Task<IActionResult> DeleteCertificate(int id)
         {
