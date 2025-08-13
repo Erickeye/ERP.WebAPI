@@ -42,32 +42,20 @@ namespace ERP.WebAPI.Controllers._2000Customer
 
         [SwaggerOperation("新增客戶資料")]
         [HttpPost,Route("Create")]
+        [ValidateModel]
         [Log(OperationActionType.Create, "新增客戶資料")]
         public async Task<IActionResult> Create(CustomerInputVM data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _service.CreateOrEdit(data);
             return Ok(result);
         }
 
         [SwaggerOperation("修改客戶資料")]
         [HttpPost, Route("Edit")]
+        [ValidateModel]
         [Log(OperationActionType.Edit, "修改客戶")]
         public async Task<IActionResult> Edit(CustomerInputVM data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _service.CreateOrEdit(data);
             return Ok(result);
         }

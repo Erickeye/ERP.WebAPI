@@ -35,32 +35,20 @@ namespace ERP.WebAPI.Controllers.AMS
 
         [SwaggerOperation("新增名稱")]
         [HttpPost, Route("Create")]
+        [ValidateModel]
         [Log(OperationActionType.Create, "新增角色名稱")]
         public async Task<IActionResult> Create(t_role data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _servsice.Create(data);
             return Ok(result);
         }
 
         [SwaggerOperation("修改名稱")]
         [HttpPost, Route("Edit")]
+        [ValidateModel]
         [Log(OperationActionType.Edit, "修改角色名稱")]
         public async Task<IActionResult> Edit(t_role data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _servsice.Edit(data);
             return Ok(result);
         }

@@ -40,6 +40,7 @@ namespace ERP.WebAPI.Controllers._2000Customer
 
         [SwaggerOperation("新增客戶聯絡人資料")]
         [HttpPost, Route("Create")]
+        [ValidateModel]
         [Log(OperationActionType.Create, "新增客戶聯絡人資料")]
         public async Task<IActionResult> Create(CustemployInputVM data)
         {
@@ -49,6 +50,7 @@ namespace ERP.WebAPI.Controllers._2000Customer
 
         [SwaggerOperation("修改客戶聯絡人資料")]
         [HttpPost, Route("Edit")]
+        [ValidateModel]
         [Log(OperationActionType.Edit, "修改客戶聯絡人")]
         public async Task<IActionResult> Edit(CustemployInputVM data)
         {

@@ -24,32 +24,20 @@ namespace ERP.WebAPI.Controllers._1000Company
         }
 
         [SwaggerOperation("新增請假單")]
+        [ValidateModel]
         [Log(OperationActionType.Create, "新增請假單")]
         [HttpPost,Route("Create")]
         public async Task<IActionResult> Create(DayOffInputVM data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _service.CreateOrEdit(data);
             return Ok(result);
         }
         [SwaggerOperation("修改請假單")]
+        [ValidateModel]
         [Log(OperationActionType.Create, "修改請假單")]
         [HttpPost, Route("Edit")]
         public async Task<IActionResult> Edit(DayOffInputVM data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _service.CreateOrEdit(data);
             return Ok(result);
         }

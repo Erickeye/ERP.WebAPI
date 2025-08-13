@@ -81,7 +81,7 @@ namespace ERP.EntityModels.Models._1000Company
         public string? IdCard { get; set; }
 
         [Required(ErrorMessage = "必填欄位")]
-        [Range(0, 1000000000)]
+        [Range(0, 1000000000d, ErrorMessage= "有效值為0~1000000000")]
         [Display(Name = "員工自行提撥勞退")]
         public decimal? LaborPension { get; set; }
 

@@ -2,6 +2,7 @@
 using ERP.Library.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using ERP.Library.Extensions;
 
 namespace ERP.WebAPI.CustomAttributes
 {
@@ -11,15 +12,18 @@ namespace ERP.WebAPI.CustomAttributes
         {
             if (!context.ModelState.IsValid)
             {
-                var errors = context.ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
+                var result = new ResultModel<Dictionary<string, List<string>>>();
 
-                var result = new ResultModel<string>();
-                result.SetError(ErrorCodeType.FieldValueIsInvalid, string.Join("；", errors));
+                result.SetError(
+                    ErrorCodeType.FieldValueIsInvalid,
+                    null,
+                    context.ModelState.GetErrorsDictionary() // 你的擴充方法
+                );
 
-                context.Result = new JsonResult(result) { StatusCode = StatusCodes.Status200OK };
+                context.Result = new JsonResult(result)
+                {
+                    StatusCode = 200
+                };
             }
         }
     }

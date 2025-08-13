@@ -36,37 +36,23 @@ namespace ERP.WebAPI.Controllers._1000Company
 
         [SwaggerOperation("新增")]
         [HttpPost, Route("Create")]
-        [PermissionAuthorize((int)PermissionType.員工編輯)]
+        [ValidateModel]
+        [PermissionAuthorize((int)PermissionType.員工檢視)]
         [Log(OperationActionType.Create, "新增員工")]
         public async Task<IActionResult> Create(StaffInputVM data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _service.CreateOrEdit(data);
-
             return Ok(result);
         }
 
         [SwaggerOperation("修改")]
         [HttpPost, Route("Edit")]
+        [ValidateModel]
         [PermissionAuthorize((int)PermissionType.員工編輯)]
         [Log(OperationActionType.Create, "修改員工")]
         public async Task<IActionResult> Edit(StaffInputVM data)
         {
-            // 檢查 ModelState 是否有效
-            if (!ModelState.IsValid)
-            {
-                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
-                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
-                return Ok(errorResult);
-            }
             var result = await _service.CreateOrEdit(data);
-
             return Ok(result);
         }
 

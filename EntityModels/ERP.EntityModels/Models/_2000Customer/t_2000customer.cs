@@ -71,11 +71,11 @@ namespace ERP.EntityModels.Models._2000Customer
         [Display(Name = "付款票期")]
         public string? PayDays { get; set; }
 
-        [Range(0, 1000000000)]
+        [Range(0, 1000000000d, ErrorMessage= "有效值為0~1000000000")]
         [Display(Name = "信用額度")]
         public decimal? CreditLine { get; set; }
 
-        [Range(0, 1000000000)]
+        [Range(0, 1000000000d, ErrorMessage= "有效值為0~1000000000")]
         [Display(Name = "信用餘額")]
         public decimal? CreditBalance { get; set; }
 
@@ -84,7 +84,7 @@ namespace ERP.EntityModels.Models._2000Customer
         [Display(Name = "最後交易日")]
         public DateTime? LastDeliveryDate { get; set; }
 
-        [Range(0, 1000000000)]
+        [Range(0, 1000000000d, ErrorMessage= "有效值為0~1000000000")]
         [Display(Name = "暫收款")]
         public decimal? Advance { get; set; }
 
