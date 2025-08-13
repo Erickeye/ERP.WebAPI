@@ -4,6 +4,7 @@ using ERP.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ERP.EntityModels.Migrations
 {
     [DbContext(typeof(ERPContext))]
-    partial class ERPContextModelSnapshot : ModelSnapshot
+    [Migration("20250813110930_Conbine_AMSToERP")]
+    partial class Conbine_AMSToERP
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,97 +24,6 @@ namespace ERP.EntityModels.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ERP.EntityModels.Models.Other.ApprovalRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApprovalStepId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StepOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TableId")
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<int>("TableType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApprovalStepId");
-
-                    b.ToTable("ApprovalRecord");
-                });
-
-            modelBuilder.Entity("ERP.EntityModels.Models.Other.ApprovalSettings", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<int>("TableType")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ApprovalSettings");
-                });
-
-            modelBuilder.Entity("ERP.EntityModels.Models.Other.ApprovalStep", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ApprovalSettingsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Mode")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RequiredCounts")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StepOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApprovalSettingsId");
-
-                    b.ToTable("ApprovalStep");
-                });
 
             modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1000Staff", b =>
                 {
@@ -1100,35 +1012,6 @@ namespace ERP.EntityModels.Migrations
                     b.ToTable("t_2010Custemploy");
                 });
 
-            modelBuilder.Entity("ERP.EntityModels.Models._9000Other.Notification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TargetId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Notification");
-                });
-
             modelBuilder.Entity("ERP.Models.AMS.Level", b =>
                 {
                     b.Property<int>("PermissionId")
@@ -1234,28 +1117,6 @@ namespace ERP.EntityModels.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("User");
-                });
-
-            modelBuilder.Entity("ERP.EntityModels.Models.Other.ApprovalRecord", b =>
-                {
-                    b.HasOne("ERP.EntityModels.Models.Other.ApprovalStep", "ApprovalStep")
-                        .WithMany()
-                        .HasForeignKey("ApprovalStepId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApprovalStep");
-                });
-
-            modelBuilder.Entity("ERP.EntityModels.Models.Other.ApprovalStep", b =>
-                {
-                    b.HasOne("ERP.EntityModels.Models.Other.ApprovalSettings", "ApprovalSettings")
-                        .WithMany()
-                        .HasForeignKey("ApprovalSettingsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ApprovalSettings");
                 });
 
             modelBuilder.Entity("ERP.EntityModels.Models._1000Company.t_1001StaffCertificates", b =>

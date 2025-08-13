@@ -22,6 +22,7 @@ namespace ERP.EntityModels.Models.Other
         [Display(Name = "表單類型")]
         public TableType TableType { get; set; }
 
+        [StringLength(32, ErrorMessage = "長度不可超過 32 個字元")]
         [Display(Name = "表單Id")]
         public string? TableId { get; set; }
 

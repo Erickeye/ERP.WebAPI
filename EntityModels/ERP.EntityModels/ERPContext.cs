@@ -1,5 +1,7 @@
 ﻿using ERP.EntityModels.Models._1000Company;
 using ERP.EntityModels.Models._2000Customer;
+using ERP.EntityModels.Models._9000Other;
+using ERP.EntityModels.Models.Other;
 using ERP.Models.AMS;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -37,6 +39,10 @@ namespace ERP.Data
         public DbSet<t_1201PettyCashDetail> t_1201PettyCashDetail { get; set; }
         public DbSet<t_2000Customer> t_2000Customer { get; set; }
         public DbSet<t_2010Custemploy> t_2010Custemploy { get; set; }
+        public DbSet<Notification> Notification { get; set; }
+        public DbSet<ApprovalSettings> ApprovalSettings { get; set; }
+        public DbSet<ApprovalStep> ApprovalStep { get; set; }
+        public DbSet<ApprovalRecord> ApprovalRecord { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -16,16 +16,15 @@ namespace ERP.EntityModels.Models.Other
         [Display(Name = "流水號")]
         public int Id { get; set; }
 
-        [ForeignKey(nameof(Approval))]
         [Display(Name = "表單類型")]
         public TableType TableType { get; set; }
 
+        [StringLength(64, ErrorMessage = "長度不可超過 64 個字元")]
         [Display(Name = "流程名稱")]
         public string Name { get; set; } = string.Empty;
 
         [Display(Name = "是否啟用")]
         public bool IsActive { get; set; }
 
-        public virtual t_1030Dayoff Approval { get; set; } = null!;
     }
 }
