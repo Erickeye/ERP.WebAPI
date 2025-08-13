@@ -1,8 +1,11 @@
 ﻿using ERP.Library.Enums;
+using ERP.Library.ViewModels;
+using ERP.Library.ViewModels._2000Customer;
 using ERP.Service.API._2000Customer;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using ERP.Library.Extensions;
 
 namespace ERP.WebAPI.Controllers._2000Customer
 {
@@ -25,6 +28,56 @@ namespace ERP.WebAPI.Controllers._2000Customer
         public async Task<IActionResult> Index()
         {
             var result = await _service.Index();
+            return Ok(result);
+        }
+
+        [SwaggerOperation("檢視客戶資料")]
+        [HttpGet, Route("Get")]
+        [Log(OperationActionType.View, "檢視客戶資料")]
+        public async Task<IActionResult> Get(int id)
+        {
+            var result = await _service.Get(id);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("新增客戶資料")]
+        [HttpPost,Route("Create")]
+        [Log(OperationActionType.Create, "新增客戶資料")]
+        public async Task<IActionResult> Create(CustomerInputVM data)
+        {
+            // 檢查 ModelState 是否有效
+            if (!ModelState.IsValid)
+            {
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
+            }
+            var result = await _service.CreateOrEdit(data);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("修改客戶資料")]
+        [HttpPost, Route("Edit")]
+        [Log(OperationActionType.Edit, "修改客戶")]
+        public async Task<IActionResult> Edit(CustomerInputVM data)
+        {
+            // 檢查 ModelState 是否有效
+            if (!ModelState.IsValid)
+            {
+                var errorResult = new ResultModel<Dictionary<string, List<string>>>();
+                errorResult.SetError(ErrorCodeType.FieldValueIsInvalid, null, ModelState.GetErrorsDictionary());
+                return Ok(errorResult);
+            }
+            var result = await _service.CreateOrEdit(data);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("刪除客戶資料")]
+        [HttpPost, Route("Delete")]
+        [Log(OperationActionType.Delete, "刪除客戶")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var result = await _service.Delete(id);
             return Ok(result);
         }
     }

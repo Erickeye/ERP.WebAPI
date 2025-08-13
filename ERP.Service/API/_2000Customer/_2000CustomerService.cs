@@ -17,6 +17,7 @@ namespace ERP.Service.API._2000Customer
     public interface I_2000CustomerService
     {
         Task<ResultModel<ListResult<CustomerListVM>>> Index();
+        Task<ResultModel<CustomerInputVM>> Get(int id);
         Task<ResultModel<string>> CreateOrEdit(CustomerInputVM data);
         Task<ResultModel<string>> Delete(int id);
     }
@@ -42,6 +43,42 @@ namespace ERP.Service.API._2000Customer
                     RegisteredAddress = x.RegisteredAddress
                 })
                 .ToListAsync();
+            return result;
+        }
+        public async Task<ResultModel<CustomerInputVM>> Get(int id)
+        {
+            var result = new ResultModel<CustomerInputVM>();
+            var entity = await _context.t_2000Customer
+                .Select(x => new CustomerInputVM
+                {
+                    Id = id,
+                    AttribName = x.AttribName,
+                    Name = x.Name,
+                    TaxInvoiceNumber = x.TaxInvoiceNumber,
+                    ContactPhone = x.ContactPhone,
+                    Owner = x.Owner,
+                    FaxPhone = x.FaxPhone,
+                    StaffChineseName = x.StaffChineseName,
+                    RegisteredAddress = x.RegisteredAddress,
+                    DeliveryAddress = x.DeliveryAddress,
+                    TaxInvoiceAddress = x.TaxInvoiceAddress,
+                    BankName = x.BankName,
+                    CheckingAccount = x.CheckingAccount,
+                    RemittanceAccount = x.RemittanceAccount,
+                    PayDays = x.PayDays,
+                    CreditLine = x.CreditLine,
+                    CreditBalance = x.CreditBalance,
+                    LastDeliveryDate = x.LastDeliveryDate,
+                    Advance = x.Advance,
+                    InvoiceForm = x.InvoiceForm,
+                })
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData);
+                return result;
+            }
+            result.Data = entity;
             return result;
         }
         public async Task<ResultModel<string>> CreateOrEdit(CustomerInputVM data)
