@@ -29,7 +29,8 @@ namespace ERP.WebAPI.Controllers.AMS
             var result = await _authService.AuthenticateAsync(login);
             return Ok(result);
         }
-   
+
+        [AllowAnonymous]
         [SwaggerOperation("刷新Token")]
         [HttpPost, Route("Refresh")]
         public async Task<IActionResult> Refresh(AccessRefreshToken token)
