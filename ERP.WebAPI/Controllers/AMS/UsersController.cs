@@ -39,7 +39,7 @@ namespace ERP.WebAPI.Controllers.AMS
         [HttpPost,Route("Create")]
         [ValidateModel]
         [Log(OperationActionType.Create, "新增使用者")]
-        public async Task<IActionResult> Create(t_user data)
+        public async Task<IActionResult> Create(User data)
         {
             var result = await _service.Create(data);
             return Ok(result);
@@ -49,7 +49,7 @@ namespace ERP.WebAPI.Controllers.AMS
         [HttpPost,Route("Edit")]
         [ValidateModel]
         [Log(OperationActionType.Edit, "修改使用者")]
-        public async Task<IActionResult> Edit(t_user data)
+        public async Task<IActionResult> Edit(User data)
         {
             var result = await _service.Edit(data);
             return Ok(result);

@@ -34,24 +34,22 @@ namespace ERP.Service.API.AMS
 
     public class LoginService : ILoginService
     {
-        private readonly AMSContext _context;
-        private readonly ERPContext _eRPContext;
+        private readonly ERPContext _context;
         private readonly JwtSettings _jwtSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LoginService(AMSContext context, IOptions<JwtSettings> jwtOptions, ERPContext eRPContext, IHttpContextAccessor httpContextAccessor)
+        public LoginService(ERPContext context, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
-            _eRPContext = eRPContext;
             _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ResultModel<LoginResponse>> AuthenticateAsync(LoginRequest login)
         {
             var result = new ResultModel<LoginResponse>();
-            var user = await _context.t_user
-                .FirstOrDefaultAsync(u => u.f_account == login.Account);
+            var user = await _context.User
+                .FirstOrDefaultAsync(u => u.Account == login.Account);
 
             if (user == null)
             {
@@ -59,26 +57,26 @@ namespace ERP.Service.API.AMS
                 return result;
             }
 
-            if (PasswordHelper.IsPasswordValid(login.Password, user.f_pwd))
+            if (PasswordHelper.IsPasswordValid(login.Password, user.Pwd!))
             {
                 result.SetError(ErrorCodeType.IncorrectUsernameOrPassword);
                 return result;
             }
-            if (user.f_isLock)
+            if (user.IsLock)
             {
                 result.SetError(ErrorCodeType.UserLocked);
                 return result;
             }
 
-            var permissions = GetPermissions(user.f_role);
+            var permissions = GetPermissions(user.RoleId);
 
             var accessToken = GenerateAccessToken(user, permissions);
             var refreshToken = GenerateRefreshToken();
             var AccessTokenExpirationTime = DateTime.UtcNow.AddMinutes(_jwtSettings.AccessTokenExpirationMinutes).ToLocalTime();
             var RefreshTokenExpirationTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays).ToLocalTime();
 
-            user.f_refreshToken = refreshToken;
-            user.f_refreshTokenExpiryTime = RefreshTokenExpirationTime;
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = RefreshTokenExpirationTime;
             _context.SaveChanges();
 
             result.Data = new LoginResponse
@@ -86,13 +84,13 @@ namespace ERP.Service.API.AMS
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
                 Expiration = AccessTokenExpirationTime,
-                UserName = user.f_name,
-                UserId = user.f_id,
-                Role = user.f_role,
+                UserName = user.Name,
+                UserId = user.Id,
+                Role = user.RoleId,
                 Permissions = permissions
             };
             //紀錄登入Log
-            LoginLog(login, user.f_id);
+            LoginLog(login, user.Id);
             return result;
         }
 
@@ -115,21 +113,21 @@ namespace ERP.Service.API.AMS
                 return result;
             }
 
-            var user = await _context.t_user.FirstOrDefaultAsync(u => u.f_id.ToString() == userId);
-            if (user == null || user.f_refreshToken != toekn.RefreshToken || user.f_refreshTokenExpiryTime <= DateTime.UtcNow)
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Id.ToString() == userId);
+            if (user == null || user.RefreshToken != toekn.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
                 result.SetError(ErrorCodeType.TokenExpiredOrInvalid);
                 return result;
             }
 
-            var permissions = GetPermissions(user.f_role);
+            var permissions = GetPermissions(user.RoleId);
             // 發新 token
             var newAccessToken = GenerateAccessToken(user, permissions);
             var newRefreshToken = GenerateRefreshToken();
 
             // 更新 DB 的 refresh token
-            user.f_refreshToken = newRefreshToken;
-            user.f_refreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpirationDays);
             await _context.SaveChangesAsync();
 
             result.Data = new AccessRefreshToken
@@ -151,15 +149,15 @@ namespace ERP.Service.API.AMS
                 return result;
             }
 
-            var user = await _context.t_user.FirstOrDefaultAsync(u => u.f_id == int.Parse(userId));
+            var user = await _context.User.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
             if (user == null)
             {
                 result.SetError(ErrorCodeType.UserNotFound);
                 return result;
             }
             // 清除使用者的 refresh token 及過期時間
-            user.f_refreshToken = null;
-            user.f_refreshTokenExpiryTime = null;
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
             await _context.SaveChangesAsync();
 
             result.SetSuccess("成功登出");
@@ -197,18 +195,18 @@ namespace ERP.Service.API.AMS
         }
 
 
-        public string GenerateAccessToken(t_user user, List<int> permissions)
+        public string GenerateAccessToken(User user, List<int> permissions)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_jwtSettings.SecretKey);
             var permissionJson = JsonSerializer.Serialize(permissions);
             var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.f_id.ToString()),
-            new Claim(ClaimTypes.Name, user.f_name),
-            new Claim(ClaimTypes.Role, user.f_role.ToString()),
-            new Claim("roleId", user.f_role.ToString()),
-            new Claim("account", user.f_account),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim(ClaimTypes.Role, user.RoleId.ToString()),
+            new Claim("roleId", user.RoleId.ToString()),
+            new Claim("account", user.Account),
             new Claim("permissions", permissionJson)
         };
 
@@ -242,8 +240,8 @@ namespace ERP.Service.API.AMS
                 IpAddress = GetClientIp(),
                 CrateDate = DateTime.Now
             };
-            _eRPContext.t_1700LoginLog!.Add(log);
-            _eRPContext.SaveChangesAsync();
+            _context.t_1700LoginLog!.Add(log);
+            _context.SaveChangesAsync();
         }
         public string GetClientIp()
         {
@@ -257,10 +255,10 @@ namespace ERP.Service.API.AMS
             return ip ?? "Unknown";
         }
         private List<int> GetPermissions(int roleId) {
-            var permissions = _context.t_permission
-                .Where(c => c.f_roleId == roleId)
+            var permissions = _context.Permission
+                .Where(c => c.RoleId == roleId)
                 .AsNoTracking()
-                .Select(c => (int)c.f_pageId)
+                .Select(c => (int)c.PageId)
                 .ToList();
             return permissions;
         }

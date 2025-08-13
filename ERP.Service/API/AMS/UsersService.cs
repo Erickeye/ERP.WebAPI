@@ -18,16 +18,16 @@ namespace ERP.Service.API.AMS
     public interface IUserService
     {
         Task<ResultModel<ListResult<UserViewModel>>> Index(string inputUser);
-        Task<ResultModel<string>> Create(t_user data);
-        Task<ResultModel<string>> Edit(t_user data);
+        Task<ResultModel<string>> Create(User data);
+        Task<ResultModel<string>> Edit(User data);
         Task<ResultModel<string>> Delete(int id);
     }
     public class UserService : IUserService
     {
-        private readonly AMSContext _context;
+        private readonly ERPContext _context;
         private readonly ICurrentUserService _currentUserService;
 
-        public UserService(AMSContext context, ICurrentUserService currentUserService)
+        public UserService(ERPContext context, ICurrentUserService currentUserService)
         {
             _context = context;
             _currentUserService = currentUserService;
@@ -41,26 +41,26 @@ namespace ERP.Service.API.AMS
             var userRoleId = _currentUserService.RoleId;
 
             //當不是管理者時只顯示自己的帳號
-            var userQuery = _context.t_user!.AsQueryable();
+            var userQuery = _context.User!.AsQueryable();
             if (userRoleId != 0)
             {
-                userQuery = _context.t_user.Where(c => c.f_name == userName);
+                userQuery = _context.User.Where(c => c.Name == userName);
             }
             //搜尋inputUser
             if (!string.IsNullOrEmpty(inputUser))
             {
-                userQuery = _context.t_user.Where(c => c.f_name.Contains(inputUser));
+                userQuery = _context.User.Where(c => c.Name.Contains(inputUser));
             }
             var viewModel = await userQuery.Join(
-                    _context.t_role!,
-                    user => (int)user.f_role,
-                    role => role.f_id,
+                    _context.Role!,
+                    user => (int)user.RoleId,
+                    role => role.Id,
                     (user, role) => new UserViewModel
                     {
-                        Id = user.f_id,
-                        Name = user.f_name,
-                        Account = user.f_account,
-                        RoleName = role.f_roleName
+                        Id = user.Id,
+                        Name = user.Name,
+                        Account = user.Account,
+                        RoleName = role.RoleName
                     })
                 .ToListAsync();
             var listResult = new ListResult<UserViewModel> { Items = viewModel };
@@ -69,14 +69,14 @@ namespace ERP.Service.API.AMS
             return result;
         }
 
-        public async Task<ResultModel<string>> Create(t_user data)
+        public async Task<ResultModel<string>> Create(User data)
         {
             var result = new ResultModel<string>();
 
-            data.f_createDate = DateTime.Now;
-            data.f_pwd = PasswordHelper.HashPassword(data.f_account);
+            data.CreateDate = DateTime.Now;
+            data.Pwd = PasswordHelper.HashPassword(data.Account);
 
-            var checkAccount = await _context.t_user.FirstOrDefaultAsync(c => c.f_account == data.f_account);
+            var checkAccount = await _context.User.FirstOrDefaultAsync(c => c.Account == data.Account);
             //重複註冊
             if (checkAccount != null)
             {
@@ -85,11 +85,11 @@ namespace ERP.Service.API.AMS
             _context.Add(data);
             return result;
         }
-        public async Task<ResultModel<string>> Edit(t_user data)
+        public async Task<ResultModel<string>> Edit(User data)
         {
             var result = new ResultModel<string>();
 
-            var user = await _context.t_user.FirstOrDefaultAsync(c => c.f_id == data.f_id);
+            var user = await _context.User.FirstOrDefaultAsync(c => c.Id == data.Id);
             if (user != null)
             {
                 _context.Entry(user).CurrentValues.SetValues(data);
@@ -100,13 +100,13 @@ namespace ERP.Service.API.AMS
         public async Task<ResultModel<string>> Delete(int id)
         {
             var result = new ResultModel<string>();
-            var user = await _context.t_user.FirstOrDefaultAsync(c => c.f_id == id);
+            var user = await _context.User.FirstOrDefaultAsync(c => c.Id == id);
             if (user == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);
                 return result;
             }
-            if (user!.f_name == "管理員")
+            if (user!.Name == "管理員")
             {
                 result.SetError(0, "無法刪除管理員");
                 return result;

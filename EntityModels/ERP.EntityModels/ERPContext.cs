@@ -1,5 +1,6 @@
 ﻿using ERP.EntityModels.Models._1000Company;
 using ERP.EntityModels.Models._2000Customer;
+using ERP.Models.AMS;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,10 @@ namespace ERP.Data
             : base(options)
         {
         }
+        public DbSet<User> User { get; set; }
+        public DbSet<Role> Role { get; set; }
+        public DbSet<Permission> Permission { get; set; }
+        public DbSet<Level> Level { get; set; }
         public DbSet<t_1000Staff> t_1000Staff { get; set; }
         public DbSet<t_1001StaffCertificates> t_1001StaffCertificates { get; set; }
         public DbSet<t_1005ProjectStaff> t_1005ProjectStaff { get; set; }

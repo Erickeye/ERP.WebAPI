@@ -37,7 +37,7 @@ namespace ERP.WebAPI.Controllers.AMS
         [HttpPost, Route("Create")]
         [ValidateModel]
         [Log(OperationActionType.Create, "新增角色名稱")]
-        public async Task<IActionResult> Create(t_role data)
+        public async Task<IActionResult> Create(Role data)
         {
             var result = await _servsice.Create(data);
             return Ok(result);
@@ -47,7 +47,7 @@ namespace ERP.WebAPI.Controllers.AMS
         [HttpPost, Route("Edit")]
         [ValidateModel]
         [Log(OperationActionType.Edit, "修改角色名稱")]
-        public async Task<IActionResult> Edit(t_role data)
+        public async Task<IActionResult> Edit(Role data)
         {
             var result = await _servsice.Edit(data);
             return Ok(result);
@@ -74,7 +74,7 @@ namespace ERP.WebAPI.Controllers.AMS
         [SwaggerOperation("修改權限金額")]
         [HttpPost, Route("UpdatePermissionsAmount")]
         [Log(OperationActionType.Edit, "修改權限金額")]
-        public async Task<IActionResult> UpdatePermissionsAmount(List<t_level> data)
+        public async Task<IActionResult> UpdatePermissionsAmount(List<Level> data)
         {
             var result = await _servsice.UpdatePermissionsAmount(data);
             return Ok(result);

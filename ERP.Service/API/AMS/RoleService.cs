@@ -17,18 +17,18 @@ namespace ERP.Service.API.AMS
     public interface IRoleService
     {
         Task<ResultModel<ListResult<RoleViewModel>>> Index();
-        Task<ResultModel<string>> Create(t_role data);
-        Task<ResultModel<string>> Edit(t_role data);
+        Task<ResultModel<string>> Create(Role data);
+        Task<ResultModel<string>> Edit(Role data);
         Task<ResultModel<RolePermissions>> GetRolePermissions(int roleId);
         Task<ResultModel<string>> PermissionsEdit(RolePermissions data);
         Task<ResultModel<string>> Delete(int id);
-        Task<ResultModel<string>> UpdatePermissionsAmount(List<t_level> data);
+        Task<ResultModel<string>> UpdatePermissionsAmount(List<Level> data);
     }
     public class RoleService : IRoleService
     {
-        private readonly AMSContext _context;
+        private readonly ERPContext _context;
 
-        public RoleService(AMSContext context)
+        public RoleService(ERPContext context)
         {
             _context = context;
         }
@@ -36,12 +36,12 @@ namespace ERP.Service.API.AMS
         public async Task<ResultModel<ListResult<RoleViewModel>>> Index()
         {
             var result = new ResultModel<ListResult<RoleViewModel>>();
-            var roleList = await _context.t_role
+            var roleList = await _context.Role
                         .AsNoTracking()
                         .Select( c => new RoleViewModel
                         {
-                            Id = c.f_id,
-                            RoleName = c.f_roleName
+                            Id = c.Id,
+                            RoleName = c.RoleName
                         })
                         .ToListAsync();
             var listResult = new ListResult<RoleViewModel> { Items = roleList};
@@ -49,7 +49,7 @@ namespace ERP.Service.API.AMS
 
             return result;
         }
-        public async Task<ResultModel<string>> Create(t_role data)
+        public async Task<ResultModel<string>> Create(Role data)
         {
             var result = new ResultModel<string>();
             _context.Add(data);
@@ -67,10 +67,10 @@ namespace ERP.Service.API.AMS
             result.SetSuccess("角色新增成功");
             return result;
         }
-        public async Task<ResultModel<string>> Edit(t_role data)
+        public async Task<ResultModel<string>> Edit(Role data)
         {
             var result = new ResultModel<string>();
-            var role = await _context.t_role.FirstOrDefaultAsync(c => c.f_id == data.f_id);
+            var role = await _context.Role.FirstOrDefaultAsync(c => c.Id == data.Id);
             if (role != null)
             {
                 _context.Entry(role).CurrentValues.SetValues(data);
@@ -82,27 +82,26 @@ namespace ERP.Service.API.AMS
         public async Task<ResultModel<RolePermissions>> GetRolePermissions(int roleId)
         {
             var result = new ResultModel<RolePermissions>();
-            var role = await _context.t_role.FirstOrDefaultAsync(c => c.f_id == roleId);
+            var role = await _context.Role.FirstOrDefaultAsync(c => c.Id == roleId);
             if (role == null)
             {
                 result.SetError(ErrorCodeType.UserRoleAlreadyExists);
                 return result;
             }
-            var permissions = await _context.t_permission.Where(c => c.f_roleId == roleId).ToListAsync();
+            var permissions = await _context.Permission.Where(c => c.RoleId == roleId).ToListAsync();
 
             var permissionsList = new RolePermissions
             {
                 RoleId = roleId,
                 RoleContent = permissions.Select(c => new RolePermissionItem()
                 {
-                    PermissionType = c.f_pageId,
-                    HasPermission = c.f_type,
+                    PermissionType = c.PageId,
                 })
                 .ToList(),
-                Permission = role.f_permissionLevel,
-                Approval = role.f_approvalLevel,
-                Quotation = role.f_quotationLevel,
-                Procurement = role.f_procurementLevel,
+                Permission = role.PermissionLevel,
+                Approval = role.ApprovalLevel,
+                Quotation = role.QuotationLevel,
+                Procurement = role.ProcurementLevel,
             };
 
             result.Data = permissionsList;
@@ -118,51 +117,50 @@ namespace ERP.Service.API.AMS
                 return result;
             }
 
-            var permissions = _context.t_permission!.Where(p => p.f_roleId == data.RoleId).ToList();
+            var permissions = _context.Permission!.Where(p => p.RoleId == data.RoleId).ToList();
             foreach (var item in data.RoleContent)
             {
-                var existingPerm = permissions.FirstOrDefault(p => p.f_pageId == item.PermissionType);
+                var existingPerm = permissions.FirstOrDefault(p => p.PageId == item.PermissionType);
                 if (item.HasPermission)
                 {
                     // 如果要有權限但資料不存在 → 新增
                     if (existingPerm == null)
                     {
-                        _context.t_permission!.Add(new t_permission
+                        _context.Permission!.Add(new Permission
                         {
-                            f_roleId = data.RoleId,
-                            f_pageId = item.PermissionType,
-                            f_type = true
+                            RoleId = data.RoleId,
+                            PageId = item.PermissionType,
                         });
                     }
                     // 若已有資料但權限為 false，則改成 true
-                    else if (!existingPerm.f_type)
-                    {
-                        existingPerm.f_type = true;
-                    }
+                    //else if (!existingPerm.f_type)
+                    //{
+                    //    existingPerm.f_type = true;
+                    //}
                 }
                 else
                 {
                     // 如果不需要權限但資料存在 → 刪除
                     if (existingPerm != null)
                     {
-                        _context.t_permission!.Remove(existingPerm);
+                        _context.Permission!.Remove(existingPerm);
                     }
                 }
             }
 
             try
             {
-                var level = await _context.t_role!.Where(c => c.f_id == data.RoleId).FirstOrDefaultAsync();
+                var level = await _context.Role!.Where(c => c.Id == data.RoleId).FirstOrDefaultAsync();
                 if (level == null) {
                     result.SetError(ErrorCodeType.NotFoundData);
                     return result;
                 }
-                level.f_permissionLevel = data.Permission;
-                level.f_approvalLevel = data.Approval;
-                level.f_quotationLevel = data.Quotation;
-                level.f_procurementLevel = data.Procurement;
+                level.PermissionLevel = data.Permission;
+                level.ApprovalLevel = data.Approval;
+                level.QuotationLevel = data.Quotation;
+                level.ProcurementLevel = data.Procurement;
 
-                _context.t_permission!.UpdateRange();
+                _context.Permission!.UpdateRange();
                 await _context.SaveChangesAsync();
                 //資料序列化
                 result.SetSuccess("角色權限已修正");
@@ -175,15 +173,15 @@ namespace ERP.Service.API.AMS
             }
             return result;
         }
-        public async Task<ResultModel<string>> UpdatePermissionsAmount(List<t_level> data)
+        public async Task<ResultModel<string>> UpdatePermissionsAmount(List<Level> data)
         {
             var result = new ResultModel<string>();
             foreach (var level in data)
             {
-                var hasLevel = await _context.t_level.FirstOrDefaultAsync(c => c.f_permissionLevel == level.f_permissionLevel);
+                var hasLevel = await _context.Level.FirstOrDefaultAsync(c => c.PermissionLevel == level.PermissionLevel);
                 if (hasLevel != null)
                 {
-                    hasLevel.f_levelAmount = level.f_levelAmount;
+                    hasLevel.LevelAmount = level.LevelAmount;
                 }
             }
             result.SetSuccess("權限金額已修改成功");
@@ -193,7 +191,7 @@ namespace ERP.Service.API.AMS
         public async Task<ResultModel<string>> Delete(int id)
         {
             var result = new ResultModel<string>();
-            var role = await _context.t_role.FirstOrDefaultAsync(c => c.f_id == id);
+            var role = await _context.Role.FirstOrDefaultAsync(c => c.Id == id);
             if(role == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData);

@@ -20,10 +20,10 @@ namespace ERP.Service.API.AMS
     }
     public class UserInfoService : IUserInfoService
     {
-        private readonly AMSContext _context;
+        private readonly ERPContext _context;
         private readonly IHttpContextAccessor httpContextAccessor;
 
-        public UserInfoService(AMSContext context, IHttpContextAccessor httpContextAccessor)
+        public UserInfoService(ERPContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             this.httpContextAccessor = httpContextAccessor;
@@ -38,16 +38,16 @@ namespace ERP.Service.API.AMS
                 return result;
             }
             var userInfo = await (
-                from user in _context.t_user
-                join role in _context.t_role
-                on (int)user.f_role equals role.f_id
+                from user in _context.User
+                join role in _context.Role
+                on (int)user.RoleId equals role.Id
                 select new UserInfo
                 {
                     UserId = userId,
-                    UserName = user.f_name,
-                    Account = user.f_account,
-                    RoleId = role.f_id,
-                    RoleName = role.f_roleName,
+                    UserName = user.Name,
+                    Account = user.Account,
+                    RoleId = role.Id,
+                    RoleName = role.RoleName,
                 })
                 .FirstOrDefaultAsync();
 

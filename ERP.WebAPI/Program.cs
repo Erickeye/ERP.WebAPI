@@ -126,8 +126,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddDbContext<ERPContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP")));
-builder.Services.AddDbContext<AMSContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ERP_AMS")));
 
 builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));
 //builder.Services.AddScoped<ILoginService, LoginService>();

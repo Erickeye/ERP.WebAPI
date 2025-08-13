@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\EntityModels\AMS.EntityModels\AMS.EntityModels.csproj" />
     <ProjectReference Include="..\EntityModels\ERP.EntityModels\ERP.EntityModels.csproj" />
     <ProjectReference Include="..\ERP.Library\ERP.Library.csproj" />
   </ItemGroup>
