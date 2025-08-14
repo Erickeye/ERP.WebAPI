@@ -6,7 +6,6 @@ namespace ERP.Models.AMS
 {
 	public class Permission
 	{
-        [Key]
         [ForeignKey(nameof(Role))]
         public int RoleId { get; set; }
 		public PermissionType PageId { get; set; }

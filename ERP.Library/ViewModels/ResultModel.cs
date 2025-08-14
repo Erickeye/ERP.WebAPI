@@ -38,6 +38,12 @@ namespace ERP.Library.ViewModels
     public class ListResult<T>
     {
         public List<T> Items { get; set; } = new();
+        public ListResult() { }
+
+        public ListResult(List<T> items)
+        {
+            Items = items ?? new();
+        }
     }
     public class SelectModel
     {

@@ -46,6 +46,9 @@ namespace ERP.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Permission>()
+                .HasKey(p => new { p.RoleId, p.PageId }); // 複合主鍵
+
             base.OnModelCreating(modelBuilder);
 
             // 對所有 decimal 屬性自動設定 precision
