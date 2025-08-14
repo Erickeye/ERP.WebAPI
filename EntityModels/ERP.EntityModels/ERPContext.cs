@@ -42,6 +42,7 @@ namespace ERP.Data
         public DbSet<Notification> Notification { get; set; }
         public DbSet<ApprovalSettings> ApprovalSettings { get; set; }
         public DbSet<ApprovalStep> ApprovalStep { get; set; }
+        public DbSet<ApprovalStepNumber> ApprovalStepNumber { get; set; }
         public DbSet<ApprovalRecord> ApprovalRecord { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

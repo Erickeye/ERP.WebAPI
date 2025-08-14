@@ -152,7 +152,7 @@ foreach (var type in types)
     if(interfaceType != null)
     {
         builder.Services.AddScoped(interfaceType,type);
-        Console.WriteLine($"¤wµù¥U {interfaceType.Name} -> {type.Name}");
+        //Console.WriteLine($"¤wµù¥U {interfaceType.Name} -> {type.Name}");
     }
 }
 

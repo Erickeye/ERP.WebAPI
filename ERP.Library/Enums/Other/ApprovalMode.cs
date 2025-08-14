@@ -9,11 +9,11 @@ namespace ERP.Library.Enums.Other
 {
     public enum ApprovalMode
     {
-        [Display(Name ="單人")]
-        Single = 0,
-        [Display(Name = "全部")]
-        All = 1,
+        [Display(Name = "指定")]
+        Specify = 0,
+        [Display(Name = "單人")]
+        Single = 1,
         [Display(Name = "自訂人數")]
-        Customized = 2
+        Customized = 2,
     }
 }

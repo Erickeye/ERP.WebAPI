@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ERP.Library.Enums._1000Company;
+using ERP.Library.Enums.Other;
 
 namespace ERP.EntityModels.Models._1000Company
 {
@@ -51,11 +52,8 @@ namespace ERP.EntityModels.Models._1000Company
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd HH:mm}", ApplyFormatInEditMode = true)]
         public DateTime EndDate { get; set; }
 
-        [Display(Name = "簽核主管")]
-        public string? Authorizer { get; set; }
-
-        [Display(Name = "簽核")]
-        public bool? ApprovalStatus { get; set; }
+        [Display(Name = "簽核狀態")]
+        public ApprovalStatus? ApprovalStatus { get; set; }
 
         public virtual t_1000Staff? Staff_LeaveTaker { get; set; }
         public virtual t_1000Staff? Staff_Applicant { get; set; }

@@ -1,5 +1,6 @@
 ﻿using ERP.EntityModels.Models.Other;
 using ERP.Library.Enums;
+using ERP.Library.ViewModels.Approval;
 using ERP.Service.API;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +20,15 @@ namespace ERP.WebAPI.Controllers.Approval
         public ApprovalController(IApprovalService service)
         {
             _service = service;
+        }
+
+        [SwaggerOperation("送出簽核流程")]
+        [HttpPost, Route("SendApprovalProcess")]
+        [Log(OperationActionType.Submit, "送出簽核流程")]
+        public async Task<IActionResult> SendApprovalProcess(SendApprovalProcessVM data)
+        {
+            var result = await _service.SendApprovalProcess(data);
+            return Ok();
         }
 
         [SwaggerOperation("檢視簽核設定")]

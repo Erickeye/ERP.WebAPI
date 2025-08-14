@@ -19,9 +19,6 @@ namespace ERP.EntityModels.Models.Other
         [ForeignKey(nameof(ApprovalStep))]
         public int ApprovalStepId { get; set; }
 
-        [Display(Name = "表單類型")]
-        public TableType TableType { get; set; }
-
         [StringLength(32, ErrorMessage = "長度不可超過 32 個字元")]
         [Display(Name = "表單Id")]
         public string? TableId { get; set; }
@@ -29,14 +26,17 @@ namespace ERP.EntityModels.Models.Other
         [Display(Name = "簽核順序")]
         public int StepOrder { get; set; }
 
+        [Display(Name = "簽核角色")]
+        public int RoleId { get; set; }
+
         [Display(Name = "簽核者")]
-        public int UserId { get; set; }
+        public int? UserId { get; set; }
 
         [Display(Name = "簽核狀態")]
         public ApprovalStatus Status { get; set; }
 
         [Display(Name = "簽核日期")]
-        public System.DateTime Date { get; set; }
+        public System.DateTime? Date { get; set; }
 
         public virtual ApprovalStep ApprovalStep { get; set; } = null!;
     }

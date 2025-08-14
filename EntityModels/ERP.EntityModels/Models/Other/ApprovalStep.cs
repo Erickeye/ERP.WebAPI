@@ -25,7 +25,8 @@ namespace ERP.EntityModels.Models.Other
         public int RoleId { get; set; }
 
         [Display(Name = "簽核模式")]
-        public ApprovalMode Mode { get; set; } // 單人通過 / 全員通過 // 自訂
+        public ApprovalMode Mode { get; set; } // 指定人員 / 單人通過 / 自訂人數
+
 
         [Display(Name = "自訂人數")]
         public int? RequiredCounts { get; set; }

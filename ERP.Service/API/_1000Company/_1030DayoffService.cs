@@ -63,8 +63,7 @@ namespace ERP.Service.API._1000Company
                     LeaveType = x.LeaveType,
                     Reason = x.Reason,
                     BeginDate = x.BeginDate,
-                    EndDate = x.EndDate,
-                    Authorizer = x.Authorizer
+                    EndDate = x.EndDate
                 })
                 .ToListAsync();
             return result;
