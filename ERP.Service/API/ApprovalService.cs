@@ -8,6 +8,7 @@ using ERP.Models.AMS;
 using ERP.Service.API.AMS;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -24,8 +25,10 @@ namespace ERP.Service.API
         Task<ResultModel<string>> CreateOrEditSettings(ApprovalSettings data);
         Task<ResultModel<string>> DeleteSettings(int id);
         Task<ResultModel<ListResult<ApprovalStep>>> CheckStep(int approvalSettingsId);
-        Task<ResultModel<string>> CreateOrEditStep(ApprovalStep data);
+        Task<ResultModel<string>> CreateOrEditStep(ApprovakStepInputVM data);
         Task<ResultModel<string>> DeleteStep(int id);
+        Task<ResultModel<string>> CreateOrEditStepNumber(ApprovalStepNumberInputVM data);
+        Task<ResultModel<string>> DeleteStepNumber(int id);
     }
     public class ApprovalService : IApprovalService
     {
@@ -161,20 +164,35 @@ namespace ERP.Service.API
             result.Data = new ListResult<ApprovalStep>(list);
             return result;
         }
-        public async Task<ResultModel<string>> CreateOrEditStep(ApprovalStep data)
+        public async Task<ResultModel<string>> CreateOrEditStep(ApprovakStepInputVM data)
         {
             var result = new ResultModel<string>();
             var entity = await _context.ApprovalStep
                 .FirstOrDefaultAsync(x => x.Id == data.Id);
             if (entity == null)
             {
-                entity = new ApprovalStep();
-                _context.Add(data);
+                var lastStep = _context.ApprovalStep
+                    .Where(x => x.ApprovalSettingsId == data.ApprovalSettingsId)
+                    .OrderByDescending(x => x.StepOrder)
+                    .FirstOrDefault();
+                int stepOrder = lastStep == null
+                    ? 1
+                    : lastStep.StepOrder + 1;
+                _context.Add(new ApprovalStep
+                {
+                    ApprovalSettingsId = data.ApprovalSettingsId,
+                    StepOrder = stepOrder,
+                    RoleId = data.RoleId,
+                    Mode = data.Mode,
+                    RequiredCounts = data.RequiredCounts
+                });
                 result.SetSuccess("資料成功新增");
             }
             else
             {
-                _context.Entry(entity).CurrentValues.SetValues(data);
+                entity.RoleId = data.RoleId;
+                entity.Mode = data.Mode;
+                entity.RequiredCounts = data.RequiredCounts;
                 result.SetSuccess("資料成功修改");
             }
             await _context.SaveChangesAsync();
@@ -194,6 +212,41 @@ namespace ERP.Service.API
             result.SetSuccess("資料已刪除成功");
             return result;
         }
-
+        public async Task<ResultModel<string>> CreateOrEditStepNumber(ApprovalStepNumberInputVM data)
+        {
+            var result = new ResultModel<string>();
+            var entity = await _context.ApprovalStepNumber
+                .FirstOrDefaultAsync(x => x.Id == data.Id);
+            if (entity == null)
+            {
+                _context.Add(new ApprovalStepNumber
+                {
+                    ApprovalStepId = data.ApprovalStepId,
+                    UserId = data.UserId
+                });
+                result.SetSuccess("資料成功新增");
+            }
+            else
+            {
+                entity.UserId = data.UserId;
+                result.SetSuccess("資料成功修改");
+            }
+            await _context.SaveChangesAsync();
+            return result;
+        }
+        public async Task<ResultModel<string>> DeleteStepNumber(int id)
+        {
+            var result = new ResultModel<string>();
+            var entity = await _context.ApprovalStepNumber.FirstOrDefaultAsync();
+            if (entity == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData);
+                return result;
+            }
+            _context.Remove(entity);
+            await _context.SaveChangesAsync();
+            result.SetSuccess("資料已刪除成功");
+            return result;
+        }
     }
 }

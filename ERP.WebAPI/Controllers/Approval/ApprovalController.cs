@@ -28,7 +28,7 @@ namespace ERP.WebAPI.Controllers.Approval
         public async Task<IActionResult> SendApprovalProcess(SendApprovalProcessVM data)
         {
             var result = await _service.SendApprovalProcess(data);
-            return Ok();
+            return Ok(result);
         }
 
         [SwaggerOperation("檢視簽核設定")]
@@ -37,7 +37,7 @@ namespace ERP.WebAPI.Controllers.Approval
         public async Task<IActionResult> CheckSettings()
         {
             var result = await _service.CheckSettings();
-            return Ok();
+            return Ok(result);
         }
 
         [SwaggerOperation("新增簽核設定")]
@@ -64,13 +64,13 @@ namespace ERP.WebAPI.Controllers.Approval
         public async Task<IActionResult> CheckStep(int approvalSettingsId)
         {
             var result = await _service.CheckStep(approvalSettingsId);
-            return Ok();
+            return Ok(result);
         }
 
         [SwaggerOperation("新增簽核步驟")]
         [HttpPost, Route("CreateStep")]
         [Log(OperationActionType.Create, "新增簽核步驟")]
-        public async Task<IActionResult> CreateStep(ApprovalStep data)
+        public async Task<IActionResult> CreateStep(ApprovakStepInputVM data)
         {
             var result = await _service.CreateOrEditStep(data);
             return Ok(result);
@@ -79,9 +79,45 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("修改簽核步驟")]
         [HttpPost, Route("EditStep")]
         [Log(OperationActionType.Edit, "修改簽核步驟")]
-        public async Task<IActionResult> Editettings(ApprovalStep data)
+        public async Task<IActionResult> EditStep(ApprovakStepInputVM data)
         {
             var result = await _service.CreateOrEditStep(data);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("刪除簽核步驟")]
+        [HttpDelete, Route("EditStep")]
+        [Log(OperationActionType.Delete, "刪除簽核步驟")]
+        public async Task<IActionResult> DeleteStep(int id)
+        {
+            var result = await _service.DeleteStep(id);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("新增簽核步驟成員")]
+        [HttpPost, Route("CreateStepNumber")]
+        [Log(OperationActionType.Create, "新增簽核步驟成員")]
+        public async Task<IActionResult> CreateStepNumber(ApprovalStepNumberInputVM data)
+        {
+            var result = await _service.CreateOrEditStepNumber(data);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("修改簽核步驟成員")]
+        [HttpPost, Route("EditStepNumber")]
+        [Log(OperationActionType.Edit, "修改簽核步驟成員")]
+        public async Task<IActionResult> EditStepNumber(ApprovalStepNumberInputVM data)
+        {
+            var result = await _service.CreateOrEditStepNumber(data);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("刪除簽核步驟成員")]
+        [HttpDelete, Route("EditStepNumber")]
+        [Log(OperationActionType.Delete, "刪除簽核步驟成員")]
+        public async Task<IActionResult> DeleteStepNumber(int id)
+        {
+            var result = await _service.DeleteStepNumber(id);
             return Ok(result);
         }
     }
