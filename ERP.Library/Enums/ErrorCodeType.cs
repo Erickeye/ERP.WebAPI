@@ -225,6 +225,9 @@ namespace ERP.Library.Enums
         [Display(Name = "資料不完整", Description = "資料不完整")]
         IncompleteInfo= 4011,
 
+        [Display(Name = "不支援的簽核資料類型", Description = "不支援的簽核資料類型")]
+        InvalidApproval = 4012,
+
         [Display(Name = "指定的紀錄已異動", Description = "指定的紀錄已異動")]
         SpecificRecordChanged = 9501,
 

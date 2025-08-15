@@ -38,6 +38,10 @@ namespace ERP.EntityModels.Models.Other
         [Display(Name = "簽核日期")]
         public System.DateTime? Date { get; set; }
 
+        [StringLength(256, ErrorMessage = "長度不可超過 256 個字元")]
+        [Display(Name = "備註")]
+        public string? Memo { get; set; }
+
         public virtual ApprovalStep ApprovalStep { get; set; } = null!;
     }
 }

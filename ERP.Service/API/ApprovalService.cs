@@ -1,4 +1,5 @@
 ﻿using ERP.Data;
+using ERP.EntityModels.Models._9000Other;
 using ERP.EntityModels.Models.Other;
 using ERP.Library.Enums;
 using ERP.Library.Enums.Other;
@@ -44,28 +45,61 @@ namespace ERP.Service.API
         {
             var result = new ResultModel<string>();
 
+            //檢查設定檔
+            var setting = await _context.ApprovalSettings
+                .FirstOrDefaultAsync(x => x.Id == data.ApprovalSettingsId); ;
+            if(setting == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核設定檔");
+                return result;
+            }
+
+            var tableCheckers = new Dictionary<TableType, Func<string, Task<bool>>>
+            {
+                { TableType.請假單, async id => await _context.t_1030Dayoff.AnyAsync(x => x.Id.ToString() == id) },
+                { TableType.公文,   async id => await _context.t_1040Document.AnyAsync(x => x.Id.ToString() == id) }
+            };
+            //檢查是否有該單號
+            if(tableCheckers.TryGetValue(setting.TableType,out var checker))
+            {
+                var exists = await checker(data.TableId);
+                if (!exists)
+                {
+                    result.SetError(ErrorCodeType.NotFoundData);
+                    return result;
+                }
+            }
+            else
+            {
+                result.SetError(ErrorCodeType.InvalidApproval, "不支援的簽核資料類型");
+                return result;
+            }
+
             int roleId = _currentUserService.RoleId;
             int userId = _currentUserService.UserId;
-            //填表人預設通過
-            var record = new ApprovalRecord
+            //第一筆新增申請者-預設簽核狀態通過
+            var fitstRecord = new ApprovalRecord
             {
-                //ApprovalStepId = 0,
+                ApprovalStepId = 0, //等第一步Step再帶入
                 TableId = data.TableId,
                 StepOrder = 0,
                 Status = ApprovalStatus.Approved,
                 RoleId = roleId,
                 UserId = userId,
-                Date = DateTime.Now
+                Date = DateTime.Now,
+                Memo = "申請者自動通過"
             };
-            _context.Add(record);
+            _context.Add(fitstRecord);
 
             var steps = _context.ApprovalStep
                .Where(x => x.ApprovalSettingsId == data.ApprovalSettingsId)
                .ToList();
 
+            int stepCount = 0;
             //該簽核設定底下的每個流程
             foreach (var step in steps)
             {
+                stepCount++;
                 switch (step.Mode)
                 {
                     case ApprovalMode.Specify:
@@ -75,14 +109,31 @@ namespace ERP.Service.API
                         .ToList();
                         foreach (var item in approvalUser)
                         {
-                            _context.Add(new ApprovalRecord
+                            var recordx = new ApprovalRecord
                             {
                                 ApprovalStepId = step.Id,
+                                RoleId = step.RoleId,
                                 TableId = data.TableId,
                                 StepOrder = step.StepOrder,
                                 Status = ApprovalStatus.Pending,
                                 UserId = item.UserId
-                            });
+                            };
+                            //訊息通知
+                            var notification = new Notification
+                            {
+                                DateTime = DateTime.Now,
+                                Type = setting.TableType,
+                                TargetId = data.TableId,
+                                UserId = item.UserId
+                            };
+                            //step整個簽核訊息先建立，但只顯示step1的訊息通知
+                            if(stepCount == 1)
+                            {
+                                notification.IsShow = true;
+                                fitstRecord.ApprovalStepId = step.Id;
+                            }
+                            _context.Add(recordx);
+                            _context.Add(notification);
                         }
                         break;
                     case ApprovalMode.Single:
@@ -97,17 +148,67 @@ namespace ERP.Service.API
                         break;
                     case ApprovalMode.Customized:
                         //自訂人數
-                        _context.Add(new ApprovalRecord
+                        for (int i = 0; i < step.RequiredCounts; i++)
                         {
-                            ApprovalStepId = step.Id,
-                            TableId = data.TableId,
-                            StepOrder = step.StepOrder,
-                            Status = ApprovalStatus.Pending,
-                        });
+                            _context.Add(new ApprovalRecord
+                            {
+                                ApprovalStepId = step.Id,
+                                TableId = data.TableId,
+                                StepOrder = step.StepOrder,
+                                Status = ApprovalStatus.Pending,
+                            });
+                        }
                         break;
                 }
             }
             await _context.SaveChangesAsync();
+            result.SetSuccess("簽核流程成功送出");
+            return result;
+        }
+        public async Task<ResultModel<string>> Approval(int recordId, string memo)
+        {
+            var result = new ResultModel<string>();
+            var record = await _context.ApprovalRecord.FirstOrDefaultAsync(x => x.Id == recordId);
+            if (record == null) {
+                result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
+                return result;
+            }
+            record.Date = DateTime.Now;
+            record.Status = ApprovalStatus.Approved;
+            record.Memo = memo;
+
+            //檢查該簽核步驟是否已經完成
+            var isStepEnd = await _context.ApprovalRecord
+                .Where(x => x.ApprovalStepId == record.ApprovalStepId && x.StepOrder ==  record.StepOrder)
+                .AllAsync(x => x.Status != ApprovalStatus.Pending);
+            if (!isStepEnd)
+            {
+                result.SetSuccess("簽核成功，該階段等待其他人員簽核");
+                return result;
+            }
+            //簽核階段全部完成(沒有下一個階段的Step階段)
+            var nextStep = _context.ApprovalRecord.Where(x => x.StepOrder != record.StepOrder + 1);
+            if (nextStep.Count() == 0)
+            {
+                result.SetSuccess("簽核成功，簽核作業已完成");
+                return result;
+            }
+            //該階段完成但還有下個階段
+                //找出下個階段的通知訊息
+            var nextUsersNotification = _context.Notification
+                .Where(x => x.TargetId == record.TableId && x.IsShow == false);
+            var nextUsers = nextStep.Select(x => x.UserId).ToList();
+            foreach (var user in nextUsers) {
+                var Notification = nextUsersNotification.FirstOrDefault(x => x.UserId == user);
+                if(Notification == null)
+                {
+                    result.SetError(ErrorCodeType.UserNotFound);
+                    return result;
+                }
+                //開啟下個階段的通知訊息
+                Notification.IsShow = true;
+            }
+
             return result;
         }
         public async Task<ResultModel<ListResult<ApprovalSettings>>> CheckSettings()
