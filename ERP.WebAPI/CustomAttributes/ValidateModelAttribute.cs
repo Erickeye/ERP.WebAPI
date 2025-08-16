@@ -17,7 +17,7 @@ namespace ERP.WebAPI.CustomAttributes
                 result.SetError(
                     ErrorCodeType.FieldValueIsInvalid,
                     null,
-                    context.ModelState.GetErrorsDictionary() // 你的擴充方法
+                    context.ModelState.GetErrorsDictionary()
                 );
 
                 context.Result = new JsonResult(result)
