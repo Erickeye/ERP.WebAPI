@@ -103,6 +103,15 @@ namespace ERP.WebAPI.Controllers.Approval
             return Ok(result);
         }
 
+        [SwaggerOperation("檢視簽核步驟成員")]
+        [HttpGet, Route("CheckStepDetail")]
+        //[Log(OperationActionType.View, "檢視簽核步驟成員")]
+        public async Task<IActionResult> CheckStepDetail(int ApprovalStepId)
+        {
+            var result = await _service.CheckStepDetail(ApprovalStepId);
+            return Ok(result);
+        }
+
         [SwaggerOperation("修改簽核步驟成員")]
         [HttpPost, Route("EditStepNumber")]
         [Log(OperationActionType.Edit, "修改簽核步驟成員")]

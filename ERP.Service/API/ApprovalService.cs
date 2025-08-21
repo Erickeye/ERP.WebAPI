@@ -28,6 +28,7 @@ namespace ERP.Service.API
         Task<ResultModel<ListResult<ApprovalStep>>> CheckStep(int approvalSettingsId);
         Task<ResultModel<string>> CreateOrEditStep(ApprovakStepInputVM data);
         Task<ResultModel<string>> DeleteStep(int id);
+        Task<ResultModel<ListResult<ApprovalStepNumber>>> CheckStepDetail(int ApprovalStepId);
         Task<ResultModel<string>> CreateOrEditStepNumber(ApprovalStepNumberInputVM data);
         Task<ResultModel<string>> DeleteStepNumber(int id);
     }
@@ -311,6 +312,20 @@ namespace ERP.Service.API
             _context.Remove(entity);
             await _context.SaveChangesAsync();
             result.SetSuccess("資料已刪除成功");
+            return result;
+        }
+        public async Task<ResultModel<ListResult<ApprovalStepNumber>>> CheckStepDetail(int ApprovalStepId)
+        {
+            var result = new ResultModel<ListResult<ApprovalStepNumber>>();
+            var list = await _context.ApprovalStepNumber
+                .Where(x => x.ApprovalStepId == ApprovalStepId)
+                .ToListAsync();
+            if (list.Count == 0)
+            {
+                result.SetError(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟成員");
+                return result;
+            }
+            result.Data = new ListResult<ApprovalStepNumber>(list);
             return result;
         }
         public async Task<ResultModel<string>> CreateOrEditStepNumber(ApprovalStepNumberInputVM data)
