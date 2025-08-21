@@ -49,29 +49,47 @@ namespace ERP.Service.API
             var result = new ResultModel<string>();
 
             //檢查設定檔
-            var setting = await _context.ApprovalSettings
-                .FirstOrDefaultAsync(x => x.Id == data.ApprovalSettingsId); ;
-            if(setting == null)
+            var settingList = await _context.ApprovalSettings
+                .Where(x => x.TableType == data.TableType &&
+                                 x.IsActive == true)
+                .ToListAsync();
+            if (settingList.Count == 0)
             {
                 result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核設定檔");
                 return result;
             }
-            //檢查該單號是否已送過簽核流程
-            var existTableId = await _context.ApprovalRecord.AnyAsync(x => x.TableId == data.TableId);
-            if (existTableId) {
-                //如果單號重複 => 檢查TableType是否一樣
-                var checkSettingType = await _context.ApprovalRecord
-                .Include(x => x.ApprovalStep)                  // record → step
-                .ThenInclude(step => step.ApprovalSettings)    // step → settings
-                .AnyAsync(x => x.ApprovalStep.ApprovalSettings.Id == setting.Id &&
-                    x.ApprovalStep.ApprovalSettings.TableType == setting.TableType);
-
-                if (checkSettingType)
-                {
-                    result.SetError(ErrorCodeType.ApprovalExists);
-                    return result;
-                }
+            else if (settingList.Count > 1)
+            {
+                result.SetError(ErrorCodeType.MultipleApprovalSettingsExists);
+                return result;
             }
+            var setting = settingList.FirstOrDefault()!;
+
+            //檢查該單號是否已送過簽核流程
+            var existTableId = await _context.ApprovalRecord
+                .AnyAsync(x => x.TableId == data.TableId &&
+                               x.TableType == setting.TableType);
+            if (existTableId)
+            {
+                result.SetError(ErrorCodeType.ApprovalExists);
+                return result;
+            }
+
+            //var existTableId = await _context.ApprovalRecord.AnyAsync(x => x.TableId == data.TableId);
+            //if (existTableId) {
+            //    //如果單號重複 => 檢查TableType是否一樣
+            //    var checkSettingType = await _context.ApprovalRecord
+            //    .Include(x => x.ApprovalStep)                  // record → step
+            //    .ThenInclude(step => step.ApprovalSettings)    // step → settings
+            //    .AnyAsync(x => x.ApprovalStep.ApprovalSettings.Id == setting.Id &&
+            //        x.ApprovalStep.ApprovalSettings.TableType == setting.TableType);
+
+            //    if (checkSettingType)
+            //    {
+            //        result.SetError(ErrorCodeType.ApprovalExists);
+            //        return result;
+            //    }
+            //}
 
             var tableCheckers = new Dictionary<TableType, Func<string, Task<bool>>>
             {
@@ -106,12 +124,13 @@ namespace ERP.Service.API
                 RoleId = roleId,
                 UserId = userId,
                 Date = DateTime.Now,
-                Memo = "申請者自動通過"
+                Memo = "申請者自動通過",
+                TableType = data.TableType
             };
             _context.Add(fitstRecord);
 
             var steps = _context.ApprovalStep
-               .Where(x => x.ApprovalSettingsId == data.ApprovalSettingsId)
+               .Where(x => x.ApprovalSettingsId == setting.Id)
                .ToList();
 
             int stepCount = 0;
@@ -135,7 +154,8 @@ namespace ERP.Service.API
                                 TableId = data.TableId,
                                 StepOrder = step.StepOrder,
                                 Status = ApprovalStatus.Pending,
-                                UserId = item.UserId
+                                UserId = item.UserId,
+                                TableType = data.TableType
                             };
                             //訊息通知
                             var notification = new Notification
@@ -163,6 +183,7 @@ namespace ERP.Service.API
                             TableId = data.TableId,
                             StepOrder = step.StepOrder,
                             Status = ApprovalStatus.Pending,
+                            TableType = data.TableType
                         });
                         break;
                     case ApprovalMode.Customized:
@@ -175,6 +196,7 @@ namespace ERP.Service.API
                                 TableId = data.TableId,
                                 StepOrder = step.StepOrder,
                                 Status = ApprovalStatus.Pending,
+                                TableType = data.TableType
                             });
                         }
                         break;
@@ -187,17 +209,35 @@ namespace ERP.Service.API
         public async Task<ResultModel<string>> Approval(ApprovalVM data)
         {
             var result = new ResultModel<string>();
-            var record = await _context.ApprovalRecord.FirstOrDefaultAsync(x => x.Id == data.RecordId);
+            int userId = _currentUserService.UserId;
+
+            var record = await _context.ApprovalRecord
+                .FirstOrDefaultAsync(x => x.TableType == data.TableType && 
+                                          x.TableId == data.TableId &&
+                                          x.UserId == userId &&
+                                          x.StepOrder >= 1);
             if (record == null) {
                 result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
                 return result;
             }
-            //身分檢查
-            int userId = _currentUserService.UserId;
-            if (record.UserId != userId) {
-                result.SetError(ErrorCodeType.InvalidUserOperation);
+            // 檢查有無前面尚未完成的簽核
+            var pendingPrevious = await _context.ApprovalRecord
+                .AnyAsync(x => x.TableType == data.TableType &&
+                               x.TableId == data.TableId &&
+                               x.StepOrder >= 1 &&
+                               x.StepOrder < record.StepOrder &&
+                               x.Status == ApprovalStatus.Pending);
+            if (pendingPrevious)
+            {
+                result.SetError(ErrorCodeType.NotYetTurnForApprovalStep);
                 return result;
             }
+
+            //身分檢查
+            //if (record.UserId != userId) {
+            //    result.SetError(ErrorCodeType.InvalidUserOperation);
+            //    return result;
+            //}
             //簽核狀態檢查
             if (record.Status == ApprovalStatus.Approved) {
                 result.SetError(ErrorCodeType.IsAlreadyApproval);

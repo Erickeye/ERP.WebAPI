@@ -237,6 +237,12 @@ namespace ERP.Library.Enums
         [Display(Name = "該簽核作業已存在", Description = "該簽核作業已存在")]
         ApprovalExists = 4015,
 
+        [Display(Name = "該簽核設定啟用多個", Description = "該簽核設定啟用多個")]
+        MultipleApprovalSettingsExists = 4016,
+
+        [Display(Name = "尚未輪到此簽核步驟", Description = "尚未輪到此簽核步驟")]
+        NotYetTurnForApprovalStep = 4017,
+
         [Display(Name = "指定的紀錄已異動", Description = "指定的紀錄已異動")]
         SpecificRecordChanged = 9501,
 

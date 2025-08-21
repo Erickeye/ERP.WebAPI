@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ERP.Library.Enums.Other;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +9,13 @@ namespace ERP.Library.ViewModels.Approval
 {
     public class SendApprovalProcessVM
     {
-        public int ApprovalSettingsId { get; set; }
+        public TableType TableType { get; set; }
         public string TableId { get; set; } = null!;
     }
     public class ApprovalVM
     {
-        public int RecordId { get; set; }
+        public TableType TableType { get; set; }
+        public string? TableId { get; set; } = null!;
         public string? Memo { get; set; } = null!;
     }
 }
