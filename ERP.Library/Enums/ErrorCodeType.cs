@@ -228,6 +228,15 @@ namespace ERP.Library.Enums
         [Display(Name = "不支援的簽核資料類型", Description = "不支援的簽核資料類型")]
         InvalidApproval = 4012,
 
+        [Display(Name = "該作業已簽核", Description = "該作業已簽核")]
+        IsAlreadyApproval = 4013,
+
+        [Display(Name = "非該使用者作業", Description = "非該使用者作業")]
+        InvalidUserOperation = 4014,
+
+        [Display(Name = "該簽核作業已存在", Description = "該簽核作業已存在")]
+        ApprovalExists = 4015,
+
         [Display(Name = "指定的紀錄已異動", Description = "指定的紀錄已異動")]
         SpecificRecordChanged = 9501,
 

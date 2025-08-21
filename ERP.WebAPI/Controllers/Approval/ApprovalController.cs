@@ -31,6 +31,15 @@ namespace ERP.WebAPI.Controllers.Approval
             return Ok(result);
         }
 
+        [SwaggerOperation("簽核作業")]
+        [HttpPost, Route("Approval")]
+        [Log(OperationActionType.Submit, "簽核作業")]
+        public async Task<IActionResult> Approval(ApprovalVM data)
+        {
+            var result = await _service.Approval(data);
+            return Ok(result);
+        }
+
         [SwaggerOperation("檢視簽核設定")]
         [HttpGet, Route("CheckSettings")]
         [Log(OperationActionType.View, "檢視簽核設定")]
@@ -86,11 +95,21 @@ namespace ERP.WebAPI.Controllers.Approval
         }
 
         [SwaggerOperation("刪除簽核步驟")]
-        [HttpDelete, Route("EditStep")]
+        [HttpDelete, Route("DeleteStep")]
         [Log(OperationActionType.Delete, "刪除簽核步驟")]
         public async Task<IActionResult> DeleteStep(int id)
         {
             var result = await _service.DeleteStep(id);
+            return Ok(result);
+        }
+
+
+        [SwaggerOperation("檢視簽核步驟")]
+        [HttpGet, Route("CheckStepNumber")]
+        [Log(OperationActionType.View, "檢視簽核步驟")]
+        public async Task<IActionResult> CheckStepNumber(int ApprovalStepId)
+        {
+            var result = await _service.CheckStepNumber(ApprovalStepId);
             return Ok(result);
         }
 
@@ -100,15 +119,6 @@ namespace ERP.WebAPI.Controllers.Approval
         public async Task<IActionResult> CreateStepNumber(ApprovalStepNumberInputVM data)
         {
             var result = await _service.CreateOrEditStepNumber(data);
-            return Ok(result);
-        }
-
-        [SwaggerOperation("檢視簽核步驟成員")]
-        [HttpGet, Route("CheckStepDetail")]
-        //[Log(OperationActionType.View, "檢視簽核步驟成員")]
-        public async Task<IActionResult> CheckStepDetail(int ApprovalStepId)
-        {
-            var result = await _service.CheckStepDetail(ApprovalStepId);
             return Ok(result);
         }
 

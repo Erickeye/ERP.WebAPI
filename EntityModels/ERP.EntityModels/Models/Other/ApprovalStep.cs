@@ -32,5 +32,6 @@ namespace ERP.EntityModels.Models.Other
         public int? RequiredCounts { get; set; }
 
         public virtual ApprovalSettings ApprovalSettings { get; set; } = null!;
+        public virtual ICollection<ApprovalRecord> ApprovalRecords { get; set; } = new List<ApprovalRecord>();
     }
 }

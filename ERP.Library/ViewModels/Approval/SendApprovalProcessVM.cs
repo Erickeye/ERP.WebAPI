@@ -11,4 +11,9 @@ namespace ERP.Library.ViewModels.Approval
         public int ApprovalSettingsId { get; set; }
         public string TableId { get; set; } = null!;
     }
+    public class ApprovalVM
+    {
+        public int RecordId { get; set; }
+        public string? Memo { get; set; } = null!;
+    }
 }
