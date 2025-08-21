@@ -40,6 +40,15 @@ namespace ERP.WebAPI.Controllers.Approval
             return Ok(result);
         }
 
+        [SwaggerOperation("拒絕簽核作業")]
+        [HttpPost, Route("RejectApproval")]
+        [Log(OperationActionType.Submit, "拒絕簽核作業")]
+        public async Task<IActionResult> RejectApproval(ApprovalVM data)
+        {
+            var result = await _service.RejectApproval(data);
+            return Ok(result);
+        }
+
         [SwaggerOperation("檢視簽核設定")]
         [HttpGet, Route("CheckSettings")]
         [Log(OperationActionType.View, "檢視簽核設定")]

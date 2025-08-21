@@ -15,5 +15,7 @@ namespace ERP.Library.Enums.Other
         Approved = 1,
         [Display(Name = "拒絕")]
         Rejected = 2,
+        [Display(Name = "流程遭拒絕")]
+        GetRejected = 3,
     }
 }

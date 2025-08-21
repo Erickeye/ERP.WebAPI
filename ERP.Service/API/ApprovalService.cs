@@ -24,6 +24,7 @@ namespace ERP.Service.API
     {
         Task<ResultModel<string>> SendApprovalProcess(SendApprovalProcessVM data);
         Task<ResultModel<string>> Approval(ApprovalVM data);
+        Task<ResultModel<string>> RejectApproval(ApprovalVM data);
         Task<ResultModel<ListResult<ApprovalSettings>>> CheckSettings();
         Task<ResultModel<string>> CreateOrEditSettings(ApprovalSettings data);
         Task<ResultModel<string>> DeleteSettings(int id);
@@ -68,7 +69,8 @@ namespace ERP.Service.API
             //檢查該單號是否已送過簽核流程
             var existTableId = await _context.ApprovalRecord
                 .AnyAsync(x => x.TableId == data.TableId &&
-                               x.TableType == setting.TableType);
+                               x.TableType == setting.TableType &&
+                               (x.Status != ApprovalStatus.Rejected && x.Status != ApprovalStatus.GetRejected) );
             if (existTableId)
             {
                 result.SetError(ErrorCodeType.ApprovalExists);
@@ -215,7 +217,8 @@ namespace ERP.Service.API
                 .FirstOrDefaultAsync(x => x.TableType == data.TableType && 
                                           x.TableId == data.TableId &&
                                           x.UserId == userId &&
-                                          x.StepOrder >= 1);
+                                          x.StepOrder >= 1 &&
+                                          x.Status == ApprovalStatus.Pending);
             if (record == null) {
                 result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
                 return result;
@@ -288,6 +291,68 @@ namespace ERP.Service.API
                 notification.IsShow = true;
             }
             result.SetSuccess("簽核成功，進到下個階段");
+            await _context.SaveChangesAsync();
+            return result;
+        }
+        public async Task<ResultModel<string>> RejectApproval(ApprovalVM data)
+        {
+            var result = new ResultModel<string>();
+            int userId = _currentUserService.UserId;
+
+            if(data.Memo ==  null || data.Memo == "")
+            {
+                result.SetError(ErrorCodeType.IncompleteInfo, "拒絕簽核需要訊息");
+                return result;
+            }
+
+            var record = await _context.ApprovalRecord
+                .FirstOrDefaultAsync(x => x.TableType == data.TableType &&
+                                          x.TableId == data.TableId &&
+                                          x.UserId == userId &&
+                                          x.StepOrder >= 1);
+            if (record == null)
+            {
+                result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
+                return result;
+            }
+            // 檢查有無前面尚未完成的簽核
+            var pendingPrevious = await _context.ApprovalRecord
+                .AnyAsync(x => x.TableType == data.TableType &&
+                               x.TableId == data.TableId &&
+                               x.StepOrder >= 1 &&
+                               x.StepOrder < record.StepOrder &&
+                               x.Status == ApprovalStatus.Pending);
+            if (pendingPrevious)
+            {
+                result.SetError(ErrorCodeType.NotYetTurnForApprovalStep);
+                return result;
+            }
+
+            //簽核狀態檢查
+            if (record.Status == ApprovalStatus.Approved)
+            {
+                result.SetError(ErrorCodeType.IsAlreadyApproval);
+                return result;
+            }
+            
+            var recordList = await _context.ApprovalRecord
+                .Where(x => x.TableType == data.TableType &&
+                            x.TableId == data.TableId &&
+                            x.Status == ApprovalStatus.Pending)
+                .ToListAsync();
+            foreach(var recordItem in recordList)
+            {
+                if(recordItem.Status == ApprovalStatus.Pending)
+                {
+                    recordItem.Status = ApprovalStatus.GetRejected;
+                }
+            }
+
+            record.Date = DateTime.Now;
+            record.Status = ApprovalStatus.Rejected;
+            record.Memo = data.Memo;
+
+            result.SetSuccess("已拒絕該簽核作業");
             await _context.SaveChangesAsync();
             return result;
         }

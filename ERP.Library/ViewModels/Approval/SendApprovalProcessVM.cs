@@ -18,4 +18,10 @@ namespace ERP.Library.ViewModels.Approval
         public string? TableId { get; set; } = null!;
         public string? Memo { get; set; } = null!;
     }
+    public class RejectApprovalVM
+    {
+        public TableType TableType { get; set; }
+        public string? TableId { get; set; } = null!;
+        public string? Memo { get; set; } = null!;
+    }
 }
