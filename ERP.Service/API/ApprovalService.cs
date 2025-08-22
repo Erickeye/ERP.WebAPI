@@ -70,7 +70,7 @@ namespace ERP.Service.API
             var existTableId = await _context.ApprovalRecord
                 .AnyAsync(x => x.TableId == data.TableId &&
                                x.TableType == setting.TableType &&
-                               (x.Status != ApprovalStatus.Rejected && x.Status != ApprovalStatus.GetRejected) );
+                               (x.Status == ApprovalStatus.Pending) );
             if (existTableId)
             {
                 result.SetError(ErrorCodeType.ApprovalExists);
@@ -309,7 +309,8 @@ namespace ERP.Service.API
                 .FirstOrDefaultAsync(x => x.TableType == data.TableType &&
                                           x.TableId == data.TableId &&
                                           x.UserId == userId &&
-                                          x.StepOrder >= 1);
+                                          x.StepOrder >= 1 && 
+                                          x.Status == ApprovalStatus.Pending);
             if (record == null)
             {
                 result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
@@ -325,13 +326,6 @@ namespace ERP.Service.API
             if (pendingPrevious)
             {
                 result.SetError(ErrorCodeType.NotYetTurnForApprovalStep);
-                return result;
-            }
-
-            //簽核狀態檢查
-            if (record.Status == ApprovalStatus.Approved)
-            {
-                result.SetError(ErrorCodeType.IsAlreadyApproval);
                 return result;
             }
             

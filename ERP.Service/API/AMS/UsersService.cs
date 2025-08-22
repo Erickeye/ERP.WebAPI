@@ -6,10 +6,12 @@ using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.AMS;
 using ERP.Library.ViewModels.UserInfo;
 using ERP.Models.AMS;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,16 +23,19 @@ namespace ERP.Service.API.AMS
         Task<ResultModel<string>> Create(User data);
         Task<ResultModel<string>> Edit(User data);
         Task<ResultModel<string>> Delete(int id);
+        Task<ResultModel<UserInfo>> GetUserInfo();
     }
     public class UserService : IUserService
     {
         private readonly ERPContext _context;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(ERPContext context, ICurrentUserService currentUserService)
+        public UserService(ERPContext context, ICurrentUserService currentUserService, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _currentUserService = currentUserService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ResultModel<ListResult<UserViewModel>>> Index(string? inputUser)
@@ -113,6 +118,37 @@ namespace ERP.Service.API.AMS
             }
             _context.Remove(user);
             await _context.SaveChangesAsync();
+            return result;
+        }
+
+        public async Task<ResultModel<UserInfo>> GetUserInfo()
+        {
+            var result = new ResultModel<UserInfo>();
+            var userIdString = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdString, out int userId))
+            {
+                result.SetError(ErrorCodeType.Unauthorized);
+                return result;
+            }
+            var userInfo = await (
+                from user in _context.User
+                join role in _context.Role
+                on (int)user.RoleId equals role.Id
+                select new UserInfo
+                {
+                    UserId = userId,
+                    UserName = user.Name,
+                    Account = user.Account,
+                    RoleId = role.Id,
+                    RoleName = role.RoleName,
+                })
+                .FirstOrDefaultAsync();
+
+            if (userInfo == null)
+            {
+                result.SetError(ErrorCodeType.UserNotFound);
+            }
+            result.Data = userInfo;
             return result;
         }
     }

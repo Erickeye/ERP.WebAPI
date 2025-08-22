@@ -63,5 +63,13 @@ namespace ERP.WebAPI.Controllers.AMS
             var result = await _service.Delete(id);
             return Ok(result);
         }
+
+        [SwaggerOperation("取得使用者資訊")]
+        [HttpGet, Route("GetUserInfo")]
+        public async Task<IActionResult> GetUserInfo()
+        {
+            var result = await _service.GetUserInfo();
+            return Ok(result);
+        }
     }
 }
