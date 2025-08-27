@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ERP.Library.Enums;
+using ERP.Library.Extensions;
 
 namespace ERP.Library.ViewModels
 {
@@ -34,7 +35,44 @@ namespace ERP.Library.ViewModels
             ErrorCode = ErrorCodeType.None;
             Data = data;
         }
+
+        public static ResultModel<T> Ok(T data) => new ResultModel<T>
+        {
+            ErrorCode = ErrorCodeType.None,
+            Data = data
+        };
+
+        public static ResultModel<T> Error(ErrorCodeType code, string? message = null, T? data = default)
+        => new ResultModel<T>
+        {
+            ErrorCode = code,
+            ErrorMessage = message ?? code.GetDisplayName(),
+            Data = data
+        };
     }
+    public static class ResultModel
+    {
+        public static ResultModel<ListResult<T>> Ok<T>(List<T> items)
+        {
+            var listResult = new ListResult<T>(items);
+            return ResultModel<ListResult<T>>.Ok(listResult);
+        }
+
+        public static ResultModel<T> Ok<T>(T data) =>
+            ResultModel<T>.Ok(data);
+
+        public static ResultModel<string> Ok() =>
+        ResultModel<string>.Ok("Success");
+
+
+        public static ResultModel<string> Error(ErrorCodeType code, string? message = null) =>
+            new ResultModel<string>
+            {
+                ErrorCode = code,
+                ErrorMessage = message ?? code.GetDisplayName()
+            };
+    }
+
     public class ListResult<T>
     {
         public List<T> Items { get; set; } = new();
@@ -49,23 +87,5 @@ namespace ERP.Library.ViewModels
     {
         public int Value { get; set; }
         public string Text { get; set; } = string.Empty;
-    }
-
-    public static class EnumExtensions
-    {
-        public static string GetDisplayName(this Enum enumValue)
-        {
-            var memberInfo = enumValue.GetType().GetMember(enumValue.ToString());
-            if (memberInfo.Length > 0)
-            {
-                var displayAttr = memberInfo[0].GetCustomAttributes(typeof(DisplayAttribute), false)
-                                              .FirstOrDefault() as DisplayAttribute;
-                if (displayAttr != null && !string.IsNullOrWhiteSpace(displayAttr.Name))
-                {
-                    return displayAttr.Name;
-                }
-            }
-            return enumValue.ToString();
-        }
     }
 }

@@ -32,7 +32,6 @@ namespace ERP.Service.API._1000Company
 
         public async Task<ResultModel<string>> CreateOrEdit(DayOffInputVM data)
         {
-            var result = new ResultModel<string>();
             var entity = _context.t_1030Dayoff.FirstOrDefault(c => c.Id == data.Id);
             if (entity == null)
             {
@@ -40,20 +39,19 @@ namespace ERP.Service.API._1000Company
                 entity = new t_1030Dayoff();
                 MapToEntity(data, entity);
                 _context.Add(entity);
-                result.SetSuccess("資料成功新增");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
             else
             {
                 //有資料 => 修改
                 MapToEntity(data, entity);
-                result.SetSuccess("資料成功修改");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
-            await _context.SaveChangesAsync();
-            return result;
         }
         public async Task<ResultModel<ListResult<DayOffListVM>>> Index()
         {
-            var result = new ResultModel<ListResult<DayOffListVM>>();
             var list = await _context.t_1030Dayoff
                 .Select(x => new DayOffListVM
                 {
@@ -66,25 +64,22 @@ namespace ERP.Service.API._1000Company
                     EndDate = x.EndDate
                 })
                 .ToListAsync();
-            return result;
+            return ResultModel.Ok(list);
         }
         public async Task<ResultModel<string>> Delete(int id)
         {
-            var result = new ResultModel<string>();
             var entity = await _context.t_1030Dayoff.FirstOrDefaultAsync(c => c.Id == id);
             if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(entity);
             await _context.SaveChangesAsync();
-            result.SetSuccess("資料刪除成功");
-            return result;
+            return ResultModel.Ok("資料刪除成功");
         }
         public async Task<ResultModel<double>> GetRemainSpecialDays(int staffId)
         {
-            var result = new ResultModel<double>();
+            //var result = new ResultModel<double>();
             //今年已請特休數量
             var currentYear = DateTime.Now.Year;
             var startOfYear = new DateTime(currentYear, 1, 1);
@@ -123,8 +118,7 @@ namespace ERP.Service.API._1000Company
                return total;
            });
             var dayOff = dayOffHours / 8.0; // 每 8 小時算 1 天
-            result.SetSuccess(dayOff);
-            return result;
+            return ResultModel.Ok(dayOff);
         }
 
         public void MapToEntity(DayOffInputVM source, t_1030Dayoff target)
