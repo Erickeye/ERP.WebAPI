@@ -2,9 +2,10 @@
 using ERP.EntityModels.Models;
 using ERP.EntityModels.Models._1000Company;
 using ERP.Library.Enums;
+using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Login;
-using ERP.Library.Helpers;
+using ERP.Library.ViewModels.UserInfo;
 using ERP.Models.AMS;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -20,8 +21,8 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace ERP.Service.API.AMS
 {
@@ -47,25 +48,21 @@ namespace ERP.Service.API.AMS
 
         public async Task<ResultModel<LoginResponse>> AuthenticateAsync(LoginRequest login)
         {
-            var result = new ResultModel<LoginResponse>();
             var user = await _context.User
                 .FirstOrDefaultAsync(u => u.Account == login.Account);
 
             if (user == null)
             {
-                result.SetError(ErrorCodeType.UserNotFound);
-                return result;
+                return ResultModel.Error(ErrorCodeType.UserNotFound);
             }
 
             if (PasswordHelper.IsPasswordValid(login.Password, user.Pwd!))
             {
-                result.SetError(ErrorCodeType.IncorrectUsernameOrPassword);
-                return result;
+                return ResultModel.Error(ErrorCodeType.IncorrectUsernameOrPassword);
             }
             if (user.IsLock)
             {
-                result.SetError(ErrorCodeType.UserLocked);
-                return result;
+                return ResultModel.Error(ErrorCodeType.UserLocked);
             }
 
             var permissions = GetPermissions(user.RoleId);
@@ -79,7 +76,7 @@ namespace ERP.Service.API.AMS
             user.RefreshTokenExpiryTime = RefreshTokenExpirationTime;
             _context.SaveChanges();
 
-            result.Data = new LoginResponse
+            var result = new LoginResponse
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
@@ -91,7 +88,7 @@ namespace ERP.Service.API.AMS
             };
             //紀錄登入Log
             LoginLog(login, user.Id);
-            return result;
+            return ResultModel.Ok(result);
         }
 
         public async Task<ResultModel<AccessRefreshToken>> RefreshTokenAsync(AccessRefreshToken toekn)
@@ -102,22 +99,19 @@ namespace ERP.Service.API.AMS
             var principal = GetPrincipalFromExpiredToken(toekn.AccessToken);
             if (principal == null)
             {
-                result.SetError(ErrorCodeType.InvalidToken);
-                return result;
+                return ResultModel.Error(ErrorCodeType.InvalidToken);
             }
 
             var userId = principal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                result.SetError(ErrorCodeType.InvalidToken);
-                return result;
+                return ResultModel.Error(ErrorCodeType.InvalidToken);
             }
 
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id.ToString() == userId);
             if (user == null || user.RefreshToken != toekn.RefreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
             {
-                result.SetError(ErrorCodeType.TokenExpiredOrInvalid);
-                return result;
+                return ResultModel.Error(ErrorCodeType.TokenExpiredOrInvalid);
             }
 
             var permissions = GetPermissions(user.RoleId);
@@ -141,27 +135,23 @@ namespace ERP.Service.API.AMS
 
         public async Task<ResultModel<string>> Logout(string? userId)
         {
-            var result = new ResultModel<string>();
             // 從 JWT Claims 取得使用者 Id
             if (userId == null)
             {
-                result.SetError(ErrorCodeType.UserNotFound);
-                return result;
+                return ResultModel.Error(ErrorCodeType.UserNotFound);
             }
 
             var user = await _context.User.FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
             if (user == null)
             {
-                result.SetError(ErrorCodeType.UserNotFound);
-                return result;
+                return ResultModel.Error(ErrorCodeType.UserNotFound);
             }
             // 清除使用者的 refresh token 及過期時間
             user.RefreshToken = null;
             user.RefreshTokenExpiryTime = null;
             await _context.SaveChangesAsync();
 
-            result.SetSuccess("成功登出");
-            return result;
+            return ResultModel.Ok("成功登出");
         }
 
         private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)

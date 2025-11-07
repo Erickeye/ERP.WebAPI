@@ -1,6 +1,7 @@
 ﻿using ERP.Data;
 using ERP.Library.Enums._1000Company;
 using ERP.Library.ViewModels;
+using ERP.Library.ViewModels.UserInfo;
 using ERP.Service.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,16 +13,15 @@ namespace ERP.Service.API.Shared
 {
     public interface ISharedService
     {
-        ResultModel<List<SelectModel>> GetEnumList<TEnum>() where TEnum : Enum;
+        ResultModel<ListResult<SelectModel>> GetEnumList<TEnum>() where TEnum : Enum;
     }
     public class SharedService : ISharedService
     {
-        public ResultModel<List<SelectModel>> GetEnumList<TEnum>() where TEnum : Enum
+        public ResultModel<ListResult<SelectModel>> GetEnumList<TEnum>() where TEnum : Enum
         {
             var result = new ResultModel<List<SelectModel>>();
             var list = EnumHelper.ToSelectList<TEnum>();
-            result.SetSuccess(list);
-            return result;
+            return ResultModel.Ok(list);
         }
     }
 }

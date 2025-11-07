@@ -23,7 +23,9 @@ namespace ERP.WebAPI.CustomAttributes
             var permissionJson = context.HttpContext.User.FindFirst("permissions")?.Value;
             if (permissionJson == "[]" || string.IsNullOrEmpty(permissionJson))
             {
-                result.SetError(ErrorCodeType.PermissionDenied, "沒有權限，請先設定該角色權限");
+                result.ErrorCode = ErrorCodeType.PermissionDenied;
+                result.ErrorMessage ="沒有權限，請先設定該角色權限";
+               
                 context.Result = new JsonResult(result)
                 {
                     StatusCode = StatusCodes.Status403Forbidden
@@ -37,7 +39,8 @@ namespace ERP.WebAPI.CustomAttributes
             // 檢查是否有任何一個必須的權限
             if (!_requiredPermissions.Any(rp => userPermissions.Contains(rp)))
             {
-                result.SetError(ErrorCodeType.PermissionDenied);
+                result.ErrorCode = ErrorCodeType.PermissionDenied;
+                result.ErrorMessage = "權限不足";
 
                 context.Result = new JsonResult(result)
                 {

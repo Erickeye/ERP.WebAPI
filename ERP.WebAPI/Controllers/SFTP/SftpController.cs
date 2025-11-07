@@ -25,16 +25,8 @@ namespace ERP.WebAPI.Controllers.SFTP
         [HttpPost,Route("Upload")]
         [Log(OperationActionType.Export,"上傳檔案")]
         public IActionResult UploadFile(IFormFile file)
-        {
-            var result = new ResultModel<string>();
-            if (file == null || file.Length == 0)
-            {
-                result.SetError(ErrorCodeType.ImgNotFound);
-                return Ok(result);
-            }
-
-            using var stream = file.OpenReadStream();
-            result = _sftpService.UploadFile(file);
+        {            
+            var result = _sftpService.UploadFile(file);
             return Ok(result);
         }
 

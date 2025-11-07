@@ -5,6 +5,7 @@ using ERP.Library.Enums;
 using ERP.Library.Enums.Other;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Approval;
+using ERP.Library.ViewModels.UserInfo;
 using ERP.Models.AMS;
 using ERP.Service.API.AMS;
 using Microsoft.EntityFrameworkCore;
@@ -47,8 +48,6 @@ namespace ERP.Service.API
         }
         public async Task<ResultModel<string>> SendApprovalProcess(SendApprovalProcessVM data)
         {
-            var result = new ResultModel<string>();
-
             //檢查設定檔
             var settingList = await _context.ApprovalSettings
                 .Where(x => x.TableType == data.TableType &&
@@ -56,13 +55,11 @@ namespace ERP.Service.API
                 .ToListAsync();
             if (settingList.Count == 0)
             {
-                result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核設定檔");
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核設定檔");
             }
             else if (settingList.Count > 1)
             {
-                result.SetError(ErrorCodeType.MultipleApprovalSettingsExists);
-                return result;
+                return ResultModel.Error(ErrorCodeType.MultipleApprovalSettingsExists);
             }
             var setting = settingList.FirstOrDefault()!;
 
@@ -70,11 +67,10 @@ namespace ERP.Service.API
             var existTableId = await _context.ApprovalRecord
                 .AnyAsync(x => x.TableId == data.TableId &&
                                x.TableType == setting.TableType &&
-                               (x.Status == ApprovalStatus.Pending) );
+                               (x.Status == ApprovalStatus.Pending));
             if (existTableId)
             {
-                result.SetError(ErrorCodeType.ApprovalExists);
-                return result;
+                return ResultModel.Error(ErrorCodeType.ApprovalExists);
             }
 
             //var existTableId = await _context.ApprovalRecord.AnyAsync(x => x.TableId == data.TableId);
@@ -99,19 +95,17 @@ namespace ERP.Service.API
                 { TableType.公文,   async id => await _context.t_1040Document.AnyAsync(x => x.Id.ToString() == id) }
             };
             //檢查是否有該單號
-            if(tableCheckers.TryGetValue(setting.TableType,out var checker))
+            if (tableCheckers.TryGetValue(setting.TableType, out var checker))
             {
                 var exists = await checker(data.TableId);
                 if (!exists)
                 {
-                    result.SetError(ErrorCodeType.NotFoundData);
-                    return result;
+                    return ResultModel.Error(ErrorCodeType.NotFoundData);
                 }
             }
             else
             {
-                result.SetError(ErrorCodeType.InvalidApproval, "不支援的簽核資料類型");
-                return result;
+                return ResultModel.Error(ErrorCodeType.InvalidApproval, "不支援的簽核資料類型");
             }
 
             int roleId = _currentUserService.RoleId;
@@ -168,7 +162,7 @@ namespace ERP.Service.API
                                 UserId = item.UserId
                             };
                             //step整個簽核訊息先建立，但只顯示step1的訊息通知
-                            if(stepCount == 1)
+                            if (stepCount == 1)
                             {
                                 notification.IsShow = true;
                                 fitstRecord.ApprovalStepId = step.Id;
@@ -205,23 +199,21 @@ namespace ERP.Service.API
                 }
             }
             await _context.SaveChangesAsync();
-            result.SetSuccess("簽核流程成功送出");
-            return result;
+            return ResultModel.Ok("簽核流程成功送出");
         }
         public async Task<ResultModel<string>> Approval(ApprovalVM data)
         {
-            var result = new ResultModel<string>();
             int userId = _currentUserService.UserId;
 
             var record = await _context.ApprovalRecord
-                .FirstOrDefaultAsync(x => x.TableType == data.TableType && 
+                .FirstOrDefaultAsync(x => x.TableType == data.TableType &&
                                           x.TableId == data.TableId &&
                                           x.UserId == userId &&
                                           x.StepOrder >= 1 &&
                                           x.Status == ApprovalStatus.Pending);
-            if (record == null) {
-                result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
-                return result;
+            if (record == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核內容");
             }
             // 檢查有無前面尚未完成的簽核
             var pendingPrevious = await _context.ApprovalRecord
@@ -232,8 +224,7 @@ namespace ERP.Service.API
                                x.Status == ApprovalStatus.Pending);
             if (pendingPrevious)
             {
-                result.SetError(ErrorCodeType.NotYetTurnForApprovalStep);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotYetTurnForApprovalStep);
             }
 
             //身分檢查
@@ -242,9 +233,9 @@ namespace ERP.Service.API
             //    return result;
             //}
             //簽核狀態檢查
-            if (record.Status == ApprovalStatus.Approved) {
-                result.SetError(ErrorCodeType.IsAlreadyApproval);
-                return result;
+            if (record.Status == ApprovalStatus.Approved)
+            {                
+                return ResultModel.Error(ErrorCodeType.IsAlreadyApproval);
             }
 
             record.Date = DateTime.Now;
@@ -253,68 +244,62 @@ namespace ERP.Service.API
 
             //該簽核還有其他使用者未簽核
             var isPendingCount = await _context.ApprovalRecord
-                .Where(x => x.ApprovalStepId == record.ApprovalStepId && 
-                    x.StepOrder ==  record.StepOrder &&
+                .Where(x => x.ApprovalStepId == record.ApprovalStepId &&
+                    x.StepOrder == record.StepOrder &&
                     x.Status == ApprovalStatus.Pending).CountAsync();
             //只剩一筆代表目前階段只剩下當前這筆Record
             if (isPendingCount > 1)
             {
-                result.SetSuccess("簽核成功，該階段等待其他人員簽核");
                 await _context.SaveChangesAsync();
-                return result;
+                return ResultModel.Ok("簽核成功，該階段等待其他人員簽核");
             }
             //簽核階段全部完成(沒有下一個階段的Step階段)
             var nextStep = _context.ApprovalRecord
-                .Where(x => x.TableId == record.TableId && 
-                    x.StepOrder  == record.StepOrder +1);
+                .Where(x => x.TableId == record.TableId &&
+                    x.StepOrder == record.StepOrder + 1);
             if (nextStep.Count() == 0)
             {
-                result.SetSuccess("簽核成功，簽核作業已全數完成");
                 await _context.SaveChangesAsync();
-                return result;
+                return ResultModel.Ok("簽核成功，簽核作業已全數完成");
             }
             //該階段完成但還有下個階段
-                //找出下個階段的通知訊息
+            //找出下個階段的通知訊息
             var nextUsersNotification = _context.Notification
                 .Where(x => x.TargetId == record.TableId && x.IsShow == false);
             var nextUsers = nextStep.Select(x => x.UserId).ToList();
 
             var notificationDict = nextUsersNotification.ToDictionary(x => x.UserId);
 
-            foreach (var user in nextUsers) {
-                if (!notificationDict.TryGetValue((int)user!, out var notification)) 
+            foreach (var user in nextUsers)
+            {
+                if (!notificationDict.TryGetValue((int)user!, out var notification))
                 {
-                    result.SetError(ErrorCodeType.UserNotFound);
-                    return result;
+                    return ResultModel.Error(ErrorCodeType.UserNotFound);
                 }
                 //開啟下個階段的通知訊息
                 notification.IsShow = true;
             }
-            result.SetSuccess("簽核成功，進到下個階段");
             await _context.SaveChangesAsync();
-            return result;
+            return ResultModel.Ok("簽核成功，進到下個階段");
         }
         public async Task<ResultModel<string>> RejectApproval(ApprovalVM data)
         {
-            var result = new ResultModel<string>();
             int userId = _currentUserService.UserId;
 
-            if(data.Memo ==  null || data.Memo == "")
+            if (data.Memo == null || data.Memo == "")
             {
-                result.SetError(ErrorCodeType.IncompleteInfo, "拒絕簽核需要訊息");
-                return result;
+                return ResultModel.Error(ErrorCodeType.IncompleteInfo, "拒絕簽核需要訊息");
             }
 
             var record = await _context.ApprovalRecord
                 .FirstOrDefaultAsync(x => x.TableType == data.TableType &&
                                           x.TableId == data.TableId &&
                                           x.UserId == userId &&
-                                          x.StepOrder >= 1 && 
+                                          x.StepOrder >= 1 &&
                                           x.Status == ApprovalStatus.Pending);
             if (record == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData, "找不到該簽核內容");
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核內容");
             }
             // 檢查有無前面尚未完成的簽核
             var pendingPrevious = await _context.ApprovalRecord
@@ -325,18 +310,17 @@ namespace ERP.Service.API
                                x.Status == ApprovalStatus.Pending);
             if (pendingPrevious)
             {
-                result.SetError(ErrorCodeType.NotYetTurnForApprovalStep);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotYetTurnForApprovalStep);
             }
-            
+
             var recordList = await _context.ApprovalRecord
                 .Where(x => x.TableType == data.TableType &&
                             x.TableId == data.TableId &&
                             x.Status == ApprovalStatus.Pending)
                 .ToListAsync();
-            foreach(var recordItem in recordList)
+            foreach (var recordItem in recordList)
             {
-                if(recordItem.Status == ApprovalStatus.Pending)
+                if (recordItem.Status == ApprovalStatus.Pending)
                 {
                     recordItem.Status = ApprovalStatus.GetRejected;
                 }
@@ -346,16 +330,14 @@ namespace ERP.Service.API
             record.Status = ApprovalStatus.Rejected;
             record.Memo = data.Memo;
 
-            result.SetSuccess("已拒絕該簽核作業");
             await _context.SaveChangesAsync();
-            return result;
+            return ResultModel.Ok("已拒絕該簽核作業");
         }
         public async Task<ResultModel<ListResult<ApprovalSettings>>> CheckSettings()
         {
             var result = new ResultModel<ListResult<ApprovalSettings>>();
             var list = await _context.ApprovalSettings.ToListAsync();
-            result.Data = new ListResult<ApprovalSettings>(list);
-            return result;
+            return ResultModel.Ok(list);
         }
         public async Task<ResultModel<string>> CreateOrEditSettings(ApprovalSettings data)
         {
@@ -366,15 +348,15 @@ namespace ERP.Service.API
             {
                 entity = new ApprovalSettings();
                 _context.Add(data);
-                result.SetSuccess("資料成功新增");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
             else
             {
                 _context.Entry(entity).CurrentValues.SetValues(data);
-                result.SetSuccess("資料成功修改");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功修改");
             }
-            await _context.SaveChangesAsync();
-            return result;
         }
         public async Task<ResultModel<string>> DeleteSettings(int id)
         {
@@ -382,13 +364,11 @@ namespace ERP.Service.API
             var entity = await _context.ApprovalSettings.FirstOrDefaultAsync();
             if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(entity);
-            await _context.SaveChangesAsync();
-            result.SetSuccess("資料已刪除成功");
-            return result;
+            await _context.SaveChangesAsync();            
+            return ResultModel.Ok("資料已刪除成功");
         }
         public async Task<ResultModel<ListResult<ApprovalStep>>> CheckStep(int approvalSettingsId)
         {
@@ -398,8 +378,7 @@ namespace ERP.Service.API
                 .ToListAsync();
             if (list.Count == 0)
             {
-                result.SetError(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟");
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟");
             }
             result.Data = new ListResult<ApprovalStep>(list);
             return result;
@@ -426,31 +405,28 @@ namespace ERP.Service.API
                     Mode = data.Mode,
                     RequiredCounts = data.RequiredCounts
                 });
-                result.SetSuccess("資料成功新增");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
             else
             {
                 entity.RoleId = data.RoleId;
                 entity.Mode = data.Mode;
                 entity.RequiredCounts = data.RequiredCounts;
-                result.SetSuccess("資料成功修改");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功修改");
             }
-            await _context.SaveChangesAsync();
-            return result;
         }
         public async Task<ResultModel<string>> DeleteStep(int id)
         {
-            var result = new ResultModel<string>();
             var entity = await _context.ApprovalStep.FirstOrDefaultAsync();
             if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(entity);
             await _context.SaveChangesAsync();
-            result.SetSuccess("資料已刪除成功");
-            return result;
+            return ResultModel.Ok("資料已刪除成功");
         }
         public async Task<ResultModel<ListResult<ApprovalStepNumber>>> CheckStepNumber(int ApprovalStepId)
         {
@@ -460,8 +436,7 @@ namespace ERP.Service.API
                 .ToListAsync();
             if (list.Count == 0)
             {
-                result.SetError(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟成員");
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟成員");
             }
             result.Data = new ListResult<ApprovalStepNumber>(list);
             return result;
@@ -478,15 +453,15 @@ namespace ERP.Service.API
                     ApprovalStepId = data.ApprovalStepId,
                     UserId = data.UserId
                 });
-                result.SetSuccess("資料成功新增");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
             else
             {
                 entity.UserId = data.UserId;
-                result.SetSuccess("資料成功修改");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功修改");
             }
-            await _context.SaveChangesAsync();
-            return result;
         }
         public async Task<ResultModel<string>> DeleteStepNumber(int id)
         {
@@ -494,13 +469,11 @@ namespace ERP.Service.API
             var entity = await _context.ApprovalStepNumber.FirstOrDefaultAsync();
             if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(entity);
             await _context.SaveChangesAsync();
-            result.SetSuccess("資料已刪除成功");
-            return result;
+            return ResultModel.Ok("資料已刪除成功");
         }
     }
 }

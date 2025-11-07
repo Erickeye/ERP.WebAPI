@@ -14,11 +14,8 @@ namespace ERP.WebAPI.CustomAttributes
             {
                 var result = new ResultModel<Dictionary<string, List<string>>>();
 
-                result.SetError(
-                    ErrorCodeType.FieldValueIsInvalid,
-                    null,
-                    context.ModelState.GetErrorsDictionary()
-                );
+                result.ErrorCode = ErrorCodeType.FieldValueIsInvalid;
+                result.Data = context.ModelState.GetErrorsDictionary();
 
                 context.Result = new JsonResult(result)
                 {

@@ -34,20 +34,6 @@ namespace ERP.Library.ViewModels
 
         public static implicit operator bool(ResultModel<T> vm) => vm.IsSuccess;
 
-        //舊方法
-        public void SetError(ErrorCodeType code, string? message = null, T? data = default)
-        {
-            ErrorCode = code;
-            ErrorMessage = message ?? code.GetDisplayName();
-            Data = data;
-        }
-        //舊方法
-        public void SetSuccess(T data)
-        {
-            ErrorCode = ErrorCodeType.None;
-            Data = data;
-        }
-
         public static ResultModel<T> Ok(T data) => new ResultModel<T>
         {
             ErrorCode = ErrorCodeType.None,

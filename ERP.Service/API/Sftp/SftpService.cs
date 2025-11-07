@@ -1,12 +1,14 @@
 ﻿using ERP.Library.Enums;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Sftp;
+using ERP.Library.ViewModels.UserInfo;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Renci.SshNet;
 using Renci.SshNet.Common;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +20,7 @@ namespace ERP.Service.Sftp
         ResultModel<string> UploadFile(IFormFile file);
         ResultModel<Stream?> DownloadFile(string remotePath);
         ResultModel<string> DeleteFile(string remotePath);
-        ResultModel<List<string>> ListFiles();
+        ResultModel<ListResult<string>> ListFiles();
     }
     public class SftpService : ISftpService
     {
@@ -36,7 +38,11 @@ namespace ERP.Service.Sftp
 
         public ResultModel<string> UploadFile(IFormFile file)
         {
-            var result = new ResultModel<string>();
+            if (file == null || file.Length == 0)
+            {
+                return ResultModel.Error(ErrorCodeType.ImgNotFound);
+            }
+
             try
             {
                 using var client = CreateClient();
@@ -49,23 +55,22 @@ namespace ERP.Service.Sftp
                 client.UploadFile(stream, remoteFilePath);
 
                 client.Disconnect();
-                result.SetSuccess($"檔案成功上傳至 {remoteFilePath}");
+                return ResultModel.Ok($"檔案成功上傳至 {remoteFilePath}");
             }
             catch (SftpPermissionDeniedException ex)
             {
-                result.SetError(ErrorCodeType.PermissionDenied, $"權限被拒絕：{ex.Message}");
+                return ResultModel.Error(ErrorCodeType.PermissionDenied, $"權限被拒絕：{ex.Message}");
             }
             catch (Exception ex)
             {
-                result.SetError(ErrorCodeType.Exception, $"上傳失敗：{ex.Message}");
+                return ResultModel.Error(ErrorCodeType.Exception, $"上傳失敗：{ex.Message}");
             }
-            return result;
         }
 
         public ResultModel<Stream?> DownloadFile(string remotePath)
         {
-            var result = new ResultModel<Stream?>();
             using var client = CreateClient();
+            Stream? memoryStream = null;
             try
             {
                 client.Connect();
@@ -73,18 +78,16 @@ namespace ERP.Service.Sftp
                 if (!client.Exists(remotePath))
                 {
                     client.Disconnect();
-                    result.SetError(ErrorCodeType.NotFoundData);
-                    return result;
+                    return ResultModel.Error(ErrorCodeType.NotFoundData);
                 }
 
-                var memoryStream = new MemoryStream();
+                memoryStream = new MemoryStream();
                 client.DownloadFile(remotePath, memoryStream);
                 memoryStream.Position = 0;
-                result.Data = memoryStream;
             }
             catch(Exception ex)
             {
-                result.SetError(ErrorCodeType.Exception,ex.Message);
+                return ResultModel.Error(ErrorCodeType.Exception, ex.Message);
             }
             finally
             {
@@ -93,12 +96,11 @@ namespace ERP.Service.Sftp
             }
             
             client.Disconnect();
-            return result;
+            return ResultModel.Ok(memoryStream)!;
         }
 
         public ResultModel<string> DeleteFile(string remotePath)
         {
-            var result = new ResultModel<string>();
             using var client = CreateClient();
             try
             {
@@ -106,27 +108,24 @@ namespace ERP.Service.Sftp
                 if (!client.Exists(remotePath))
                 {
                     client.Disconnect();
-                    result.SetError(ErrorCodeType.NotFoundData);
-                    return result;
+                    return ResultModel.Error(ErrorCodeType.NotFoundData);
                 }
 
                 client.DeleteFile(remotePath);
-                result.SetSuccess("檔案已成功刪除");
+                return ResultModel.Ok("檔案已成功刪除");
             }
             catch(Exception ex)
             {
-                result.SetError(ErrorCodeType.Exception, ex.Message);
+                return ResultModel.Error(ErrorCodeType.Exception, ex.Message);
             }
             finally
             {
                 if (client.IsConnected)
                     client.Disconnect();
             }
-            
-            return result;
         }
 
-        public ResultModel<List<string>> ListFiles()
+        public ResultModel<ListResult<string>> ListFiles()
         {
             var result = new ResultModel<List<string>>();
             using var client = CreateClient();
@@ -134,8 +133,7 @@ namespace ERP.Service.Sftp
 
             if (!client.Exists("/"))
             {
-                result.SetError(ErrorCodeType.NotFoundData, "遠端目錄不存在");
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "遠端目錄不存在");
             }
 
             var files = client.ListDirectory("/")
@@ -145,9 +143,7 @@ namespace ERP.Service.Sftp
 
             client.Disconnect();
 
-            result.SetSuccess(files);
-
-            return result;
+            return ResultModel.Ok(files);
         }
     }
 }

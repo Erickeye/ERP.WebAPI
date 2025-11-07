@@ -88,7 +88,7 @@ namespace ERP.Service.API._1000Company
             }
             if (query == null)
             {
-                return ResultModel.Error(ErrorCodeType.NotFoundData,"123");
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             var viewModel = await query.ToListAsync();
             return ResultModel.Ok(viewModel);

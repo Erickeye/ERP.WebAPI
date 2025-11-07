@@ -4,6 +4,7 @@ using ERP.Library.Enums;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._2000Customer;
+using ERP.Library.ViewModels.UserInfo;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -54,7 +55,6 @@ namespace ERP.Service.API._2000Customer
         }
         public async Task<ResultModel<CustemployInputVM>> Get(int id)
         {
-            var result = new ResultModel<CustemployInputVM>();
             var entity = await _context.t_2010Custemploy
                 .Select(x => new CustemployInputVM
                 {
@@ -68,51 +68,42 @@ namespace ERP.Service.API._2000Customer
                     MobilePhone = x.MobilePhone,
                     Account = x.Account,
                     Email = x.Email,
-                    MarriageStatus= x.MarriageStatus,
+                    MarriageStatus = x.MarriageStatus,
                     JobStatus = x.JobStatus,
                     Momo = x.Momo
                 })
                 .FirstOrDefaultAsync();
-            if(entity == null)
+            if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
-            result.Data = entity;
-            return result;
+            return ResultModel.Ok(entity);
         }
         public async Task<ResultModel<string>> CreateOrEdit(CustemployInputVM data)
-        {
-            var result = new ResultModel<string>();
+        {            
             var entity = await _context.t_2010Custemploy.FirstOrDefaultAsync(c => c.Id == data.Id);
             if (entity == null)
             {
                 entity = new t_2010Custemploy();
                 ObjectHelper.CopyProperties(data, entity, "Custemploy");
                 _context.Add(entity);
-                result.SetSuccess("資料成功新增");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
-            else
-            {
-                ObjectHelper.CopyProperties(data, entity, "Custemploy");
-                result.SetSuccess("資料修改新增");
-            }
+            ObjectHelper.CopyProperties(data, entity, "Custemploy");
             await _context.SaveChangesAsync();
-            return result;
+            return ResultModel.Ok("資料成功修改");
         }
         public async Task<ResultModel<string>> Delete(int id)
         {
-            var result = new ResultModel<string>();
             var entity = _context.t_2010Custemploy.FirstOrDefault(c => c.Id == id);
             if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(entity);
             await _context.SaveChangesAsync();
-            result.SetSuccess("資料已刪除");
-            return result;
+            return ResultModel.Ok("資料已刪除");
         }
     }
 }

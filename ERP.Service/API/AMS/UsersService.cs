@@ -40,8 +40,6 @@ namespace ERP.Service.API.AMS
 
         public async Task<ResultModel<ListResult<UserViewModel>>> Index(string? inputUser)
         {
-            var result = new ResultModel<ListResult<UserViewModel>>();
-
             var userName = _currentUserService.UserName;
             var userRoleId = _currentUserService.RoleId;
 
@@ -68,16 +66,12 @@ namespace ERP.Service.API.AMS
                         RoleName = role.RoleName
                     })
                 .ToListAsync();
-            var listResult = new ListResult<UserViewModel> { Items = viewModel };
-            result.SetSuccess(listResult);
 
-            return result;
+            return ResultModel.Ok(viewModel);
         }
 
         public async Task<ResultModel<string>> Create(User data)
         {
-            var result = new ResultModel<string>();
-
             data.CreateDate = DateTime.Now;
             data.Pwd = PasswordHelper.HashPassword(data.Account);
 
@@ -85,50 +79,44 @@ namespace ERP.Service.API.AMS
             //重複註冊
             if (checkAccount != null)
             {
-                result.SetError(ErrorCodeType.UserAlreadyExists);
+                return ResultModel.Error(ErrorCodeType.UserAlreadyExists);
             }
             _context.Add(data);
-            return result;
+            await _context.SaveChangesAsync();
+            return ResultModel.Ok("資料成功新增");
         }
         public async Task<ResultModel<string>> Edit(User data)
         {
-            var result = new ResultModel<string>();
-
             var user = await _context.User.FirstOrDefaultAsync(c => c.Id == data.Id);
             if (user != null)
             {
                 _context.Entry(user).CurrentValues.SetValues(data);
+                await _context.SaveChangesAsync();
             }
-            result.SetSuccess("資料成功修改");
-            return result;
+            return ResultModel.Ok("資料成功修改");
         }
         public async Task<ResultModel<string>> Delete(int id)
         {
-            var result = new ResultModel<string>();
             var user = await _context.User.FirstOrDefaultAsync(c => c.Id == id);
             if (user == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             if (user!.Name == "管理員")
             {
-                result.SetError(0, "無法刪除管理員");
-                return result;
+                return ResultModel.Error(0, "無法刪除管理員");
             }
             _context.Remove(user);
             await _context.SaveChangesAsync();
-            return result;
+            return ResultModel.Ok("刪除成功");
         }
 
         public async Task<ResultModel<UserInfo>> GetUserInfo()
         {
-            var result = new ResultModel<UserInfo>();
             var userIdString = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdString, out int userId))
             {
-                result.SetError(ErrorCodeType.Unauthorized);
-                return result;
+                return ResultModel.Error(ErrorCodeType.Unauthorized);
             }
             var userInfo = await (
                 from user in _context.User
@@ -146,10 +134,9 @@ namespace ERP.Service.API.AMS
 
             if (userInfo == null)
             {
-                result.SetError(ErrorCodeType.UserNotFound);
+                return ResultModel.Error(ErrorCodeType.UserNotFound);
             }
-            result.Data = userInfo;
-            return result;
+            return ResultModel.Ok(userInfo);
         }
     }
 }
