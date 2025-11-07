@@ -38,8 +38,6 @@ namespace ERP.Service.API._1000Company
         }
 
         public async Task<ResultModel<ListResult<StaffListVM>>> GetStaffIndex(string? deptID, bool isResignation) { 
-            var result = new ResultModel<ListResult<StaffListVM>>();
-
             var _1000 = _context.t_1000Staff.ToList();
 
             IQueryable<StaffListVM> query;
@@ -90,79 +88,66 @@ namespace ERP.Service.API._1000Company
             }
             if (query == null)
             {
-                result.SetError(0, "找不到資料");
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData,"123");
             }
             var viewModel = await query.ToListAsync();
-            var listResult = new ListResult<StaffListVM> { Items = viewModel };
-            result.Data = listResult;
+            return ResultModel.Ok(viewModel);
 
-            return result;
         }
 
         public async Task<ResultModel<string>> CreateOrEdit(StaffInputVM data)
         {
-            var result = new ResultModel<string>();
-
             var entity = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == data.StaffId);
             if (entity == null) {
                 entity = new t_1000Staff();
                 ObjectHelper.CopyProperties(data, entity, "StaffCertificates");
                 _context.Add(entity);
-                result.SetSuccess("資料成功新增");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功新增");
             }
             else
             {
                 ObjectHelper.CopyProperties(data, entity, "StaffCertificates");
-                result.SetSuccess("資料成功修改");
+                await _context.SaveChangesAsync();
+                return ResultModel.Ok("資料成功修改");
             }
-            await _context.SaveChangesAsync();
-            return result;
         }
         public async Task<ResultModel<string>> Delete(int id)
         {
-            var result = new ResultModel<string>();
             var entity = _context.t_1000Staff.FirstOrDefault(c => c.StaffId == id);
             if (entity == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(entity);
             await _context.SaveChangesAsync();
-            result.SetSuccess("資料已刪除");
-            return result;
+            return ResultModel.Ok("資料已刪除");
         }
         public async Task<ResultModel<string>> uploadImg(UploadImg data)
         {
-            var result = new ResultModel<string>();
-
             const long maxSize = 2 * 1024 * 1024; // 最大 2MB
 
             // 檢查圖片是否存在
             if (data.image == null || data.image.Length == 0)
             {
-                result.SetError(ErrorCodeType.ImgNotFound);
-                return result;
+                return ResultModel.Error(ErrorCodeType.ImgNotFound);
             }
             // 檢查圖片大小
             if (data.image.Length > maxSize)
             {
-                result.SetError(ErrorCodeType.ImgOver2MB);
-                return result;
+                return ResultModel.Error(ErrorCodeType.ImgOver2MB);
             }
             // 檢查圖片格式
             var allowedContentTypes = new[] { "image/jpeg", "image/png", "image/gif" }; // 可接受的圖片格式
             if (!allowedContentTypes.Contains(data.image.ContentType))
             {
-                result.SetError(ErrorCodeType.ImgNotSupport);
-                return result;
+                return ResultModel.Error(ErrorCodeType.ImgNotSupport);
             }
             //查詢是否有此使用者
             var staff = _context.t_1000Staff.Find(data.StaffId);
             if (staff == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData, "找不到該使用者");
+                return ResultModel.Error(ErrorCodeType.ImgNotSupport, "找不到該使用者");
             }
             try
             {
@@ -175,58 +160,49 @@ namespace ERP.Service.API._1000Company
                     staff!.Headshot = imageBytes;
                     await _context.SaveChangesAsync();
 
-                    return result;
+                    return ResultModel.Ok();
                 }
             }
             catch (Exception ex)
             {
                 // 錯誤處理
-                result.SetError(ErrorCodeType.ImgNotFound, $"上傳過程中發生錯誤：{ex.Message}");
-                return result;
+                return ResultModel.Error(ErrorCodeType.ImgNotFound, $"上傳過程中發生錯誤：{ex.Message}");
             }
         }
         public async Task<ResultModel<string>> GetCertificate(int id)
         {
-            var result = new ResultModel<string>();
             var cert = await _context.t_1001StaffCertificates!.FirstOrDefaultAsync(c => c.Id == id);
             if (cert?.Certificate == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
-                
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             string base64 = Convert.ToBase64String(cert.Certificate);
             string imageDataUrl = $"data:image/jpeg;base64,{base64}";
-            result.Data = imageDataUrl;
-            return result;
+            return ResultModel.Ok(imageDataUrl);
         }
         public async Task<ResultModel<string>> UploadCertificate(UploadCertificate data)
         {
-            var result = new ResultModel<string>();
-
-            if (data.CertificateFile != null && data.CertificateFile.Length > 0)
+            if (data.CertificateFile == null)
             {
-                using var ms = new MemoryStream();
-                await data.CertificateFile.CopyToAsync(ms);
-                var cert = new t_1001StaffCertificates
-                {
-                    StaffId = data.StaffId,
-                    CertificateName =  data.CertificateName,
-                    CertificateDate =  data.CertificateDate,
-                    EffectiveDate =  data.EffectiveDate,
-                    Certificate =  ms.ToArray(),
-                };
-
-                _context.t_1001StaffCertificates!.Add(cert);
-                await _context.SaveChangesAsync();
-                result.SetSuccess("證照已成功上傳");
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
+            using var ms = new MemoryStream();
+            await data.CertificateFile.CopyToAsync(ms);
+            var cert = new t_1001StaffCertificates
+            {
+                StaffId = data.StaffId,
+                CertificateName = data.CertificateName,
+                CertificateDate = data.CertificateDate,
+                EffectiveDate = data.EffectiveDate,
+                Certificate = ms.ToArray(),
+            };
 
-            return result;
+            _context.t_1001StaffCertificates!.Add(cert);
+            await _context.SaveChangesAsync();
+            return ResultModel.Ok("證照已成功上傳");            
         }
         public async Task<ResultModel<string>> EditCertificate(EditCertificate data)
         {
-            var result = new ResultModel<string>();
             var _1001 = await  _context.t_1001StaffCertificates!.FindAsync(data.Id);
             if (_1001 != null)
             {
@@ -235,22 +211,18 @@ namespace ERP.Service.API._1000Company
                 _1001.EffectiveDate = data.EffectiveDate;
             }
             await _context.SaveChangesAsync();
-            result.SetSuccess("證照已成功修改");
-            return result;
+            return ResultModel.Ok("證照已成功修改");
         }
         public async Task<ResultModel<string>> DeleteCertificate(int id)
         {
-            var result = new ResultModel<string>();
             var _1001 = await _context.t_1001StaffCertificates!.FindAsync(id);
             if (_1001 == null)
             {
-                result.SetError(ErrorCodeType.NotFoundData);
-                return result;
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
             _context.Remove(_1001);
             await _context.SaveChangesAsync();
-            result.SetSuccess("證照已成功刪除");
-            return result;
+            return ResultModel.Ok("證照已成功刪除");
         }
 
         private static Expression<Func<t_1000Staff, StaffListVM>> StaffSelector()

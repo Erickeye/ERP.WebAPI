@@ -9,6 +9,18 @@ using ERP.Library.Extensions;
 
 namespace ERP.Library.ViewModels
 {
+    public readonly struct ErrorResult
+    {
+        public ErrorCodeType Code { get; }
+        public string? Message { get; }
+
+        public ErrorResult(ErrorCodeType code, string? message = null)
+        {
+            Code = code;
+            Message = message;
+        }
+    }
+
     /// <summary>
     /// 結果模型
     /// </summary>
@@ -18,18 +30,18 @@ namespace ERP.Library.ViewModels
         public bool IsSuccess => ErrorCode == ErrorCodeType.None;
         public ErrorCodeType ErrorCode { get; set; } = ErrorCodeType.None;
         public string? ErrorMessage { get; set; }
-
         public T? Data { get; set; }
 
         public static implicit operator bool(ResultModel<T> vm) => vm.IsSuccess;
 
+        //舊方法
         public void SetError(ErrorCodeType code, string? message = null, T? data = default)
         {
             ErrorCode = code;
             ErrorMessage = message ?? code.GetDisplayName();
             Data = data;
         }
-
+        //舊方法
         public void SetSuccess(T data)
         {
             ErrorCode = ErrorCodeType.None;
@@ -49,8 +61,15 @@ namespace ERP.Library.ViewModels
             ErrorMessage = message ?? code.GetDisplayName(),
             Data = data
         };
+
+        public static implicit operator ResultModel<T>(ErrorResult result)
+        {
+            return Error(result.Code, result.Message);
+        }
+
+
     }
-    public static class ResultModel
+    public class ResultModel
     {
         public static ResultModel<ListResult<T>> Ok<T>(List<T> items)
         {
@@ -64,13 +83,8 @@ namespace ERP.Library.ViewModels
         public static ResultModel<string> Ok() =>
         ResultModel<string>.Ok("Success");
 
-
-        public static ResultModel<string> Error(ErrorCodeType code, string? message = null) =>
-            new ResultModel<string>
-            {
-                ErrorCode = code,
-                ErrorMessage = message ?? code.GetDisplayName()
-            };
+        public static ErrorResult Error(ErrorCodeType code, string? message = null)
+        => new ErrorResult(code, message);
     }
 
     public class ListResult<T>
