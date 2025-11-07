@@ -1,5 +1,5 @@
-﻿using ERP.Data;
-using ERP.EntityModels.Models._2000Customer;
+﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
@@ -7,12 +7,6 @@ using ERP.Library.ViewModels._1000Company;
 using ERP.Library.ViewModels._2000Customer;
 using ERP.Library.ViewModels.UserInfo;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ERP.Service.API._2000Customer
 {
@@ -71,7 +65,7 @@ namespace ERP.Service.API._2000Customer
                     CreditBalance = x.CreditBalance,
                     LastDeliveryDate = x.LastDeliveryDate,
                     Advance = x.Advance,
-                    InvoiceForm = x.InvoiceForm,
+                    InvoiceForm = (InvoiceFormType)x.InvoiceForm!,
                 })
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null)

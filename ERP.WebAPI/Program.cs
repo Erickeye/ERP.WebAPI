@@ -1,10 +1,7 @@
-using ERP.Data;
+using ERP.EntityModels.Context;
 using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
-using ERP.Service.API._1000Company;
-using ERP.Service.API.AMS;
 using ERP.Service.Helpers;
-using ERP.Service.Sftp;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,22 +21,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("Default API", new OpenApiInfo { Version = "v1", Title = "API­º­¶", });
-    options.SwaggerDoc("_1000Company", new OpenApiInfo { Version = "v1", Title = "¤½¥q¬ÛÃö", });
-    options.SwaggerDoc("_2000Costomer", new OpenApiInfo { Version = "v1", Title = "«È¤á¸ê®Æ", });
+    options.SwaggerDoc("Default API", new OpenApiInfo { Version = "v1", Title = "APIé¦–é ", });
+    options.SwaggerDoc("_1000Company", new OpenApiInfo { Version = "v1", Title = "å…¬å¸ç›¸é—œ", });
+    options.SwaggerDoc("_2000Costomer", new OpenApiInfo { Version = "v1", Title = "å®¢æˆ¶è³‡æ–™", });
     options.EnableAnnotations();
 
-    // ¥[¤J Bearer token »{ÃÒ¤è¦¡
+    // åŠ å…¥ Bearer token èªè­‰æ–¹å¼
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "½Ğ¿é¤J JWT¡A®æ¦¡¬°¡GBearer {token}",
+        Description = "è«‹è¼¸å…¥ JWTï¼Œæ ¼å¼ç‚ºï¼šBearer {token}",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
 
-    // ¥ş°ì®M¥Î Bearer token ÅçÃÒ
+    // å…¨åŸŸå¥—ç”¨ Bearer token é©—è­‰
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -56,13 +52,13 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // ¸ü¤J XML µù¸Ñ
+    // è¼‰å…¥ XML è¨»è§£
     //var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     //options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
 });
 builder.Services.AddControllers(options =>
 {
-    // ¥ş°ì®M¥Î [Authorize]
+    // å…¨åŸŸå¥—ç”¨ [Authorize]
     var policy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
@@ -70,7 +66,7 @@ builder.Services.AddControllers(options =>
 })
     .ConfigureApiBehaviorOptions(options =>
     {
-        // Ãö³¬¦Û°Ê 400 ¦^À³¡A¨Ï¶i¨ì Controller ¸Ì¤â°Ê³B²z ModelState
+        // é—œé–‰è‡ªå‹• 400 å›æ‡‰ï¼Œä½¿é€²åˆ° Controller è£¡æ‰‹å‹•è™•ç† ModelState
         options.SuppressModelStateInvalidFilter = true;
     });
 
@@ -104,7 +100,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnChallenge = context =>
         {
-            // ¹w³]·|¦^¶Ç 401¡A³o¸ÌÄdºI¦Û­q¦^À³
+            // é è¨­æœƒå›å‚³ 401ï¼Œé€™è£¡æ””æˆªè‡ªè¨‚å›æ‡‰
             context.HandleResponse();
 
             context.Response.StatusCode = 401;
@@ -113,7 +109,7 @@ builder.Services.AddAuthentication(options =>
             var result = new
             {
                 ErrorCode = 1008,
-                Message = "µL®ÄªºÅv§ú"
+                Message = "ç„¡æ•ˆçš„æ¬Šæ–"
             };
 
             var json = System.Text.Json.JsonSerializer.Serialize(result);
@@ -136,7 +132,7 @@ builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpCon
 //builder.Services.AddScoped<IRoleService, RoleService>();
 //builder.Services.AddScoped<ISftpService, SftpService>();
 
-// µù¥U¤¶­±¸òªA°È(¦Û°Êµù¥UªA°È)
+// è¨»å†Šä»‹é¢è·Ÿæœå‹™(è‡ªå‹•è¨»å†Šæœå‹™)
 var assembly = Assembly.GetAssembly(typeof(EnumHelper));
 var types = assembly!.GetTypes()
             .Where(c => c.Namespace != null)
@@ -152,7 +148,7 @@ foreach (var type in types)
     if(interfaceType != null)
     {
         builder.Services.AddScoped(interfaceType,type);
-        //Console.WriteLine($"¤wµù¥U {interfaceType.Name} -> {type.Name}");
+        //Console.WriteLine($"å·²è¨»å†Š {interfaceType.Name} -> {type.Name}");
     }
 }
 

@@ -1,19 +1,12 @@
-﻿using ERP.Data;
-using ERP.EntityModels.Models._1000Company;
+﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Library.ViewModels.UserInfo;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ERP.Service.API._1000Company
 {
@@ -88,7 +81,7 @@ namespace ERP.Service.API._1000Company
             }
             if (query == null)
             {
-                return ResultModel.Error(ErrorCodeType.NotFoundData);
+                return ResultModel<ListResult<StaffListVM>>.Error (ErrorCodeType.NotFoundData);
             }
             var viewModel = await query.ToListAsync();
             return ResultModel.Ok(viewModel);
@@ -171,7 +164,7 @@ namespace ERP.Service.API._1000Company
         }
         public async Task<ResultModel<string>> GetCertificate(int id)
         {
-            var cert = await _context.t_1001StaffCertificates!.FirstOrDefaultAsync(c => c.Id == id);
+            var cert = await _context.t_1001StaffCertificate!.FirstOrDefaultAsync(c => c.Id == id);
             if (cert?.Certificate == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
@@ -188,7 +181,7 @@ namespace ERP.Service.API._1000Company
             }
             using var ms = new MemoryStream();
             await data.CertificateFile.CopyToAsync(ms);
-            var cert = new t_1001StaffCertificates
+            var cert = new t_1001StaffCertificate
             {
                 StaffId = data.StaffId,
                 CertificateName = data.CertificateName,
@@ -197,13 +190,13 @@ namespace ERP.Service.API._1000Company
                 Certificate = ms.ToArray(),
             };
 
-            _context.t_1001StaffCertificates!.Add(cert);
+            _context.t_1001StaffCertificate!.Add(cert);
             await _context.SaveChangesAsync();
             return ResultModel.Ok("證照已成功上傳");            
         }
         public async Task<ResultModel<string>> EditCertificate(EditCertificate data)
         {
-            var _1001 = await  _context.t_1001StaffCertificates!.FindAsync(data.Id);
+            var _1001 = await  _context.t_1001StaffCertificate!.FindAsync(data.Id);
             if (_1001 != null)
             {
                 _1001.CertificateName = data.CertificateName;
@@ -215,7 +208,7 @@ namespace ERP.Service.API._1000Company
         }
         public async Task<ResultModel<string>> DeleteCertificate(int id)
         {
-            var _1001 = await _context.t_1001StaffCertificates!.FindAsync(id);
+            var _1001 = await _context.t_1001StaffCertificate!.FindAsync(id);
             if (_1001 == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);

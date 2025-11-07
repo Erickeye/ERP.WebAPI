@@ -1,4 +1,4 @@
-﻿using ERP.Library.Enums;
+using ERP.Library.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -97,7 +97,7 @@ namespace ERP.Library.ViewModels._2000Customer
         public decimal? Advance { get; set; }
 
         [Display(Name = "發票格式")]
-        public InvoiceFormType? InvoiceForm { get; set; }
+        public InvoiceFormType? InvoiceForm { get; set; } = InvoiceFormType.三聯式發票;
 
     }
 }

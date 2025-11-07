@@ -1,16 +1,10 @@
-﻿using ERP.Data;
-using ERP.EntityModels.Models._1000Company;
+﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._1000Company;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ERP.Service.API._1000Company
 {
@@ -55,10 +49,10 @@ namespace ERP.Service.API._1000Company
             var list = await _context.t_1030Dayoff
                 .Select(x => new DayOffListVM
                 {
-                    LeaveTaker = x.Staff_LeaveTaker!.ChineseName!,
+                    LeaveTaker = x.LeaveTakerNavigation!.ChineseName!,
                     ApplicationDate = x.ApplicationDate,
-                    Proxy = x.Staff_Proxy!.ChineseName,
-                    LeaveType = x.LeaveType,
+                    Proxy = x.ProxyNavigation!.ChineseName,
+                    LeaveType = (LeaveType)x.LeaveType,
                     Reason = x.Reason,
                     BeginDate = x.BeginDate,
                     EndDate = x.EndDate
@@ -86,7 +80,7 @@ namespace ERP.Service.API._1000Company
             var endOfYear = new DateTime(currentYear, 12, 31);
 
             var list = await _context.t_1030Dayoff!
-           .Where(c => c.LeaveType == LeaveType.特休 &&
+           .Where(c => (LeaveType)c.LeaveType == LeaveType.特休 &&
                        c.LeaveTaker == staffId &&
                        c.BeginDate >= startOfYear &&
                        c.BeginDate <= endOfYear)
@@ -127,7 +121,7 @@ namespace ERP.Service.API._1000Company
             target.LeaveTaker = (int)source.LeaveTaker!;
             target.Applicant = source.Applicant;
             target.Proxy = source.Proxy;
-            target.LeaveType = source.LeaveType;
+            target.LeaveType = (int)source.LeaveType;
             target.Reason = source.Reason;
             target.ProxySignature = source.ProxySignature;
             target.BeginDate = (DateTime)source.BeginDate!;
