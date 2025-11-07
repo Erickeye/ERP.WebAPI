@@ -1,0 +1,28 @@
+﻿CREATE TABLE [dbo].[t_1005ProjectStaff] (
+    [f_ProjectStaff_ID]               INT             IDENTITY (1, 1) NOT NULL,
+    [f_ProjectStaff_UID]              NVARCHAR (MAX)  NULL,
+    [f_ProjectStaff_ChineseName]      NVARCHAR (20)   NOT NULL,
+    [f_ProjectStaff_EnglishName]      NVARCHAR (20)   NULL,
+    [f_ProjectStaff_Gender]           NVARCHAR (MAX)  NOT NULL,
+    [f_ProjectStaff_Account]          NVARCHAR (20)   NULL,
+    [f_ProjectStaff_ContactPhone]     NVARCHAR (20)   NULL,
+    [f_ProjectStaff_BankName]         NVARCHAR (30)   NOT NULL,
+    [f_ProjectStaff_SubBankName]      NVARCHAR (20)   NULL,
+    [f_ProjectStaff_BankAccount]      NVARCHAR (30)   NOT NULL,
+    [f_ProjectStaff_ContactAddress]   NVARCHAR (50)   NOT NULL,
+    [f_ProjectStaff_Email]            NVARCHAR (50)   NULL,
+    [f_ProjectStaff_Bitrthday]        DATETIME2 (7)   NOT NULL,
+    [f_ProjectStaff_HighestEducation] NVARCHAR (MAX)  NOT NULL,
+    [f_ProjectStaff_OnBoardDay]       DATETIME2 (7)   NULL,
+    [f_ProjectStaff_ResignationDay]   DATETIME2 (7)   NULL,
+    [f_ProjectStaff_IDCard]           NVARCHAR (10)   NOT NULL,
+    [f_ProjectStaff_LaborPension]     DECIMAL (12, 2) NULL,
+    [f_ProjectStaff_EC1Name]          NVARCHAR (20)   NULL,
+    [f_ProjectStaff_EC1Relationship]  NVARCHAR (10)   NULL,
+    [f_ProjectStaff_EC1Cellphone]     NVARCHAR (20)   NULL,
+    [f_ProjectStaff_EC1Address]       NVARCHAR (50)   NULL,
+    [f_ProjectStaff_LineID]           NVARCHAR (50)   NULL,
+    [f_ProjectStaff_ContractID]       NVARCHAR (20)   NULL,
+    CONSTRAINT [PK_t_1005ProjectStaff] PRIMARY KEY CLUSTERED ([f_ProjectStaff_ID] ASC)
+);
+
