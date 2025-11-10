@@ -1,16 +1,12 @@
 ﻿using ERP.EntityModels.Context;
-using ERP.EntityModels.Models._2000Customer;
+using ERP.EntityModels.Models;
 using ERP.Library.Enums;
+using ERP.Library.Enums._1000Company;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._2000Customer;
 using ERP.Library.ViewModels.UserInfo;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ERP.Service.API._2000Customer
 {
@@ -46,8 +42,8 @@ namespace ERP.Service.API._2000Customer
                     MobilePhone = x.MobilePhone,
                     Account = x.Account,
                     Email = x.Email,
-                    MarriageStatus = x.MarriageStatus,
-                    JobStatus = x.JobStatus,
+                    MarriageStatus = (MarriageStatus)x.MarriageStatus!,
+                    JobStatus = (JobStatus)x.JobStatus!,
                     Momo = x.Momo
                 })
                 .ToListAsync();
@@ -68,8 +64,8 @@ namespace ERP.Service.API._2000Customer
                     MobilePhone = x.MobilePhone,
                     Account = x.Account,
                     Email = x.Email,
-                    MarriageStatus = x.MarriageStatus,
-                    JobStatus = x.JobStatus,
+                    MarriageStatus = (MarriageStatus)x.MarriageStatus!,
+                    JobStatus = (JobStatus)x.JobStatus!,
                     Momo = x.Momo
                 })
                 .FirstOrDefaultAsync();

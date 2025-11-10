@@ -1,68 +1,68 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ERP.EntityModels.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.EntityModels.Context;
 
-public partial class ERPDbContext : DbContext
+public partial class ERPContext : DbContext
 {
-    public ERPDbContext(DbContextOptions<ERPDbContext> options)
+    public ERPContext(DbContextOptions<ERPContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<ApprovalRecord> ApprovalRecords { get; set; }
+    public virtual DbSet<ApprovalRecord> ApprovalRecord { get; set; }
 
-    public virtual DbSet<ApprovalSetting> ApprovalSettings { get; set; }
+    public virtual DbSet<ApprovalSetting> ApprovalSetting { get; set; }
 
-    public virtual DbSet<ApprovalStep> ApprovalSteps { get; set; }
+    public virtual DbSet<ApprovalStep> ApprovalStep { get; set; }
 
-    public virtual DbSet<ApprovalStepNumber> ApprovalStepNumbers { get; set; }
+    public virtual DbSet<ApprovalStepNumber> ApprovalStepNumber { get; set; }
 
-    public virtual DbSet<Level> Levels { get; set; }
+    public virtual DbSet<Level> Level { get; set; }
 
-    public virtual DbSet<Notification> Notifications { get; set; }
+    public virtual DbSet<Notification> Notification { get; set; }
 
-    public virtual DbSet<Permission> Permissions { get; set; }
+    public virtual DbSet<Permission> Permission { get; set; }
 
-    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<Role> Role { get; set; }
 
-    public virtual DbSet<User> Users { get; set; }
+    public virtual DbSet<User> User { get; set; }
 
-    public virtual DbSet<t_1000Staff> t_1000Staffs { get; set; }
+    public virtual DbSet<t_1000Staff> t_1000Staff { get; set; }
 
-    public virtual DbSet<t_1001StaffCertificate> t_1001StaffCertificates { get; set; }
+    public virtual DbSet<t_1001StaffCertificate> t_1001StaffCertificate { get; set; }
 
-    public virtual DbSet<t_1005ProjectStaff> t_1005ProjectStaffs { get; set; }
+    public virtual DbSet<t_1005ProjectStaff> t_1005ProjectStaff { get; set; }
 
-    public virtual DbSet<t_1020PerformanceTarget> t_1020PerformanceTargets { get; set; }
+    public virtual DbSet<t_1020PerformanceTarget> t_1020PerformanceTarget { get; set; }
 
-    public virtual DbSet<t_1030Dayoff> t_1030Dayoffs { get; set; }
+    public virtual DbSet<t_1030Dayoff> t_1030Dayoff { get; set; }
 
-    public virtual DbSet<t_1039DayoffProxy> t_1039DayoffProxies { get; set; }
+    public virtual DbSet<t_1039DayoffProxy> t_1039DayoffProxie { get; set; }
 
-    public virtual DbSet<t_1040Document> t_1040Documents { get; set; }
+    public virtual DbSet<t_1040Document> t_1040Document { get; set; }
 
-    public virtual DbSet<t_1050WorkOver> t_1050WorkOvers { get; set; }
+    public virtual DbSet<t_1050WorkOver> t_1050WorkOver { get; set; }
 
-    public virtual DbSet<t_1080Company> t_1080Companies { get; set; }
+    public virtual DbSet<t_1080Company> t_1080Companie { get; set; }
 
-    public virtual DbSet<t_1100Department> t_1100Departments { get; set; }
+    public virtual DbSet<t_1100Department> t_1100Department { get; set; }
 
-    public virtual DbSet<t_1101DepartmentUnit> t_1101DepartmentUnits { get; set; }
+    public virtual DbSet<t_1101DepartmentUnit> t_1101DepartmentUnit { get; set; }
 
-    public virtual DbSet<t_1200PettyCash> t_1200PettyCashes { get; set; }
+    public virtual DbSet<t_1200PettyCash> t_1200PettyCashe { get; set; }
 
-    public virtual DbSet<t_1201PettyCashDetail> t_1201PettyCashDetails { get; set; }
+    public virtual DbSet<t_1201PettyCashDetail> t_1201PettyCashDetail { get; set; }
 
-    public virtual DbSet<t_1700LoginLog> t_1700LoginLogs { get; set; }
+    public virtual DbSet<t_1700LoginLog> t_1700LoginLog { get; set; }
 
-    public virtual DbSet<t_1710ActionInfo> t_1710ActionInfos { get; set; }
+    public virtual DbSet<t_1710ActionInfo> t_1710ActionInfo { get; set; }
 
-    public virtual DbSet<t_2000Customer> t_2000Customers { get; set; }
+    public virtual DbSet<t_2000Customer> t_2000Customer { get; set; }
 
-    public virtual DbSet<t_2010Custemploy> t_2010Custemploys { get; set; }
+    public virtual DbSet<t_2010Custemploy> t_2010Custemploy { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

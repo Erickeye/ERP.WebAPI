@@ -1,12 +1,6 @@
-﻿using ERP.Data;
+using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
-using ERP.EntityModels.Models._1000Company;
 using ERP.WebAPI.CustomAttributes;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ERP.WebAPI.Middleware
 {
@@ -45,7 +39,7 @@ namespace ERP.WebAPI.Middleware
                         IpAddress = ip,
                         CrateDate = date,
                         Location = location,
-                        ActionType = actionLogAttr.ActionCode,
+                        ActionType = (int)actionLogAttr.ActionCode,
                         KeyId = keyId,
                         Memo = $"{actionLogAttr.Description}[{method}]"
                     };

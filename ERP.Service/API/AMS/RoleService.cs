@@ -1,17 +1,10 @@
 ﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums.Login;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.AMS;
-using ERP.Library.ViewModels.UserInfo;
-using ERP.Models.AMS;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ERP.Service.API.AMS
 {
@@ -88,7 +81,7 @@ namespace ERP.Service.API.AMS
                 RoleId = roleId,
                 RoleContent = permissions.Select(c => new RolePermissionItem()
                 {
-                    PermissionType = c.PageId,
+                    PermissionType = (PermissionType)c.PageId,
                 })
                 .ToList(),
                 Permission = role.PermissionLevel,
@@ -109,7 +102,7 @@ namespace ERP.Service.API.AMS
             var permissions = _context.Permission!.Where(p => p.RoleId == data.RoleId).ToList();
             foreach (var item in data.RoleContent)
             {
-                var existingPerm = permissions.FirstOrDefault(p => p.PageId == item.PermissionType);
+                var existingPerm = permissions.FirstOrDefault(p => p.PageId == (int)item.PermissionType);
                 if (item.HasPermission)
                 {
                     // 如果要有權限但資料不存在 → 新增
@@ -118,7 +111,7 @@ namespace ERP.Service.API.AMS
                         _context.Permission!.Add(new Permission
                         {
                             RoleId = data.RoleId,
-                            PageId = item.PermissionType,
+                            PageId = (int)item.PermissionType,
                         });
                     }
                     // 若已有資料但權限為 false，則改成 true

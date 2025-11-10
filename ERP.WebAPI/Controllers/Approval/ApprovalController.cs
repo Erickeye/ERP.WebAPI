@@ -1,11 +1,10 @@
-﻿using ERP.EntityModels.Models.Other;
+using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.ViewModels.Approval;
 using ERP.Service.API;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ERP.WebAPI.Controllers.Approval
 {
@@ -61,7 +60,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("新增簽核設定")]
         [HttpPost,Route("CreateSettings")]
         [Log(OperationActionType.Create, "新增簽核設定")]
-        public async Task<IActionResult> CreateSettings(ApprovalSettings data)
+        public async Task<IActionResult> CreateSettings(ApprovalSetting data)
         {
             var result = await _service.CreateOrEditSettings(data);
             return Ok(result);
@@ -70,7 +69,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("修改簽核設定")]
         [HttpPost, Route("EditSettings")]
         [Log(OperationActionType.Edit, "修改簽核設定")]
-        public async Task<IActionResult> Editettings(ApprovalSettings data)
+        public async Task<IActionResult> Editettings(ApprovalSetting data)
         {
             var result = await _service.CreateOrEditSettings(data);
             return Ok(result);

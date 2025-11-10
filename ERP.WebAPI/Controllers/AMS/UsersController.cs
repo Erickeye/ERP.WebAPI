@@ -1,13 +1,10 @@
-﻿using ERP.Library.Enums;
+using ERP.EntityModels.Models;
+using ERP.Library.Enums;
 using ERP.Library.ViewModels;
-using ERP.Library.Extensions;
-using ERP.Models.AMS;
 using ERP.WebAPI.CustomAttributes;
 using ERP.Service.API.AMS;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
-using Microsoft.Extensions.Primitives;
 using ERP.Library.ViewModels.AMS;
 
 namespace ERP.WebAPI.Controllers.AMS

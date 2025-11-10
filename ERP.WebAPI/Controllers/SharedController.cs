@@ -1,7 +1,4 @@
-﻿using ERP.Data;
-using ERP.Library.Enums;
 using ERP.Library.Enums._1000Company;
-using ERP.Library.ViewModels;
 using ERP.Service.API.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
