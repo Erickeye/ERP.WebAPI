@@ -14,3 +14,4 @@
 # Build
 bin/
 obj/
+/ERP.DB/ERP.DB.jfm
