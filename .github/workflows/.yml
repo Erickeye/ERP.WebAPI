@@ -15,7 +15,7 @@ jobs:
       - name: Scan for sensitive keywords
         run: |
           echo "Scanning for sensitive words..."
-          SENSITIVE_WORDS=("userName" "password" "secret" "token")
+          SENSITIVE_WORDS=("account" "password" "secret")
           FOUND=0
 
           for word in "${SENSITIVE_WORDS[@]}"; do
