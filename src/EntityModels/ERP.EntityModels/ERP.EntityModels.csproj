@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ERP.Library\ERP.Library.csproj" />
+    <ProjectReference Include="..\ERP.Library\ERP.Library.csproj" />
   </ItemGroup>
 
 </Project>
