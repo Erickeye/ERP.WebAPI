@@ -19,8 +19,8 @@ jobs:
           FOUND=0
 
           for word in "${SENSITIVE_WORDS[@]}"; do
-            if grep -Rni "$word" ./src; then
-              echo "::warning file=src::Sensitive word found: $word"
+            if grep -Rni "$word" ./ERP.WebAPI; then
+              echo "::warning file=ERP.WebAPI::Sensitive word found: $word"
               FOUND=1
             fi
           done
