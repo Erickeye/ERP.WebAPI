@@ -1,0 +1,30 @@
+name: Sensitive Word Check
+
+on:
+  push:
+    branches: [ "**" ]
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Scan for sensitive keywords
+        run: |
+          echo "Scanning for sensitive words..."
+          SENSITIVE_WORDS=("account" "password" "secret" )
+          FOUND=0
+
+          for word in "${SENSITIVE_WORDS[@]}"; do
+            if grep -Rni "$word" ./src; then
+              echo "::warning file=src::Sensitive word found: $word"
+              FOUND=1
+            fi
+          done
+
+          # 如果你要讓它警告但不阻擋 → 就不要 exit 1
+          # 如果你要阻擋 push → 打開下面這行
+          [ $FOUND -eq 1 ] && exit 1 || echo "OK"

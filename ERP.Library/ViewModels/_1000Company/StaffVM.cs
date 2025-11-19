@@ -1,4 +1,4 @@
-﻿using ERP.Library.Enums._1000Company;
+using ERP.Library.Enums._1000Company;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -158,6 +158,8 @@ namespace ERP.Library.ViewModels._1000Company
 
         [Display(Name = "血型")]
         public BloodType BloodType { get; set; }
+
+        public string? account { get; set; }
     }
 
     public class UploadImg
