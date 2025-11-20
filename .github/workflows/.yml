@@ -2,7 +2,9 @@ name: Sensitive Word Check
 
 on:
   push:
-    branches: [ "**" ]
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   scan:
@@ -15,16 +17,48 @@ jobs:
       - name: Scan for sensitive keywords
         run: |
           echo "Scanning for sensitive words..."
-          SENSITIVE_WORDS=("account" "password" "secret")
+          
+          # 敏感字
+           SENSITIVE_WORDS=(
+            "password"
+            "secret" "apikey" "api_key"
+            "client_secret" "client_id" "appsecret" "application_secret"
+            "jwt" "bearer" "auth" "authentication" "credential"
+            "username" "user_name" "account" "useraccount" "login"
+            "creditcard" "cardnumber" "card_no" "cvv" "cvc"
+            "bank_account" "bankaccount" "iban" "swift"
+            "idnumber" "id_number" "national_id" "identity"
+            "fullname" "full_name" "first_name" "last_name"
+            "phone" "mobile" "email" "address" "birthday" "birthdate"
+            "personalinformation" "personal_info"
+            "connectionstring" "connection_string" "datasource"
+            "db_user" "db_password" "ftpuser" "ftppassword"
+            "smtp_password" "smtp_user"
+            "privatekey" "private_key" "publickey" "public_key"
+            "sshkey" "ssh_key"
+            "admin" "superadmin" "root" "sa" "masterkey" "master_key"
+          )
+
+          # 專案程式碼路徑
+          TARGET_DIR="src"
+
           FOUND=0
 
+          # 排除 bin/obj/.git 之類無意義的資料夾
+          EXCLUDES="--exclude-dir=bin --exclude-dir=obj --exclude-dir=.git"
+
           for word in "${SENSITIVE_WORDS[@]}"; do
-            if grep -Rni --include=\*.cs "$word" .; then
-              echo "::warning file=src::Sensitive word found: $word"
+            echo "Searching: $word"
+
+            if grep -Rni $EXCLUDES "$word" "$TARGET_DIR"; then
+              echo "::error file=$TARGET_DIR::❌ Sensitive word found: $word"
               FOUND=1
             fi
           done
 
-          # 如果你要讓它警告但不阻擋 → 就不要 exit 1
-          # 如果你要阻擋 push → 打開下面這行
-          [ $FOUND -eq 1 ] && exit 1 || echo "OK"
+          if [ $FOUND -eq 1 ]; then
+            echo "❌ Sensitive words detected. Blocking."
+            exit 1
+          else
+            echo "✔ No sensitive words found."
+          fi
