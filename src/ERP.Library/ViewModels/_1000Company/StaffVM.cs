@@ -160,6 +160,7 @@ namespace ERP.Library.ViewModels._1000Company
         public BloodType BloodType { get; set; }
 
         public string? account { get; set; }
+        public string? password { get; set; }
     }
 
     public class UploadImg
