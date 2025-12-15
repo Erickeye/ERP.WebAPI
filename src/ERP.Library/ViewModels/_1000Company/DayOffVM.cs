@@ -1,10 +1,8 @@
-﻿using ERP.Library.Enums._1000Company;
+using ERP.Library.Enums._1000Company;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.Library.ViewModels._1000Company
 {
@@ -75,5 +73,13 @@ namespace ERP.Library.ViewModels._1000Company
         [DataType(DataType.DateTime)]
         public DateTime? EndDate { get; set; }
 
+    }
+    public class DayOffIndexSearch
+    {
+        [SwaggerParameter("請假日期開始")]
+        public DateTime? StartDate { get; set; }
+
+        [SwaggerParameter("請假日期結束")]
+        public DateTime? EndDate { get; set; }
     }
 }

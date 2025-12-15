@@ -1,7 +1,10 @@
+using System.Linq;
+using System.Linq.Expressions;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._1000Company;
+using ERP.Library.Extensions;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +14,10 @@ namespace ERP.Service.API._1000Company
     public interface I_1030DayoffService
     {
         Task<ResultModel<string>> CreateOrEdit(DayOffInputVM data);
-        Task<ResultModel<ListResult<DayOffListVM>>> Index();
+        Task<ResultModel<ListResult<DayOffListVM>>> Index(DayOffIndexSearch search);
         Task<ResultModel<string>> Delete(int id);
-        Task<ResultModel<double>> GetRemainSpecialDays(int staffId);
+        Task<ResultModel<double>> GetTheYearSpecialLeaveDays(int staffId);
+        Task<ResultModel<double>> GetTheYearSpecialTotalDays(int staffId);
     }
     public class _1030DayoffService : I_1030DayoffService
     {
@@ -26,27 +30,43 @@ namespace ERP.Service.API._1000Company
 
         public async Task<ResultModel<string>> CreateOrEdit(DayOffInputVM data)
         {
+            //找不到資料 => 新增
+            var entity = new t_1030Dayoff();
+            MapToEntity(data, entity);
+            _context.Add(entity);
+            await _context.SaveChangesAsync();
+            return ResultModel.Ok("資料新增成功");
+        }
+        public async Task<ResultModel<string>> Edit(DayOffInputVM data)
+        {
             var entity = _context.t_1030Dayoff.FirstOrDefault(c => c.Id == data.Id);
             if (entity == null)
             {
-                //找不到資料 => 新增
-                entity = new t_1030Dayoff();
-                MapToEntity(data, entity);
-                _context.Add(entity);
-                await _context.SaveChangesAsync();
-                return ResultModel.Ok("資料成功新增");
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
-            else
-            {
-                //有資料 => 修改
-                MapToEntity(data, entity);
-                await _context.SaveChangesAsync();
-                return ResultModel.Ok("資料成功新增");
-            }
+            //有資料 => 修改
+            MapToEntity(data, entity);
+            await _context.SaveChangesAsync();
+            return ResultModel.Ok("資料修改成功");
         }
-        public async Task<ResultModel<ListResult<DayOffListVM>>> Index()
+        public async Task<ResultModel<ListResult<DayOffListVM>>> Index(DayOffIndexSearch search)
         {
+            Expression<Func<t_1030Dayoff, bool>> filter = x => true;
+
+            if (search.StartDate.HasValue)
+            {
+                var date = search.StartDate.Value;
+                filter = filter.ExpressionAnd(x => x.BeginDate >= date);
+            }
+            if (search.EndDate.HasValue)
+            {
+                var date = search.EndDate.Value.To235959();
+                filter = filter.ExpressionAnd(x => x.EndDate >= date);
+            }
+
             var list = await _context.t_1030Dayoff
+                .AsNoTracking()
+                .Where(filter)
                 .Select(x => new DayOffListVM
                 {
                     LeaveTaker = x.LeaveTakerNavigation!.ChineseName!,
@@ -58,6 +78,7 @@ namespace ERP.Service.API._1000Company
                     EndDate = x.EndDate
                 })
                 .ToListAsync();
+
             return ResultModel.Ok(list);
         }
         public async Task<ResultModel<string>> Delete(int id)
@@ -71,9 +92,8 @@ namespace ERP.Service.API._1000Company
             await _context.SaveChangesAsync();
             return ResultModel.Ok("資料刪除成功");
         }
-        public async Task<ResultModel<double>> GetRemainSpecialDays(int staffId)
+        public async Task<ResultModel<double>> GetTheYearSpecialLeaveDays(int staffId)
         {
-            //var result = new ResultModel<double>();
             //今年已請特休數量
             var currentYear = DateTime.Now.Year;
             var startOfYear = new DateTime(currentYear, 1, 1);
@@ -113,6 +133,61 @@ namespace ERP.Service.API._1000Company
            });
             var dayOff = dayOffHours / 8.0; // 每 8 小時算 1 天
             return ResultModel.Ok(dayOff);
+        }
+        public async Task<ResultModel<double>> GetTheYearSpecialTotalDays(int staffId)
+        {
+            var staff = await _context.t_1000Staff
+                .Where(x => x.StaffId == staffId)
+                .FirstOrDefaultAsync();
+
+            if (staff == null)
+            {
+                return ResultModel.Error(ErrorCodeType.DataEmpty, "找不到該員工。");
+            }
+
+            //取得員工入職日
+            var onBoardDate = staff.OnBoardDate;
+            var today = DateTime.Today;
+
+            // 計算滿幾年
+            var years = today.Year - onBoardDate.Year;
+            if (onBoardDate.AddYears(years) > today)
+            {
+                years--;
+            }
+
+            // 計算是否滿 6 個月
+            var isOverSixMonths = onBoardDate.AddMonths(6) <= today;
+
+            double specialDays = 0;
+
+            if (years < 1)
+            {
+                specialDays = isOverSixMonths ? 3 : 0;
+            }
+            else if (years < 2)
+            {
+                specialDays = 7;
+            }
+            else if (years < 3)
+            {
+                specialDays = 10;
+            }
+            else if (years < 5)
+            {
+                specialDays = 14;
+            }
+            else if (years < 10)
+            {
+                specialDays = 15;
+            }
+            else
+            {
+                // 10 年以上：每年 +1，上限 30 天
+                specialDays = Math.Min(15 + (years - 10), 30);
+            }
+
+            return ResultModel.Ok(specialDays);
         }
 
         public void MapToEntity(DayOffInputVM source, t_1030Dayoff target)

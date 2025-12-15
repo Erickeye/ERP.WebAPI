@@ -41,26 +41,34 @@ namespace ERP.WebAPI.Controllers._1000Company
         [SwaggerOperation("檢視請假單")]
         [Log(OperationActionType.View , "檢視請假單")]
         [HttpGet,Route("Index")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index([FromQuery] DayOffIndexSearch search)
         {
-            var result = await _service.Index();
+            var result = await _service.Index(search);
             return Ok(result);
         }
 
         [SwaggerOperation("刪除請假單")]
         [Log(OperationActionType.View, "刪除請假單")]
         [HttpDelete, Route("Delete")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete([SwaggerParameter("請假單號")] int id)
         {
             var result = await _service.Delete(id);
             return Ok(result);
         }
 
-        [SwaggerOperation("取得剩餘特休天數")]
-        [HttpGet,Route("GetRemainSpecialDays")]
-        public async Task<IActionResult> GetRemainSpecialDays(int staffId)
+        [SwaggerOperation("取得已請假特休天數")]
+        [HttpGet,Route("GetTheYearSpecialLeaveDays")]
+        public async Task<IActionResult> GetTheYearSpecialLeaveDays([SwaggerParameter("員工識別碼")] int staffId)
         {
-            var result = await _service.GetRemainSpecialDays(staffId);
+            var result = await _service.GetTheYearSpecialLeaveDays(staffId);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得該年總計特休天數")]
+        [HttpGet, Route("GetTheYearSpecialTotalDays")]
+        public async Task<IActionResult> GetTheYearSpecialTotalDays([SwaggerParameter("員工識別碼")] int staffId)
+        {
+            var result = await _service.GetTheYearSpecialTotalDays(staffId);
             return Ok(result);
         }
     }
