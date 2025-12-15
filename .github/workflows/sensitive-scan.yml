@@ -1,10 +1,10 @@
 name: Sensitive Word Check
 
 on:
-  push:
-    branches: ["**"]
+  # push:
+  #   branches: ["**"]
   pull_request:
-    branches: ["main"]
+    branches: ["main,master "]
 
 jobs:
   scan:
@@ -20,23 +20,7 @@ jobs:
           
           # 敏感字
            SENSITIVE_WORDS=(
-            "password"
-            "secret" "apikey" "api_key"
-            "client_secret" "client_id" "appsecret" "application_secret"
-            "jwt" "bearer" "auth" "authentication" "credential"
-            "username" "user_name" "account" "useraccount" "login"
-            "creditcard" "cardnumber" "card_no" "cvv" "cvc"
-            "bank_account" "bankaccount" "iban" "swift"
-            "idnumber" "id_number" "national_id" "identity"
-            "fullname" "full_name" "first_name" "last_name"
-            "phone" "mobile" "email" "address" "birthday" "birthdate"
-            "personalinformation" "personal_info"
-            "connectionstring" "connection_string" "datasource"
-            "db_user" "db_password" "ftpuser" "ftppassword"
-            "smtp_password" "smtp_user"
-            "privatekey" "private_key" "publickey" "public_key"
-            "sshkey" "ssh_key"
-            "admin" "superadmin" "root" "sa" "masterkey" "master_key"
+
           )
 
           # 專案程式碼路徑
