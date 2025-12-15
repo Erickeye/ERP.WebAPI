@@ -1,4 +1,4 @@
-﻿using ERP.Library.ViewModels;
+using ERP.Library.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,13 @@ namespace ERP.Service.Helpers
 {
     public static class EnumHelper
     {
-        public static List<SelectModel> ToSelectList<TEnum>() where TEnum : Enum
+        public static ResultModel<ListResult<SelectModel>> GetEnumList<TEnum>(params TEnum[] excludes) where TEnum : Enum
+        {
+            var list = ToSelectList<TEnum>(excludes);
+            return ResultModel.Ok(list);
+        }
+
+        public static List<SelectModel> ToSelectList<TEnum>(params TEnum[] excludes) where TEnum : Enum
         {
             return Enum.GetValues(typeof(TEnum))
                        .Cast<TEnum>()
