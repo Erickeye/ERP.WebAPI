@@ -37,8 +37,6 @@ namespace ERP.Library.ViewModels._1000Company
         public int? Id { get; set; }
 
         [Display(Name = "申請日期")]
-        [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? ApplicationDate { get; set; }
 
         [Required(ErrorMessage = "必填欄位")]
@@ -51,9 +49,9 @@ namespace ERP.Library.ViewModels._1000Company
         [Display(Name = "代理人")]
         public int? Proxy { get; set; }
 
-        [Required(ErrorMessage = "必填欄位")]
+        [Required(ErrorMessage = "【假別】為必填欄位")]
         [Display(Name = "假別")]
-        public LeaveType LeaveType { get; set; }
+        public int? LeaveType { get; set; }
 
         [Display(Name = "事由")]
         [StringLength(64, ErrorMessage = "長度不可超過 64 個字元")]
@@ -63,12 +61,12 @@ namespace ERP.Library.ViewModels._1000Company
         [StringLength(128, ErrorMessage = "長度不可超過 128 個字元")]
         public string? ProxySignature { get; set; }
 
-        [Required(ErrorMessage = "必填欄位")]
+        [Required(ErrorMessage = "【開始日期】為必填欄位")]
         [Display(Name = "開始日期")]
         [DataType(DataType.DateTime)]
         public DateTime? BeginDate { get; set; }
 
-        [Required(ErrorMessage = "必填欄位")]
+        [Required(ErrorMessage = "【結束日期】為必填欄位")]
         [Display(Name = "結束日期")]
         [DataType(DataType.DateTime)]
         public DateTime? EndDate { get; set; }

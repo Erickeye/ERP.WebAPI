@@ -8,16 +8,19 @@ using ERP.Library.Extensions;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._1000Company;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.X509;
 
 namespace ERP.Service.API._1000Company
 {
     public interface I_1030DayoffService
     {
-        Task<ResultModel<string>> CreateOrEdit(DayOffInputVM data);
+        Task<ResultModel<string>> Create(DayOffInputVM data);
+        Task<ResultModel<string>> Edit(DayOffInputVM data);
         Task<ResultModel<ListResult<DayOffListVM>>> Index(DayOffIndexSearch search);
         Task<ResultModel<string>> Delete(int id);
         Task<ResultModel<double>> GetTheYearSpecialLeaveDays(int staffId);
         Task<ResultModel<double>> GetTheYearSpecialTotalDays(int staffId);
+        Task<ResultModel<double>> GetRemainSpecialDays(int staffId);
     }
     public class _1030DayoffService : I_1030DayoffService
     {
@@ -28,26 +31,67 @@ namespace ERP.Service.API._1000Company
             _context = context;
         }
 
-        public async Task<ResultModel<string>> CreateOrEdit(DayOffInputVM data)
+        public async Task<ResultModel<string>> Create(DayOffInputVM vm)
         {
-            //找不到資料 => 新增
-            var entity = new t_1030Dayoff();
-            MapToEntity(data, entity);
+            // 新增
+            var entity = new t_1030Dayoff
+            {
+                ApplicationDate = DateTime.Now
+            };
             _context.Add(entity);
-            await _context.SaveChangesAsync();
+
+            var result = await Modify(vm, entity);
+            if (!result.IsSuccess)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
+
             return ResultModel.Ok("資料新增成功");
         }
-        public async Task<ResultModel<string>> Edit(DayOffInputVM data)
+        public async Task<ResultModel<string>> Edit(DayOffInputVM vm)
         {
-            var entity = _context.t_1030Dayoff.FirstOrDefault(c => c.Id == data.Id);
+            //有資料 => 修改
+            var entity = _context.t_1030Dayoff.FirstOrDefault(c => c.Id == vm.Id);
             if (entity == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
-            //有資料 => 修改
-            MapToEntity(data, entity);
-            await _context.SaveChangesAsync();
+
+            var result = await Modify(vm, entity);
+            if (!result.IsSuccess)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
             return ResultModel.Ok("資料修改成功");
+        }
+        private async Task<ResultModel<string>> Modify(DayOffInputVM vm, t_1030Dayoff entity)
+        {
+            //尚未離職的員工
+            var staffList = await _context.t_1000Staff
+                .Where(x => x.ResignationDate == null || x.ResignationDate > DateTime.Now)
+                .Select(x => x.StaffId)
+                .ToArrayAsync();
+
+            var vmStaffs = new int[] { (int)vm.Proxy!, (int)vm.Applicant!, (int)vm.LeaveTaker! };
+
+            if (!vmStaffs.All(x => staffList.Contains(x)))
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "『請假人』、『申請者』、『代理人』其中找不到該【員工】。");
+            }
+
+            entity.ApplicationDate = vm.ApplicationDate;
+            entity.LeaveTaker = (int)vm.LeaveTaker!;
+            entity.Applicant = vm.Applicant;
+            entity.Proxy = vm.Proxy;
+            entity.LeaveType = (int)vm.LeaveType!;
+            entity.Reason = vm.Reason;
+            entity.ProxySignature = vm.ProxySignature;
+            entity.BeginDate = (DateTime)vm.BeginDate!;
+            entity.EndDate = (DateTime)vm.EndDate!;
+
+            await _context.SaveChangesAsync();
+
+            return ResultModel.Ok();
         }
         public async Task<ResultModel<ListResult<DayOffListVM>>> Index(DayOffIndexSearch search)
         {
@@ -189,18 +233,20 @@ namespace ERP.Service.API._1000Company
 
             return ResultModel.Ok(specialDays);
         }
-
-        public void MapToEntity(DayOffInputVM source, t_1030Dayoff target)
+        public async Task<ResultModel<double>> GetRemainSpecialDays(int staffId)
         {
-            target.ApplicationDate = source.ApplicationDate;
-            target.LeaveTaker = (int)source.LeaveTaker!;
-            target.Applicant = source.Applicant;
-            target.Proxy = source.Proxy;
-            target.LeaveType = (int)source.LeaveType;
-            target.Reason = source.Reason;
-            target.ProxySignature = source.ProxySignature;
-            target.BeginDate = (DateTime)source.BeginDate!;
-            target.EndDate = (DateTime)source.EndDate!;
+            //取得今年總計可以休的特休假
+            var totalDaysResult = await GetTheYearSpecialTotalDays(staffId);
+            var totalDays = totalDaysResult.Data;
+            //取得今年已請特休假總計
+            var specialLeaveDaysResult = await GetTheYearSpecialLeaveDays(staffId);
+            if (!specialLeaveDaysResult)
+            {
+                return ResultModel.Error(specialLeaveDaysResult.ErrorCode, specialLeaveDaysResult.ErrorMessage);
+            }
+            var specialLeaveDays = totalDaysResult.Data;
+
+            return ResultModel.Ok(totalDays - specialLeaveDays);
         }
     }
 }
