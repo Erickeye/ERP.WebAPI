@@ -5,16 +5,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ERP.EntityModels.Context;
 
-public partial class ERPContext : DbContext
+public partial class ERPDbContext : DbContext
 {
-    public ERPContext(DbContextOptions<ERPContext> options)
+    public ERPDbContext(DbContextOptions<ERPDbContext> options)
         : base(options)
     {
     }
 
     public virtual DbSet<ApprovalRecord> ApprovalRecord { get; set; }
 
-    public virtual DbSet<ApprovalSetting> ApprovalSettings { get; set; }
+    public virtual DbSet<ApprovalSettings> ApprovalSettings { get; set; }
 
     public virtual DbSet<ApprovalStep> ApprovalStep { get; set; }
 
@@ -32,7 +32,7 @@ public partial class ERPContext : DbContext
 
     public virtual DbSet<t_1000Staff> t_1000Staff { get; set; }
 
-    public virtual DbSet<t_1001StaffCertificate> t_1001StaffCertificate { get; set; }
+    public virtual DbSet<t_1001StaffCertificates> t_1001StaffCertificates { get; set; }
 
     public virtual DbSet<t_1005ProjectStaff> t_1005ProjectStaff { get; set; }
 
@@ -40,19 +40,19 @@ public partial class ERPContext : DbContext
 
     public virtual DbSet<t_1030Dayoff> t_1030Dayoff { get; set; }
 
-    public virtual DbSet<t_1039DayoffProxy> t_1039DayoffProxie { get; set; }
+    public virtual DbSet<t_1039DayoffProxy> t_1039DayoffProxy { get; set; }
 
     public virtual DbSet<t_1040Document> t_1040Document { get; set; }
 
     public virtual DbSet<t_1050WorkOver> t_1050WorkOver { get; set; }
 
-    public virtual DbSet<t_1080Company> t_1080Companie { get; set; }
+    public virtual DbSet<t_1080Company> t_1080Company { get; set; }
 
     public virtual DbSet<t_1100Department> t_1100Department { get; set; }
 
     public virtual DbSet<t_1101DepartmentUnit> t_1101DepartmentUnit { get; set; }
 
-    public virtual DbSet<t_1200PettyCash> t_1200PettyCashe { get; set; }
+    public virtual DbSet<t_1200PettyCash> t_1200PettyCash { get; set; }
 
     public virtual DbSet<t_1201PettyCashDetail> t_1201PettyCashDetail { get; set; }
 
@@ -68,25 +68,21 @@ public partial class ERPContext : DbContext
     {
         modelBuilder.Entity<ApprovalRecord>(entity =>
         {
-            entity.ToTable("ApprovalRecord");
-
             entity.HasIndex(e => e.ApprovalStepId, "IX_ApprovalRecord_ApprovalStepId");
 
             entity.Property(e => e.Memo).HasMaxLength(256);
             entity.Property(e => e.TableId).HasMaxLength(32);
 
-            entity.HasOne(d => d.ApprovalStep).WithMany(p => p.ApprovalRecords).HasForeignKey(d => d.ApprovalStepId);
+            entity.HasOne(d => d.ApprovalStep).WithMany(p => p.ApprovalRecord).HasForeignKey(d => d.ApprovalStepId);
         });
 
-        modelBuilder.Entity<ApprovalSetting>(entity =>
+        modelBuilder.Entity<ApprovalSettings>(entity =>
         {
             entity.Property(e => e.Name).HasMaxLength(64);
         });
 
         modelBuilder.Entity<ApprovalStep>(entity =>
         {
-            entity.ToTable("ApprovalStep");
-
             entity.HasIndex(e => e.ApprovalSettingsId, "IX_ApprovalStep_ApprovalSettingsId");
 
             entity.HasOne(d => d.ApprovalSettings).WithMany(p => p.ApprovalSteps).HasForeignKey(d => d.ApprovalSettingsId);
@@ -94,24 +90,18 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<ApprovalStepNumber>(entity =>
         {
-            entity.ToTable("ApprovalStepNumber");
-
             entity.HasIndex(e => e.ApprovalStepId, "IX_ApprovalStepNumber_ApprovalStepId");
 
-            entity.HasOne(d => d.ApprovalStep).WithMany(p => p.ApprovalStepNumbers).HasForeignKey(d => d.ApprovalStepId);
+            entity.HasOne(d => d.ApprovalStep).WithMany(p => p.ApprovalStepNumber).HasForeignKey(d => d.ApprovalStepId);
         });
 
         modelBuilder.Entity<Level>(entity =>
         {
             entity.HasKey(e => e.PermissionId);
-
-            entity.ToTable("Level");
         });
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.ToTable("Notification");
-
             entity.Property(e => e.Message).HasMaxLength(256);
             entity.Property(e => e.TargetId).HasMaxLength(32);
         });
@@ -120,36 +110,28 @@ public partial class ERPContext : DbContext
         {
             entity.HasKey(e => new { e.RoleId, e.PageId });
 
-            entity.ToTable("Permission");
-
-            entity.HasOne(d => d.Role).WithMany(p => p.Permissions).HasForeignKey(d => d.RoleId);
+            entity.HasOne(d => d.Role).WithMany(p => p.Permission).HasForeignKey(d => d.RoleId);
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.ToTable("Role");
-
             entity.Property(e => e.RoleName).HasMaxLength(32);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.ToTable("User");
-
             entity.HasIndex(e => e.RoleId, "IX_User_RoleId");
 
             entity.Property(e => e.Account).HasMaxLength(32);
             entity.Property(e => e.Name).HasMaxLength(32);
             entity.Property(e => e.Pwd).HasMaxLength(128);
 
-            entity.HasOne(d => d.Role).WithMany(p => p.Users).HasForeignKey(d => d.RoleId);
+            entity.HasOne(d => d.Role).WithMany(p => p.User).HasForeignKey(d => d.RoleId);
         });
 
         modelBuilder.Entity<t_1000Staff>(entity =>
         {
             entity.HasKey(e => e.StaffId);
-
-            entity.ToTable("t_1000Staff");
 
             entity.Property(e => e.Account).HasMaxLength(32);
             entity.Property(e => e.BankAccount).HasMaxLength(32);
@@ -176,7 +158,7 @@ public partial class ERPContext : DbContext
             entity.Property(e => e.SubBankName).HasMaxLength(32);
         });
 
-        modelBuilder.Entity<t_1001StaffCertificate>(entity =>
+        modelBuilder.Entity<t_1001StaffCertificates>(entity =>
         {
             entity.HasIndex(e => e.StaffId, "IX_t_1001StaffCertificates_StaffId");
 
@@ -188,8 +170,6 @@ public partial class ERPContext : DbContext
         modelBuilder.Entity<t_1005ProjectStaff>(entity =>
         {
             entity.HasKey(e => e.f_ProjectStaff_ID);
-
-            entity.ToTable("t_1005ProjectStaff");
 
             entity.Property(e => e.f_ProjectStaff_Account).HasMaxLength(20);
             entity.Property(e => e.f_ProjectStaff_BankAccount).HasMaxLength(30);
@@ -214,15 +194,11 @@ public partial class ERPContext : DbContext
         {
             entity.HasKey(e => e.f_PTarget_ID);
 
-            entity.ToTable("t_1020PerformanceTarget");
-
             entity.Property(e => e.f_PTarget_Achieve).HasColumnType("decimal(12, 2)");
         });
 
         modelBuilder.Entity<t_1030Dayoff>(entity =>
         {
-            entity.ToTable("t_1030Dayoff");
-
             entity.HasIndex(e => e.Applicant, "IX_t_1030Dayoff_Applicant");
 
             entity.HasIndex(e => e.LeaveTaker, "IX_t_1030Dayoff_LeaveTaker");
@@ -232,26 +208,22 @@ public partial class ERPContext : DbContext
             entity.Property(e => e.ProxySignature).HasMaxLength(128);
             entity.Property(e => e.Reason).HasMaxLength(64);
 
-            entity.HasOne(d => d.ApplicantNavigation).WithMany(p => p.t_1030DayoffApplicantNavigations).HasForeignKey(d => d.Applicant);
+            entity.HasOne(d => d.ApplicantNavigation).WithMany(p => p.t_1030DayoffApplicantNavigation).HasForeignKey(d => d.Applicant);
 
-            entity.HasOne(d => d.LeaveTakerNavigation).WithMany(p => p.t_1030DayoffLeaveTakerNavigations).HasForeignKey(d => d.LeaveTaker);
+            entity.HasOne(d => d.LeaveTakerNavigation).WithMany(p => p.t_1030DayoffLeaveTakerNavigation).HasForeignKey(d => d.LeaveTaker);
 
-            entity.HasOne(d => d.ProxyNavigation).WithMany(p => p.t_1030DayoffProxyNavigations).HasForeignKey(d => d.Proxy);
+            entity.HasOne(d => d.ProxyNavigation).WithMany(p => p.t_1030DayoffProxyNavigation).HasForeignKey(d => d.Proxy);
         });
 
         modelBuilder.Entity<t_1039DayoffProxy>(entity =>
         {
-            entity.ToTable("t_1039DayoffProxy");
-
             entity.HasIndex(e => e.DayoffId, "IX_t_1039DayoffProxy_DayoffId");
 
-            entity.HasOne(d => d.Dayoff).WithMany(p => p.t_1039DayoffProxies).HasForeignKey(d => d.DayoffId);
+            entity.HasOne(d => d.Dayoff).WithMany(p => p.t_1039DayoffProxy).HasForeignKey(d => d.DayoffId);
         });
 
         modelBuilder.Entity<t_1040Document>(entity =>
         {
-            entity.ToTable("t_1040Document");
-
             entity.Property(e => e.Attachment).HasMaxLength(32);
             entity.Property(e => e.Authorizator).HasMaxLength(32);
             entity.Property(e => e.Company).HasMaxLength(64);
@@ -265,8 +237,6 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<t_1050WorkOver>(entity =>
         {
-            entity.ToTable("t_1050WorkOver");
-
             entity.Property(e => e.Applicant).HasMaxLength(32);
             entity.Property(e => e.Authorizator).HasMaxLength(32);
             entity.Property(e => e.Department).HasMaxLength(32);
@@ -278,8 +248,6 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<t_1080Company>(entity =>
         {
-            entity.ToTable("t_1080Company");
-
             entity.Property(e => e.AttribName).HasMaxLength(32);
             entity.Property(e => e.BankName).HasMaxLength(32);
             entity.Property(e => e.CheckingAccount).HasMaxLength(32);
@@ -299,16 +267,12 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<t_1100Department>(entity =>
         {
-            entity.ToTable("t_1100Department");
-
             entity.Property(e => e.Id).HasMaxLength(16);
             entity.Property(e => e.Name).HasMaxLength(32);
         });
 
         modelBuilder.Entity<t_1101DepartmentUnit>(entity =>
         {
-            entity.ToTable("t_1101DepartmentUnit");
-
             entity.HasIndex(e => e.DepartmentId, "IX_t_1101DepartmentUnit_DepartmentId");
 
             entity.HasIndex(e => e.StaffId, "IX_t_1101DepartmentUnit_StaffId");
@@ -316,15 +280,13 @@ public partial class ERPContext : DbContext
             entity.Property(e => e.DepartmentId).HasMaxLength(16);
             entity.Property(e => e.JobTitle).HasMaxLength(16);
 
-            entity.HasOne(d => d.Department).WithMany(p => p.t_1101DepartmentUnits).HasForeignKey(d => d.DepartmentId);
+            entity.HasOne(d => d.Department).WithMany(p => p.t_1101DepartmentUnit).HasForeignKey(d => d.DepartmentId);
 
-            entity.HasOne(d => d.Staff).WithMany(p => p.t_1101DepartmentUnits).HasForeignKey(d => d.StaffId);
+            entity.HasOne(d => d.Staff).WithMany(p => p.t_1101DepartmentUnit).HasForeignKey(d => d.StaffId);
         });
 
         modelBuilder.Entity<t_1200PettyCash>(entity =>
         {
-            entity.ToTable("t_1200PettyCash");
-
             entity.Property(e => e.Id)
                 .HasMaxLength(32)
                 .HasDefaultValue("");
@@ -343,8 +305,6 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<t_1201PettyCashDetail>(entity =>
         {
-            entity.ToTable("t_1201PettyCashDetail");
-
             entity.HasIndex(e => e.PettyCashId, "IX_t_1201PettyCashDetail_PettyCashId");
 
             entity.Property(e => e.Amount).HasColumnType("decimal(12, 2)");
@@ -354,20 +314,16 @@ public partial class ERPContext : DbContext
             entity.Property(e => e.Tax).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
 
-            entity.HasOne(d => d.PettyCash).WithMany(p => p.t_1201PettyCashDetails).HasForeignKey(d => d.PettyCashId);
+            entity.HasOne(d => d.PettyCash).WithMany(p => p.t_1201PettyCashDetail).HasForeignKey(d => d.PettyCashId);
         });
 
         modelBuilder.Entity<t_1700LoginLog>(entity =>
         {
-            entity.ToTable("t_1700LoginLog");
-
             entity.Property(e => e.IpAddress).HasDefaultValue("");
         });
 
         modelBuilder.Entity<t_1710ActionInfo>(entity =>
         {
-            entity.ToTable("t_1710ActionInfo");
-
             entity.Property(e => e.Account)
                 .HasMaxLength(32)
                 .HasDefaultValue("");
@@ -381,8 +337,6 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<t_2000Customer>(entity =>
         {
-            entity.ToTable("t_2000Customer");
-
             entity.Property(e => e.Advance).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.AttribName).HasMaxLength(32);
             entity.Property(e => e.BankName).HasMaxLength(32);
@@ -410,8 +364,6 @@ public partial class ERPContext : DbContext
 
         modelBuilder.Entity<t_2010Custemploy>(entity =>
         {
-            entity.ToTable("t_2010Custemploy");
-
             entity.HasIndex(e => e.CustomerId, "IX_t_2010Custemploy_CustomerId");
 
             entity.Property(e => e.Account).HasMaxLength(32);
@@ -426,7 +378,7 @@ public partial class ERPContext : DbContext
                 .HasMaxLength(32)
                 .HasDefaultValue("");
 
-            entity.HasOne(d => d.Customer).WithMany(p => p.t_2010Custemploys).HasForeignKey(d => d.CustomerId);
+            entity.HasOne(d => d.Customer).WithMany(p => p.t_2010Custemploy).HasForeignKey(d => d.CustomerId);
         });
 
         OnModelCreatingPartial(modelBuilder);

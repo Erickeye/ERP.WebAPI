@@ -16,8 +16,8 @@ namespace ERP.Service.API
         Task<ResultModel<string>> SendApprovalProcess(SendApprovalProcessVM data);
         Task<ResultModel<string>> Approval(ApprovalVM data);
         Task<ResultModel<string>> RejectApproval(ApprovalVM data);
-        Task<ResultModel<ListResult<ApprovalSetting>>> CheckSettings();
-        Task<ResultModel<string>> CreateOrEditSettings(ApprovalSetting data);
+        Task<ResultModel<ListResult<ApprovalSettings>>> CheckSettings();
+        Task<ResultModel<string>> CreateOrEditSettings(ApprovalSettings data);
         Task<ResultModel<string>> DeleteSettings(int id);
         Task<ResultModel<ListResult<ApprovalStep>>> CheckStep(int approvalSettingsId);
         Task<ResultModel<string>> CreateOrEditStep(ApprovakStepInputVM data);
@@ -28,10 +28,10 @@ namespace ERP.Service.API
     }
     public class ApprovalService : IApprovalService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
         private readonly ICurrentUserService _currentUserService;
 
-        public ApprovalService(ERPContext context, ICurrentUserService currentUserService)
+        public ApprovalService(ERPDbContext context, ICurrentUserService currentUserService)
         {
             _context = context;
             _currentUserService = currentUserService;
@@ -323,20 +323,20 @@ namespace ERP.Service.API
             await _context.SaveChangesAsync();
             return ResultModel.Ok("已拒絕該簽核作業");
         }
-        public async Task<ResultModel<ListResult<ApprovalSetting>>> CheckSettings()
+        public async Task<ResultModel<ListResult<ApprovalSettings>>> CheckSettings()
         {
-            var result = new ResultModel<ListResult<ApprovalSetting>>();
+            var result = new ResultModel<ListResult<ApprovalSettings>>();
             var list = await _context.ApprovalSettings.ToListAsync();
             return ResultModel.Ok(list);
         }
-        public async Task<ResultModel<string>> CreateOrEditSettings(ApprovalSetting data)
+        public async Task<ResultModel<string>> CreateOrEditSettings(ApprovalSettings data)
         {
             var result = new ResultModel<string>();
             var entity = await _context.ApprovalSettings
                 .FirstOrDefaultAsync(x => x.Id == data.Id);
             if (entity == null)
             {
-                entity = new ApprovalSetting();
+                entity = new ApprovalSettings();
                 _context.Add(data);
                 await _context.SaveChangesAsync();
                 return ResultModel.Ok("資料成功新增");

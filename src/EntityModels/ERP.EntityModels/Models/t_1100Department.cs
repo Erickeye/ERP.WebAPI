@@ -9,5 +9,5 @@ public partial class t_1100Department
 
     public string Name { get; set; } = null!;
 
-    public virtual ICollection<t_1101DepartmentUnit> t_1101DepartmentUnits { get; set; } = new List<t_1101DepartmentUnit>();
+    public virtual ICollection<t_1101DepartmentUnit> t_1101DepartmentUnit { get; set; } = new List<t_1101DepartmentUnit>();
 }

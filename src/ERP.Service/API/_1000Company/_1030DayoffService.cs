@@ -24,9 +24,9 @@ namespace ERP.Service.API._1000Company
     }
     public class _1030DayoffService : I_1030DayoffService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
 
-        public _1030DayoffService(ERPContext context)
+        public _1030DayoffService(ERPDbContext context)
         {
             _context = context;
         }

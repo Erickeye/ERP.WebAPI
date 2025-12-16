@@ -1,4 +1,4 @@
-﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Helpers;
@@ -19,9 +19,9 @@ namespace ERP.Service.API._2000Customer
     }
     public class _2000CustomerService : I_2000CustomerService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
 
-        public _2000CustomerService(ERPContext context)
+        public _2000CustomerService(ERPDbContext context)
         {
             _context = context;
         }

@@ -1,4 +1,4 @@
-﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Helpers;
@@ -23,9 +23,9 @@ namespace ERP.Service.API._1000Company
     }
     public class _1000Service : I_1000Service
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
 
-        public _1000Service(ERPContext context)
+        public _1000Service(ERPDbContext context)
         {
             _context = context;
         }
@@ -164,7 +164,7 @@ namespace ERP.Service.API._1000Company
         }
         public async Task<ResultModel<string>> GetCertificate(int id)
         {
-            var cert = await _context.t_1001StaffCertificate!.FirstOrDefaultAsync(c => c.Id == id);
+            var cert = await _context.t_1001StaffCertificates!.FirstOrDefaultAsync(c => c.Id == id);
             if (cert?.Certificate == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
@@ -181,7 +181,7 @@ namespace ERP.Service.API._1000Company
             }
             using var ms = new MemoryStream();
             await data.CertificateFile.CopyToAsync(ms);
-            var cert = new t_1001StaffCertificate
+            var cert = new t_1001StaffCertificates
             {
                 StaffId = data.StaffId,
                 CertificateName = data.CertificateName,
@@ -190,13 +190,13 @@ namespace ERP.Service.API._1000Company
                 Certificate = ms.ToArray(),
             };
 
-            _context.t_1001StaffCertificate!.Add(cert);
+            _context.t_1001StaffCertificates!.Add(cert);
             await _context.SaveChangesAsync();
             return ResultModel.Ok("證照已成功上傳");            
         }
         public async Task<ResultModel<string>> EditCertificate(EditCertificate data)
         {
-            var _1001 = await  _context.t_1001StaffCertificate!.FindAsync(data.Id);
+            var _1001 = await  _context.t_1001StaffCertificates!.FindAsync(data.Id);
             if (_1001 != null)
             {
                 _1001.CertificateName = data.CertificateName;
@@ -208,7 +208,7 @@ namespace ERP.Service.API._1000Company
         }
         public async Task<ResultModel<string>> DeleteCertificate(int id)
         {
-            var _1001 = await _context.t_1001StaffCertificate!.FindAsync(id);
+            var _1001 = await _context.t_1001StaffCertificates!.FindAsync(id);
             if (_1001 == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);

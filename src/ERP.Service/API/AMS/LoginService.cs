@@ -1,4 +1,4 @@
-﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Helpers;
@@ -27,11 +27,11 @@ namespace ERP.Service.API.AMS
 
     public class LoginService : ILoginService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
         private readonly JwtSettings _jwtSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public LoginService(ERPContext context, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor)
+        public LoginService(ERPDbContext context, IOptions<JwtSettings> jwtOptions, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;

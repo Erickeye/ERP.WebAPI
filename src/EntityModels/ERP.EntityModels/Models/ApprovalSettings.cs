@@ -5,7 +5,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.EntityModels.Models;
 
-public partial class ApprovalSetting
+public partial class ApprovalSettings
 {
     [SwaggerSchema("簽核設定流水號")]
     public int Id { get; set; }

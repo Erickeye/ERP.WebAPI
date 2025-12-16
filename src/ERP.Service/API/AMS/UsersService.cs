@@ -21,11 +21,11 @@ namespace ERP.Service.API.AMS
     }
     public class UserService : IUserService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UserService(ERPContext context, ICurrentUserService currentUserService, IHttpContextAccessor httpContextAccessor)
+        public UserService(ERPDbContext context, ICurrentUserService currentUserService, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _currentUserService = currentUserService;

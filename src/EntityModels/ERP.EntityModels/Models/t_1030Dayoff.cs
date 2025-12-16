@@ -33,5 +33,5 @@ public partial class t_1030Dayoff
 
     public virtual t_1000Staff? ProxyNavigation { get; set; }
 
-    public virtual ICollection<t_1039DayoffProxy> t_1039DayoffProxies { get; set; } = new List<t_1039DayoffProxy>();
+    public virtual ICollection<t_1039DayoffProxy> t_1039DayoffProxy { get; set; } = new List<t_1039DayoffProxy>();
 }

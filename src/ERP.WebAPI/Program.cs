@@ -120,7 +120,7 @@ builder.Services.AddAuthentication(options =>
 });
 //--------------------JWT Settings-------------------
 
-builder.Services.AddDbContext<ERPContext>(options =>
+builder.Services.AddDbContext<ERPDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP")));
 
 builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));

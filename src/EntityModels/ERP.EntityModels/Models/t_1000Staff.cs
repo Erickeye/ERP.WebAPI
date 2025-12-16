@@ -69,13 +69,13 @@ public partial class t_1000Staff
 
     public int BloodType { get; set; }
 
-    public virtual ICollection<t_1001StaffCertificate> t_1001StaffCertificates { get; set; } = new List<t_1001StaffCertificate>();
+    public virtual ICollection<t_1001StaffCertificates> t_1001StaffCertificates { get; set; } = new List<t_1001StaffCertificates>();
 
-    public virtual ICollection<t_1030Dayoff> t_1030DayoffApplicantNavigations { get; set; } = new List<t_1030Dayoff>();
+    public virtual ICollection<t_1030Dayoff> t_1030DayoffApplicantNavigation { get; set; } = new List<t_1030Dayoff>();
 
-    public virtual ICollection<t_1030Dayoff> t_1030DayoffLeaveTakerNavigations { get; set; } = new List<t_1030Dayoff>();
+    public virtual ICollection<t_1030Dayoff> t_1030DayoffLeaveTakerNavigation { get; set; } = new List<t_1030Dayoff>();
 
-    public virtual ICollection<t_1030Dayoff> t_1030DayoffProxyNavigations { get; set; } = new List<t_1030Dayoff>();
+    public virtual ICollection<t_1030Dayoff> t_1030DayoffProxyNavigation { get; set; } = new List<t_1030Dayoff>();
 
-    public virtual ICollection<t_1101DepartmentUnit> t_1101DepartmentUnits { get; set; } = new List<t_1101DepartmentUnit>();
+    public virtual ICollection<t_1101DepartmentUnit> t_1101DepartmentUnit { get; set; } = new List<t_1101DepartmentUnit>();
 }

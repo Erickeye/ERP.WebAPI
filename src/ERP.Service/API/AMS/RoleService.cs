@@ -1,4 +1,4 @@
-﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums.Login;
@@ -20,9 +20,9 @@ namespace ERP.Service.API.AMS
     }
     public class RoleService : IRoleService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
 
-        public RoleService(ERPContext context)
+        public RoleService(ERPDbContext context)
         {
             _context = context;
         }

@@ -17,7 +17,7 @@ public partial class Role
 
     public int? ProcurementLevel { get; set; }
 
-    public virtual ICollection<Permission> Permissions { get; set; } = new List<Permission>();
+    public virtual ICollection<Permission> Permission { get; set; } = new List<Permission>();
 
-    public virtual ICollection<User> Users { get; set; } = new List<User>();
+    public virtual ICollection<User> User { get; set; } = new List<User>();
 }

@@ -29,5 +29,5 @@ public partial class t_1200PettyCash
 
     public string? Supervisor { get; set; }
 
-    public virtual ICollection<t_1201PettyCashDetail> t_1201PettyCashDetails { get; set; } = new List<t_1201PettyCashDetail>();
+    public virtual ICollection<t_1201PettyCashDetail> t_1201PettyCashDetail { get; set; } = new List<t_1201PettyCashDetail>();
 }

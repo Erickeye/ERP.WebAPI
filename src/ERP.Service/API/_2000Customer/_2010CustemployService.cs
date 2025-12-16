@@ -1,4 +1,4 @@
-﻿using ERP.EntityModels.Context;
+using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._1000Company;
@@ -19,9 +19,9 @@ namespace ERP.Service.API._2000Customer
     }
     public class _2010CustemployService : I_2010CustemployService
     {
-        private readonly ERPContext _context;
+        private readonly ERPDbContext _context;
 
-        public _2010CustemployService(ERPContext context)
+        public _2010CustemployService(ERPDbContext context)
         {
             _context = context;
         }

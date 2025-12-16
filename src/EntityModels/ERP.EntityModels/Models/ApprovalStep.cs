@@ -17,9 +17,9 @@ public partial class ApprovalStep
 
     public int? RequiredCounts { get; set; }
 
-    public virtual ICollection<ApprovalRecord> ApprovalRecords { get; set; } = new List<ApprovalRecord>();
+    public virtual ICollection<ApprovalRecord> ApprovalRecord { get; set; } = new List<ApprovalRecord>();
 
-    public virtual ApprovalSetting ApprovalSettings { get; set; } = null!;
+    public virtual ApprovalSettings ApprovalSettings { get; set; } = null!;
 
-    public virtual ICollection<ApprovalStepNumber> ApprovalStepNumbers { get; set; } = new List<ApprovalStepNumber>();
+    public virtual ICollection<ApprovalStepNumber> ApprovalStepNumber { get; set; } = new List<ApprovalStepNumber>();
 }

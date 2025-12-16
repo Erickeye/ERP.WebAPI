@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ERP.EntityModels.Models;
 
-public partial class t_1001StaffCertificate
+public partial class t_1001StaffCertificates
 {
     public int Id { get; set; }
 

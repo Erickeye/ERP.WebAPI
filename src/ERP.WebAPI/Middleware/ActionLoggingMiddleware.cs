@@ -14,7 +14,7 @@ namespace ERP.WebAPI.Middleware
             _next = next;
             _logger = logger;
         }
-        public async Task InvokeAsync(HttpContext context, ERPContext dbContext)
+        public async Task InvokeAsync(HttpContext context, ERPDbContext dbContext)
         {
             var endpoint = context.GetEndpoint();
 
