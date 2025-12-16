@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using ERP.EntityModels.Models;
 using Microsoft.EntityFrameworkCore;
@@ -85,7 +85,7 @@ public partial class ERPDbContext : DbContext
         {
             entity.HasIndex(e => e.ApprovalSettingsId, "IX_ApprovalStep_ApprovalSettingsId");
 
-            entity.HasOne(d => d.ApprovalSettings).WithMany(p => p.ApprovalSteps).HasForeignKey(d => d.ApprovalSettingsId);
+            entity.HasOne(d => d.ApprovalSettings).WithMany(p => p.ApprovalStep).HasForeignKey(d => d.ApprovalSettingsId);
         });
 
         modelBuilder.Entity<ApprovalStepNumber>(entity =>

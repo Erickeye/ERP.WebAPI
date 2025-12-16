@@ -1,0 +1,101 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ERP.Library.Enums.Other;
+using Swashbuckle.AspNetCore.Annotations;
+
+namespace ERP.Library.ViewModels
+{
+    public class SendApprovalProcessVM
+    {
+        public TableType TableType { get; set; }
+        public string TableId { get; set; } = null!;
+    }
+    public class ApprovalVM
+    {
+        public TableType TableType { get; set; }
+        public string? TableId { get; set; } = null!;
+        public string? Memo { get; set; } = null!;
+    }
+    public class RejectApprovalVM
+    {
+        public TableType TableType { get; set; }
+        public string? TableId { get; set; } = null!;
+        public string? Memo { get; set; } = null!;
+    }
+
+    //============================= 【1.簽核模組】=============================
+    /// <summary>
+    /// 設定【1.簽核模組】
+    /// </summary>
+    public class ApprovalSettingsInputVM
+    {
+        [SwaggerSchema("關聯Id")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("簽核表單種類")]
+        public int TableType { get; set; }
+
+        [StringLength(64, ErrorMessage = "【簽核模組名稱】長度不可超過 64 個字元")]
+        [SwaggerSchema("簽核模組名稱")]
+        public string? Name { get; set; } = null!;
+
+        [SwaggerSchema("是否啟用")]
+        public bool IsActive { get; set; }
+
+    }
+    //============================= 【2.簽核步驟】=============================
+    /// <summary>
+    /// 檢視【2.簽核步驟】
+    /// </summary>
+    public class ApprovalStepVM
+    {
+        [SwaggerSchema("簽核模式Id")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("模式順序")]
+        public int StepOrder { get; set; }
+
+        [SwaggerSchema("腳色Id")]
+        public int RoleId { get; set; }
+
+        [SwaggerSchema("簽核模式模型")]
+        public int Mode { get; set; }
+
+        [SwaggerSchema("需求數量")]
+        public int? RequiredCounts { get; set; }
+    }
+    /// <summary>
+    /// 設定【2.簽核步驟】
+    /// </summary>
+    public class ApprovakStepInputVM
+    {
+        [SwaggerSchema("簽核步驟Id")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("簽核模組Id")]
+        public int ApprovalSettingsId { get; set; }
+
+        [SwaggerSchema("簽核角色")]
+        public int RoleId { get; set; }
+
+        [SwaggerSchema("簽核模式")]
+        public int Mode { get; set; } // 指定人員 / 單人通過 / 自訂人數
+
+        [SwaggerSchema("自訂人數")]
+        public int RequiredCounts { get; set; }
+
+    }
+
+    public class ApprovalStepNumberInputVM
+    {
+        public int Id { get; set; }
+        public int ApprovalStepId { get; set; }
+
+        [Display(Name = "使用者Id")]
+        public int UserId { get; set; }
+    }
+}

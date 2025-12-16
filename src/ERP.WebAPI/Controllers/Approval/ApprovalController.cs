@@ -1,7 +1,10 @@
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
-using ERP.Library.ViewModels.Approval;
+using ERP.Library.Enums._1000Company;
+using ERP.Library.Enums.Other;
+using ERP.Library.ViewModels;
 using ERP.Service.API;
+using ERP.Service.Helpers;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -57,21 +60,23 @@ namespace ERP.WebAPI.Controllers.Approval
             return Ok(result);
         }
 
+        [ValidateModel]
         [SwaggerOperation("新增簽核設定")]
         [HttpPost,Route("CreateSettings")]
         [Log(OperationActionType.Create, "新增簽核設定")]
-        public async Task<IActionResult> CreateSettings(ApprovalSettings data)
+        public async Task<IActionResult> CreateSettings(ApprovalSettingsInputVM vm)
         {
-            var result = await _service.CreateOrEditSettings(data);
+            var result = await _service.CreateSettings(vm);
             return Ok(result);
         }
 
+        [ValidateModel]
         [SwaggerOperation("修改簽核設定")]
         [HttpPost, Route("EditSettings")]
         [Log(OperationActionType.Edit, "修改簽核設定")]
-        public async Task<IActionResult> Editettings(ApprovalSettings data)
+        public async Task<IActionResult> EditSettings(ApprovalSettingsInputVM vm)
         {
-            var result = await _service.CreateOrEditSettings(data);
+            var result = await _service.EditSettings(vm);
             return Ok(result);
         }
 
@@ -87,18 +92,18 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("新增簽核步驟")]
         [HttpPost, Route("CreateStep")]
         [Log(OperationActionType.Create, "新增簽核步驟")]
-        public async Task<IActionResult> CreateStep(ApprovakStepInputVM data)
+        public async Task<IActionResult> CreateStep(ApprovakStepInputVM vm)
         {
-            var result = await _service.CreateOrEditStep(data);
+            var result = await _service.CreateStep(vm);
             return Ok(result);
         }
 
         [SwaggerOperation("修改簽核步驟")]
         [HttpPost, Route("EditStep")]
         [Log(OperationActionType.Edit, "修改簽核步驟")]
-        public async Task<IActionResult> EditStep(ApprovakStepInputVM data)
+        public async Task<IActionResult> EditStep(ApprovakStepInputVM vm)
         {
-            var result = await _service.CreateOrEditStep(data);
+            var result = await _service.EditStep(vm);
             return Ok(result);
         }
 
@@ -110,7 +115,6 @@ namespace ERP.WebAPI.Controllers.Approval
             var result = await _service.DeleteStep(id);
             return Ok(result);
         }
-
 
         [SwaggerOperation("檢視簽核步驟")]
         [HttpGet, Route("CheckStepNumber")]
@@ -145,6 +149,22 @@ namespace ERP.WebAPI.Controllers.Approval
         public async Task<IActionResult> DeleteStepNumber(int id)
         {
             var result = await _service.DeleteStepNumber(id);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得簽核表單種類")]
+        [HttpGet, Route("GetTableType")]
+        public IActionResult GetTableType()
+        {
+            var result = EnumHelper.GetEnumList<TableType>();
+            return Ok(result);
+        }
+
+       [SwaggerOperation("取得簽核表單模型")]
+       [HttpGet, Route("GetApprovalMode")]
+        public IActionResult GetApprovalMode()
+        {
+            var result = EnumHelper.GetEnumList<ApprovalMode>();
             return Ok(result);
         }
     }
