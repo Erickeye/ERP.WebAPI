@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,11 +9,11 @@ namespace ERP.Library.Enums.Other
 {
     public enum ApprovalMode
     {
-        [Display(Name = "指定")]
+        [Display(Name = "指定人員(可複數)")]
         Specify = 0,
         [Display(Name = "單人")]
         Single = 1,
-        [Display(Name = "自訂人數")]
-        Customized = 2,
+        [Display(Name = "指定角色(設定數量[RequiredCounts]")]
+        Role = 2,
     }
 }

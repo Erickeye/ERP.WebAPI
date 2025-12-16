@@ -43,7 +43,7 @@ namespace ERP.Service.API
             //檢查設定檔
             var settingList = await _context.ApprovalSettings
                 .Where(x => x.TableType == (int)data.TableType &&
-                                 x.IsActive == true)
+                       x.IsActive == true)
                 .ToListAsync();
             if (settingList.Count == 0)
             {
@@ -138,7 +138,7 @@ namespace ERP.Service.API
                             var recordx = new ApprovalRecord
                             {
                                 ApprovalStepId = step.Id,
-                                RoleId = step.RoleId,
+                                //RoleId = step.RoleId,
                                 TableId = data.TableId,
                                 StepOrder = step.StepOrder,
                                 Status = (int)ApprovalStatus.Pending,
@@ -174,13 +174,14 @@ namespace ERP.Service.API
                             TableType = (int)data.TableType
                         });
                         break;
-                    case (int)ApprovalMode.Customized:
-                        //自訂人數
+                    case (int)ApprovalMode.Role:
+                        //指定角色(設定數量[RequiredCounts])
                         for (int i = 0; i < step.RequiredCounts; i++)
                         {
                             _context.Add(new ApprovalRecord
                             {
                                 ApprovalStepId = step.Id,
+                                RoleId = step.RoleId,
                                 TableId = data.TableId,
                                 StepOrder = step.StepOrder,
                                 Status = (int)ApprovalStatus.Pending,
@@ -238,7 +239,8 @@ namespace ERP.Service.API
             var isPendingCount = await _context.ApprovalRecord
                 .Where(x => x.ApprovalStepId == record.ApprovalStepId &&
                     x.StepOrder == record.StepOrder &&
-                    x.Status == (int)ApprovalStatus.Pending).CountAsync();
+                    x.Status == (int)ApprovalStatus.Pending)
+                .CountAsync();
             //只剩一筆代表目前階段只剩下當前這筆Record
             if (isPendingCount > 1)
             {
@@ -284,11 +286,12 @@ namespace ERP.Service.API
             }
 
             var record = await _context.ApprovalRecord
-                .FirstOrDefaultAsync(x => x.TableType == (int)data.TableType &&
-                                          x.TableId == data.TableId &&
-                                          x.UserId == userId &&
-                                          x.StepOrder >= 1 &&
-                                          x.Status == (int)ApprovalStatus.Pending);
+                .Where(x => x.TableType == (int)data.TableType &&
+                        x.TableId == data.TableId &&
+                        x.UserId == userId &&
+                        x.StepOrder >= 1 &&
+                        x.Status == (int)ApprovalStatus.Pending)
+                .FirstOrDefaultAsync();
             if (record == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核內容");
@@ -296,10 +299,10 @@ namespace ERP.Service.API
             // 檢查有無前面尚未完成的簽核
             var pendingPrevious = await _context.ApprovalRecord
                 .AnyAsync(x => x.TableType == (int)data.TableType &&
-                               x.TableId == data.TableId &&
-                               x.StepOrder >= 1 &&
-                               x.StepOrder < record.StepOrder &&
-                               x.Status == (int)ApprovalStatus.Pending);
+                    x.TableId == data.TableId &&
+                    x.StepOrder >= 1 &&
+                    x.StepOrder < record.StepOrder &&
+                    x.Status == (int)ApprovalStatus.Pending);
             if (pendingPrevious)
             {
                 return ResultModel.Error(ErrorCodeType.NotYetTurnForApprovalStep);
@@ -310,6 +313,7 @@ namespace ERP.Service.API
                             x.TableId == data.TableId &&
                             x.Status == (int)ApprovalStatus.Pending)
                 .ToListAsync();
+
             foreach (var recordItem in recordList)
             {
                 if (recordItem.Status == (int)ApprovalStatus.Pending)

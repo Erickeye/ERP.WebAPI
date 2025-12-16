@@ -1,7 +1,7 @@
-﻿CREATE TABLE [dbo].[ApprovalRecord] (
+CREATE TABLE [dbo].[ApprovalRecord] (
     [Id]             INT            IDENTITY (1, 1) NOT NULL,
     [ApprovalStepId] INT            NOT NULL,
-    [RoleId]         INT            NOT NULL,
+    [RoleId]         INT            NULL,
     [TableId]        NVARCHAR (32)  NULL,
     [StepOrder]      INT            NOT NULL,
     [UserId]         INT            NULL,

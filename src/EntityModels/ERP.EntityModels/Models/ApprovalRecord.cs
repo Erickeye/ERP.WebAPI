@@ -9,7 +9,7 @@ public partial class ApprovalRecord
 
     public int ApprovalStepId { get; set; }
 
-    public int RoleId { get; set; }
+    public int? RoleId { get; set; }
 
     public string? TableId { get; set; }
 
