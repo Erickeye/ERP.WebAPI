@@ -47,13 +47,39 @@ namespace ERP.Library.ViewModels
         public bool IsActive { get; set; }
 
     }
+
+    /// <summary>
+    /// 設定【1.簽核模組】
+    /// </summary>
+    public class ApprovalCheckSettingsVM
+    {
+        [SwaggerSchema("關聯Id")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("簽核表單種類")]
+        public int TableType { get; set; }
+
+        [SwaggerSchema("簽核表單種類顯示")]
+        public string? TableTypeDisplay { get; set; }
+
+        [StringLength(64, ErrorMessage = "【簽核模組名稱】長度不可超過 64 個字元")]
+        [SwaggerSchema("簽核模組名稱")]
+        public string? Name { get; set; } = null!;
+
+        [SwaggerSchema("是否啟用")]
+        public bool IsActive { get; set; }
+
+        public List<ApprovalStepVM> Steps { get; set; } =
+            new List<ApprovalStepVM>();
+    }
+
     //============================= 【2.簽核步驟】=============================
     /// <summary>
     /// 檢視【2.簽核步驟】
     /// </summary>
     public class ApprovalStepVM
     {
-        [SwaggerSchema("簽核模式Id")]
+        [SwaggerSchema("簽核步驟Id")]
         public int Id { get; set; }
 
         [SwaggerSchema("模式順序")]
@@ -65,13 +91,34 @@ namespace ERP.Library.ViewModels
         [SwaggerSchema("簽核模式模型")]
         public int Mode { get; set; }
 
+        [SwaggerSchema("簽核模式模型顯示")]
+        public string? ModeDisplay { get; set; }
+
         [SwaggerSchema("需求數量")]
         public int? RequiredCounts { get; set; }
+
+        public List<ApprovalStepNumberVM> StepNumbers { get; set; } =
+           new List<ApprovalStepNumberVM>();
     }
+    /// <summary>
+    /// 檢視【3.簽核步驟成員】
+    /// </summary>
+    public class ApprovalStepNumberVM
+    {
+        [SwaggerSchema("簽核步驟成員Id")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("簽核步驟Id")]
+        public int ApprovalStepId { get; set; }
+
+        [SwaggerSchema("使用者Id")]
+        public int UserId { get; set; }
+    }
+
     /// <summary>
     /// 設定【2.簽核步驟】
     /// </summary>
-    public class ApprovakStepInputVM
+    public class ApprovalStepInputVM
     {
         [SwaggerSchema("簽核步驟Id")]
         public int Id { get; set; }

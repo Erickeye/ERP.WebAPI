@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -23,5 +23,24 @@ namespace ERP.Library.Extensions
             }
             return enumValue.ToString();
         }
+        public static string GetDisplayName<T>(this object obj)
+        {
+            int value;
+
+            if (obj == null)
+            {
+                return string.Empty;
+            }
+
+            if (!int.TryParse(obj.ToString(), out value))
+            {
+                value = 0;
+            }
+
+            var e = Enum.Parse(typeof(T), Convert.ToString(value));
+
+            return ((Enum)e).GetDisplayName()!;
+        }
+        
     }
 }

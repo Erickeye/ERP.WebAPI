@@ -51,12 +51,31 @@ namespace ERP.WebAPI.Controllers.Approval
             return Ok(result);
         }
 
+        [SwaggerOperation("檢視簽核設定列表")]
+        [HttpGet, Route("SettingsIndex")]
+        [Log(OperationActionType.View, "檢視簽核設定")]
+        public async Task<IActionResult> SettingsIndex()
+        {
+            var result = await _service.SettingsIndex();
+            return Ok(result);
+        }
+
         [SwaggerOperation("檢視簽核設定")]
         [HttpGet, Route("CheckSettings")]
         [Log(OperationActionType.View, "檢視簽核設定")]
-        public async Task<IActionResult> CheckSettings()
+        public async Task<IActionResult> CheckSettings([SwaggerParameter("簽核設定流水號")] int approvalSettingsId)
         {
-            var result = await _service.CheckSettings();
+            var result = await _service.CheckSettings(approvalSettingsId);
+            return Ok(result);
+        }
+
+        [ValidateModel]
+        [SwaggerOperation("編輯簽核設定")]
+        [HttpPost, Route("EditSetting")]
+        [Log(OperationActionType.Edit, "編輯簽核設定")]
+        public async Task<IActionResult> EditSetting(ApprovalCheckSettingsVM vm)
+        {
+            var result = await _service.EditSetting(vm);
             return Ok(result);
         }
 
@@ -92,7 +111,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("新增簽核步驟")]
         [HttpPost, Route("CreateStep")]
         [Log(OperationActionType.Create, "新增簽核步驟")]
-        public async Task<IActionResult> CreateStep(ApprovakStepInputVM vm)
+        public async Task<IActionResult> CreateStep(ApprovalStepInputVM vm)
         {
             var result = await _service.CreateStep(vm);
             return Ok(result);
@@ -101,7 +120,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("修改簽核步驟")]
         [HttpPost, Route("EditStep")]
         [Log(OperationActionType.Edit, "修改簽核步驟")]
-        public async Task<IActionResult> EditStep(ApprovakStepInputVM vm)
+        public async Task<IActionResult> EditStep(ApprovalStepInputVM vm)
         {
             var result = await _service.EditStep(vm);
             return Ok(result);
