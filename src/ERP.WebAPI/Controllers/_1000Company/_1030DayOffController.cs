@@ -69,7 +69,7 @@ namespace ERP.WebAPI.Controllers._1000Company
             return Ok(result);
         }
         [SwaggerOperation("取得今年剩餘特休天數")]
-        [HttpGet, Route("GetTheYearSpecialTotalDays")]
+        [HttpGet, Route("GetRemainSpecialDays")]
         public async Task<IActionResult> GetRemainSpecialDays([SwaggerParameter("員工識別碼")] int staffId)
         {
             var result = await _service.GetRemainSpecialDays(staffId);

@@ -78,7 +78,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [SwaggerOperation("檢視簽核步驟")]
         [HttpGet, Route("CheckStep")]
         [Log(OperationActionType.View, "檢視簽核步驟")]
-        public async Task<IActionResult> CheckStep(int approvalSettingsId)
+        public async Task<IActionResult> CheckStep( [SwaggerParameter("簽核設定流水號")] int approvalSettingsId)
         {
             var result = await _service.CheckStep(approvalSettingsId);
             return Ok(result);

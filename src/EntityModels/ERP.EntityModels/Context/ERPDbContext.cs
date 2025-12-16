@@ -14,7 +14,7 @@ public partial class ERPContext : DbContext
 
     public virtual DbSet<ApprovalRecord> ApprovalRecord { get; set; }
 
-    public virtual DbSet<ApprovalSetting> ApprovalSetting { get; set; }
+    public virtual DbSet<ApprovalSetting> ApprovalSettings { get; set; }
 
     public virtual DbSet<ApprovalStep> ApprovalStep { get; set; }
 

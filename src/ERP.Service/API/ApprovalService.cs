@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
@@ -39,7 +39,7 @@ namespace ERP.Service.API
         public async Task<ResultModel<string>> SendApprovalProcess(SendApprovalProcessVM data)
         {
             //檢查設定檔
-            var settingList = await _context.ApprovalSetting
+            var settingList = await _context.ApprovalSettings
                 .Where(x => x.TableType == (int)data.TableType &&
                                  x.IsActive == true)
                 .ToListAsync();
@@ -326,13 +326,13 @@ namespace ERP.Service.API
         public async Task<ResultModel<ListResult<ApprovalSetting>>> CheckSettings()
         {
             var result = new ResultModel<ListResult<ApprovalSetting>>();
-            var list = await _context.ApprovalSetting.ToListAsync();
+            var list = await _context.ApprovalSettings.ToListAsync();
             return ResultModel.Ok(list);
         }
         public async Task<ResultModel<string>> CreateOrEditSettings(ApprovalSetting data)
         {
             var result = new ResultModel<string>();
-            var entity = await _context.ApprovalSetting
+            var entity = await _context.ApprovalSettings
                 .FirstOrDefaultAsync(x => x.Id == data.Id);
             if (entity == null)
             {
@@ -351,7 +351,7 @@ namespace ERP.Service.API
         public async Task<ResultModel<string>> DeleteSettings(int id)
         {
             var result = new ResultModel<string>();
-            var entity = await _context.ApprovalSetting.FirstOrDefaultAsync();
+            var entity = await _context.ApprovalSettings.FirstOrDefaultAsync();
             if (entity == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
