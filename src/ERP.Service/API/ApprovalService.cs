@@ -18,17 +18,9 @@ namespace ERP.Service.API
         Task<ResultModel<string>> RejectApproval(ApprovalVM data);
         Task<ResultModel<ListResult<ApprovalSettings>>> SettingsIndex();
         Task<ResultModel<ApprovalCheckSettingsVM>> CheckSettings(int approvalSettingsId);
-        Task<ResultModel<string>> EditSetting(ApprovalCheckSettingsVM vm);
         Task<ResultModel<string>> CreateSettings(ApprovalSettingsInputVM vm);
-        Task<ResultModel<string>> EditSettings(ApprovalSettingsInputVM vm);
+        Task<ResultModel<string>> EditSetting(ApprovalCheckSettingsVM vm);
         Task<ResultModel<string>> DeleteSettings(int id);
-        Task<ResultModel<ListResult<ApprovalStepVM>>> CheckStep(int approvalSettingsId);
-        Task<ResultModel<string>> CreateStep(ApprovalStepInputVM vm);
-        Task<ResultModel<string>> EditStep(ApprovalStepInputVM vm);
-        Task<ResultModel<string>> DeleteStep(int id);
-        Task<ResultModel<ListResult<ApprovalStepNumber>>> CheckStepNumber(int ApprovalStepId);
-        Task<ResultModel<string>> CreateOrEditStepNumber(ApprovalStepNumberInputVM data);
-        Task<ResultModel<string>> DeleteStepNumber(int id);
     }
     public class ApprovalService : IApprovalService
     {
@@ -382,6 +374,19 @@ namespace ERP.Service.API
             }
             return ResultModel.Ok(setting);
         }
+        public async Task<ResultModel<string>> CreateSettings(ApprovalSettingsInputVM vm)
+        {
+            var entity = new ApprovalSettings
+            {
+                TableType = vm.TableType,
+                Name = vm.Name,
+                IsActive = vm.IsActive
+            };
+            _context.Add(entity);
+
+            await _context.SaveChangesAsync();
+            return ResultModel.Ok("資料成功新增");
+        }
         public async Task<ResultModel<string>> EditSetting(ApprovalCheckSettingsVM vm)
         {
             var entitySetting = await _context.ApprovalSettings
@@ -454,38 +459,7 @@ namespace ERP.Service.API
 
             await _context.SaveChangesAsync();
             return ResultModel.Ok();
-        }
-        public async Task<ResultModel<string>> CreateSettings(ApprovalSettingsInputVM vm)
-        {
-            var entity = new ApprovalSettings();
-            _context.Add(entity);
-
-            var result = await ModifySettings(vm, entity);
-
-            return ResultModel.Ok("資料成功新增");
-        }
-        public async Task<ResultModel<string>> EditSettings(ApprovalSettingsInputVM vm)
-        {
-            var entity = await _context.ApprovalSettings
-                .FirstOrDefaultAsync(x => x.Id == vm.Id);
-
-            if (entity == null)
-            {
-                return ResultModel.Error(ErrorCodeType.NotFoundData);
-            }
-            var result = await ModifySettings(vm, entity);
-
-            return ResultModel.Ok("資料成功修改");
-        }
-        private async Task<ResultModel<string>> ModifySettings(ApprovalSettingsInputVM vm, ApprovalSettings entity)
-        {
-            entity.TableType = vm.TableType;
-            entity.Name = vm.Name!;
-            entity.IsActive = vm.IsActive;
-
-            await _context.SaveChangesAsync();
-            return ResultModel.Ok();
-        }
+        }        
         public async Task<ResultModel<string>> DeleteSettings(int id)
         {
             var result = new ResultModel<string>();
@@ -499,155 +473,5 @@ namespace ERP.Service.API
             return ResultModel.Ok("資料已刪除成功");
         }
         //============================= 【2.簽核步驟】=============================
-        public async Task<ResultModel<ListResult<ApprovalStepVM>>> CheckStep(int approvalSettingsId)
-        {
-            var list = await _context.ApprovalStep
-                .Where(x => x.ApprovalSettingsId == approvalSettingsId)
-                .Select(x => new ApprovalStepVM
-                {
-                    Id = x.Id,
-                    StepOrder = x.StepOrder,
-                    RoleId = x.RoleId,
-                    Mode = x.Mode,
-                    RequiredCounts = x.RequiredCounts
-                })
-                .ToListAsync();
-            if (list.Count == 0)
-            {
-                return ResultModel.Error(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟");
-            }
-            return ResultModel.Ok(list);
-        }
-        public async Task<ResultModel<string>> CreateStep(ApprovalStepInputVM vm)
-        {
-            var maxStepOrder = await _context.ApprovalStep
-                .Where(x => x.Id == vm.Id)
-                .Select(x => (int?)x.StepOrder)
-                .MaxAsync() ?? 0;
-
-            var entity = new ApprovalStep()
-            {
-                StepOrder = maxStepOrder++
-            };
-            _context.Add(entity);
-            await ModifyStep(vm, entity);
-
-            return ResultModel.Ok();
-        }
-        public async Task<ResultModel<string>> EditStep(ApprovalStepInputVM vm)
-        {
-            var entity = await _context.ApprovalStep
-                .FirstOrDefaultAsync(x => x.Id == vm.Id);
-
-            if (entity == null)
-            {
-                return ResultModel.Error(ErrorCodeType.NotFoundData);
-            }
-
-            await ModifyStep(vm, entity);
-
-            return ResultModel.Ok();
-        }
-        private async Task<ResultModel<string>> ModifyStep(ApprovalStepInputVM vm, ApprovalStep entity)
-        {
-            entity.ApprovalSettingsId = vm.ApprovalSettingsId;
-            entity.RoleId = vm.RoleId;
-            entity.Mode = vm.Mode;
-            entity.RequiredCounts = vm.RequiredCounts;
-
-            await _context.SaveChangesAsync();
-            return ResultModel.Ok();
-        }
-        public async Task<ResultModel<string>> CreateOrEditStep(ApprovalStepInputVM data)
-        {
-            var entity = await _context.ApprovalStep
-                .FirstOrDefaultAsync(x => x.Id == data.Id);
-            if (entity == null)
-            {
-                var lastStep = _context.ApprovalStep
-                    .Where(x => x.ApprovalSettingsId == data.ApprovalSettingsId)
-                    .OrderByDescending(x => x.StepOrder)
-                    .FirstOrDefault();
-                int stepOrder = lastStep == null
-                    ? 1
-                    : lastStep.StepOrder + 1;
-                _context.Add(new ApprovalStep
-                {
-                    ApprovalSettingsId = data.ApprovalSettingsId,
-                    StepOrder = stepOrder,
-                    RoleId = data.RoleId,
-                    Mode = (int)data.Mode,
-                    RequiredCounts = data.RequiredCounts
-                });
-                await _context.SaveChangesAsync();
-                return ResultModel.Ok("資料成功新增");
-            }
-            else
-            {
-                entity.RoleId = data.RoleId;
-                entity.Mode = (int)data.Mode;
-                entity.RequiredCounts = data.RequiredCounts;
-                await _context.SaveChangesAsync();
-                return ResultModel.Ok("資料成功修改");
-            }
-        }
-        public async Task<ResultModel<string>> DeleteStep(int id)
-        {
-            var entity = await _context.ApprovalStep.FirstOrDefaultAsync();
-            if (entity == null)
-            {
-                return ResultModel.Error(ErrorCodeType.NotFoundData);
-            }
-            _context.Remove(entity);
-            await _context.SaveChangesAsync();
-            return ResultModel.Ok("資料已刪除成功");
-        }
-        public async Task<ResultModel<ListResult<ApprovalStepNumber>>> CheckStepNumber(int ApprovalStepId)
-        {
-            var result = new ResultModel<ListResult<ApprovalStepNumber>>();
-            var list = await _context.ApprovalStepNumber
-                .Where(x => x.ApprovalStepId == ApprovalStepId)
-                .ToListAsync();
-            if (list.Count == 0)
-            {
-                return ResultModel.Error(ErrorCodeType.NotFoundData, "該權限尚未設定簽核步驟成員");
-            }
-            result.Data = new ListResult<ApprovalStepNumber>(list);
-            return result;
-        }
-        public async Task<ResultModel<string>> CreateOrEditStepNumber(ApprovalStepNumberInputVM data)
-        {
-            var result = new ResultModel<string>();
-            var entity = await _context.ApprovalStepNumber
-                .FirstOrDefaultAsync(x => x.Id == data.Id);
-            if (entity == null)
-            {
-                _context.Add(new ApprovalStepNumber
-                {
-                    ApprovalStepId = data.ApprovalStepId,
-                    UserId = data.UserId
-                });
-                await _context.SaveChangesAsync();
-                return ResultModel.Ok("資料成功新增");
-            }
-            else
-            {
-                entity.UserId = data.UserId;
-                await _context.SaveChangesAsync();
-                return ResultModel.Ok("資料成功修改");
-            }
-        }
-        public async Task<ResultModel<string>> DeleteStepNumber(int id)
-        {
-            var result = new ResultModel<string>();
-            var entity = await _context.ApprovalStepNumber.FirstOrDefaultAsync();
-            if (entity == null)
-            {
-                return ResultModel.Error(ErrorCodeType.NotFoundData);
-            }
-            _context.Remove(entity);
-            await _context.SaveChangesAsync();
-            return ResultModel.Ok("資料已刪除成功");
-        }
     }
 }
