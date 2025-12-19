@@ -106,6 +106,9 @@ namespace ERP.Library.ViewModels
         [SwaggerSchema("狀態(顯示)")]
         public string? StatusDisplay { get; set; }
 
+        [SwaggerSchema("簽核時間")]
+        public DateTime? ApprovalTime { get; set; }
+
         [SwaggerSchema("備註")]
         public string? Memo { get; set; }
     }
@@ -173,7 +176,6 @@ namespace ERP.Library.ViewModels
         public int RequiredCounts { get; set; }
 
     }
-
     public class ApprovalStepNumberInputVM
     {
         public int Id { get; set; }
@@ -181,5 +183,19 @@ namespace ERP.Library.ViewModels
 
         [Display(Name = "使用者Id")]
         public int UserId { get; set; }
+    }
+    public class GetApprovalNotifyVM
+    {
+        [SwaggerSchema("簽核紀錄流水號")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("簽核表單種類")]
+        public int TableType { get; set; }
+
+        [SwaggerSchema("表格名稱")]
+        public string? TableName { get; set; }
+
+        [SwaggerSchema("表格Id")]
+        public string? TableId { get; set; }
     }
 }

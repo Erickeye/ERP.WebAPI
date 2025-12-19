@@ -17,6 +17,7 @@ namespace ERP.Service.API
         Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(SendApprovalProcessVM data);
         Task<ResultModel<string>> Approval(ApprovalVM data);
         Task<ResultModel<string>> RejectApproval(ApprovalVM data);
+        Task<ResultModel<ListResult<GetApprovalNotifyVM>>> GetApprovalNotify();
         Task<ResultModel<ListResult<ApprovalSettings>>> SettingsIndex();
         Task<ResultModel<ApprovalCheckSettingsVM>> CheckSettings(int approvalSettingsId);
         Task<ResultModel<string>> CreateSettings(ApprovalSettingsInputVM vm);
@@ -202,6 +203,7 @@ namespace ERP.Service.API
                     : null,
                 Status = x.Status,
                 StatusDisplay = x.Status.GetDisplayName<ApprovalStatus>(),
+                ApprovalTime = x.Date,
                 Memo = x.Memo
             })
             .ToList();
@@ -339,6 +341,39 @@ namespace ERP.Service.API
 
             await _context.SaveChangesAsync();
             return ResultModel.Ok("已拒絕該簽核作業");
+        }
+        public async Task<ResultModel<ListResult<GetApprovalNotifyVM>>> GetApprovalNotify()
+        {
+            int userId = _currentUserService.UserId;
+            int roleId = _currentUserService.RoleId;
+
+            var query = _context.ApprovalRecord.AsQueryable();
+
+            var records = await query
+                .Where(x =>
+                    (x.UserId == userId || x.RoleId == roleId) &&
+                    x.Status == (int)ApprovalStatus.Pending &&
+                    (
+                        //子查詢
+                        x.StepOrder == 1 ||
+                        query.Any(p =>
+                            p.TableId == x.TableId &&
+                            p.TableType == x.TableType &&
+                            p.StepOrder == x.StepOrder - 1 &&
+                            p.Status == (int)ApprovalStatus.Approved
+                        )
+                    )
+                )
+                .Select(x => new GetApprovalNotifyVM
+                {
+                    Id = x.Id,
+                    TableType = x.TableType,
+                    TableName = x.TableType.GetDisplayName<TableType>(),
+                    TableId = x.TableId
+                })
+                .ToListAsync();
+
+            return ResultModel.Ok(records);
         }
 
         //============================= 【1.簽核模組】=============================

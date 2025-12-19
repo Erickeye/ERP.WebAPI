@@ -60,6 +60,15 @@ namespace ERP.WebAPI.Controllers.Approval
             return Ok(result);
         }
 
+        [SwaggerOperation("取得簽核訊息通知")]
+        [HttpGet, Route("GetApprovalNotify")]
+        [Log(OperationActionType.Submit, "取得簽核訊息通知")]
+        public async Task<IActionResult> GetApprovalNotify()
+        {
+            var result = await _service.GetApprovalNotify();
+            return Ok(result);
+        }
+
         [SwaggerOperation("檢視簽核設定列表")]
         [HttpGet, Route("SettingsIndex")]
         [Log(OperationActionType.View, "檢視簽核設定")]
