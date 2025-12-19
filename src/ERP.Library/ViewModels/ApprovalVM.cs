@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ERP.Library.Enums.Other;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -11,7 +7,10 @@ namespace ERP.Library.ViewModels
 {
     public class SendApprovalProcessVM
     {
+        [SwaggerParameter("表格種類")]
         public TableType TableType { get; set; }
+
+        [SwaggerParameter("表格Id")]
         public string TableId { get; set; } = null!;
     }
     public class ApprovalVM
@@ -71,6 +70,44 @@ namespace ERP.Library.ViewModels
 
         public List<ApprovalStepVM> Steps { get; set; } =
             new List<ApprovalStepVM>();
+    }
+    public class GetApprovalProgressVM
+    {
+        [SwaggerSchema("簽核紀錄流水號")]
+        public int Id { get; set; }
+
+        [SwaggerSchema("順序")]
+        public int StepOrder { get; set; }
+
+        [SwaggerSchema("簽核表單種類")]
+        public int TableType { get; set; }
+
+        [SwaggerSchema("表格名稱")]
+        public string? TableName { get; set; }
+
+        [SwaggerSchema("表格Id")]
+        public string? TableId{ get; set; }
+
+        [SwaggerSchema("使用者Id")]
+        public int? UserId { get; set; }
+
+        [SwaggerSchema("使用者名稱")]
+        public string? UserName { get; set; }
+
+        [SwaggerSchema("角色Id")]
+        public int? RoleId { get; set; }
+
+        [SwaggerSchema("角色名稱")]
+        public string? RoleName { get; set; }
+
+        [SwaggerSchema("狀態")]
+        public int Status { get; set; }
+
+        [SwaggerSchema("狀態(顯示)")]
+        public string? StatusDisplay { get; set; }
+
+        [SwaggerSchema("備註")]
+        public string? Memo { get; set; }
     }
 
     //============================= 【2.簽核步驟】=============================
