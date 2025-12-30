@@ -1,7 +1,10 @@
 using ERP.Library.Enums;
+using ERP.Library.Enums._1000Company;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Service.API._1000Company;
+using ERP.Service.Helpers;
 using ERP.WebAPI.CustomAttributes;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -73,6 +76,15 @@ namespace ERP.WebAPI.Controllers._1000Company
         public async Task<IActionResult> GetRemainSpecialDays([SwaggerParameter("員工識別碼")] int staffId)
         {
             var result = await _service.GetRemainSpecialDays(staffId);
+            return Ok(result);
+        }
+
+        [AllowAnonymous]
+        [SwaggerOperation("取得假別")]
+        [HttpGet, Route("GetLeaveType")]
+        public IActionResult GetLeaveType()
+        {
+            var result = EnumHelper.GetEnumList<LeaveType>();
             return Ok(result);
         }
     }

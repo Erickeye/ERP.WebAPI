@@ -20,6 +20,7 @@ namespace ERP.Service.API._1000Company
         Task<ResultModel<string>> EditCertificate(EditCertificate data);
         Task<ResultModel<string>> DeleteCertificate(int id);
         Task<ResultModel<string>> GetCertificate(int id);
+        Task<ResultModel<ListResult<SelectModel>>> GetStaffSelect();
     }
     public class _1000Service : I_1000Service
     {
@@ -216,6 +217,19 @@ namespace ERP.Service.API._1000Company
             _context.Remove(_1001);
             await _context.SaveChangesAsync();
             return ResultModel.Ok("證照已成功刪除");
+        }
+        public async Task<ResultModel<ListResult<SelectModel>>> GetStaffSelect()
+        {
+            var staff = await _context.t_1000Staff
+                .Where(x => !x.ResignationDate.HasValue)
+                .Select(x => new SelectModel
+                {
+                    Value = x.StaffId,
+                    Text = x.ChineseName,
+                })
+                .ToListAsync();
+
+            return ResultModel.Ok(staff);
         }
 
         private static Expression<Func<t_1000Staff, StaffListVM>> StaffSelector()

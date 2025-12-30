@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -32,6 +32,6 @@ namespace ERP.Library.Enums._1000Company
         [Display(Name = "補休", Description = "補休")]
         補休 = 11,
         [Display(Name = "其他", Description = "其他")]
-        其他 = 11
+        其他 = 12
     }
 }

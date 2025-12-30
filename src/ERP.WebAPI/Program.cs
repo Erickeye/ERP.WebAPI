@@ -51,10 +51,20 @@ builder.Services.AddSwaggerGen(options =>
             new string[] {}
         }
     });
-
     // 載入 XML 註解
     //var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     //options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
+//加入CORS 使前端界接
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevCors", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 builder.Services.AddControllers(options =>
 {
@@ -170,7 +180,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("DevCors");
 app.UseAuthorization();
 
 app.UseMiddleware<ActionLoggingMiddleware>();
