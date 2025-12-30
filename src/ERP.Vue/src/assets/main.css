@@ -33,3 +33,29 @@ a,
     padding: 0 2rem;
   }
 }
+
+/* Dashboard / general tweaks */
+body {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: #f3f6fb;
+  color: #0f172a;
+}
+
+main{ width:100%; }
+
+button {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover{ opacity: 0.95 }
+
+/* accessibility focus state */
+.card[role="button"]:focus{
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getLeaveTypes, createDayOff, GetStaffSelect } from '@/api/dayoff'
+import { useRouter } from 'vue-router';
 
 // 假別下拉
 const leaveTypes = ref([])
@@ -35,7 +36,6 @@ const loadLeaveTypes = async () => {
 const loadStaffs = async () => {
     const res = await GetStaffSelect()
     staffs.value = res.data.data.items
-    console.log("staffs after API", staffs.value)
 }
 // 送出
 const submit = async () => {
@@ -43,62 +43,73 @@ const submit = async () => {
     alert('請假單新增成功')
 }
 
-onMounted(loadLeaveTypes)
-onMounted(loadStaffs)
+onMounted(() => {
+  loadLeaveTypes()
+  loadStaffs()
+})
+
+const router = useRouter();
+
+const goBack = () => {
+  router.back();
+};
 </script>
 
 <template>
+    
     <div>
+        <button @click="goBack" style="margin-bottom: 1rem;">返回</button>
         <h2>新增請假單</h2>
 
-        <div>
-            <label>申請日期</label>
-            <input type="date" v-model="form.applicationDate" readonly />
-        </div>
+        <form>
+            <div>
+                <label>申請日期</label>
+                <input type="date" v-model="form.applicationDate" readonly />
+            </div>
 
-        <div>
-            <label>申請者</label>
-            <input type="number" v-model="form.applicant" placeholder="申請者員工ID" />
-        </div>
+            <div>
+                <label>申請者</label>
+                <input type="number" v-model="form.applicant" placeholder="申請者員工ID" />
+            </div>
 
-        <div>
-            <label>代理人</label>
-            <el-select v-model="selectedStaff" placeholder="請選擇員工" clearable>
-            <el-option
-                v-for="staff in staffs"
-                :key="staff.value"
-                :label="staff.text"
-                :value="staff.value"
-            />
-            </el-select>
-            <!-- <input type="number" v-model="form.proxy" placeholder="代理人員工ID" /> -->
-        </div>
+            <div>
+                <label>代理人</label>
+                <el-select v-model="selectedStaff" placeholder="請選擇員工" clearable>
+                <el-option
+                    v-for="staff in staffs"
+                    :key="staff.value"
+                    :label="staff.text"
+                    :value="staff.value"
+                />
+                </el-select>
+            </div>
 
-        <div>
-            <label>假別</label>
-            <select v-model="form.leaveType">
-                <option value="">請選擇假別</option>
-                <option v-for="item in leaveTypes" :key="item.value" :value="item.value">
-                    {{ item.text }}
-                </option>
-            </select>
-        </div>
+            <div>
+                <label>假別</label>
+                <select v-model="form.leaveType">
+                    <option value="">請選擇假別</option>
+                    <option v-for="item in leaveTypes" :key="item.value" :value="item.value">
+                        {{ item.text }}
+                    </option>
+                </select>
+            </div>
 
-        <div>
-            <label>開始日期</label>
-            <input type="datetime-local" v-model="form.beginDate" />
-        </div>
+            <div>
+                <label>開始日期</label>
+                <input type="datetime-local" v-model="form.beginDate" />
+            </div>
 
-        <div>
-            <label>結束日期</label>
-            <input type="datetime-local" v-model="form.endDate" />
-        </div>
+            <div>
+                <label>結束日期</label>
+                <input type="datetime-local" v-model="form.endDate" />
+            </div>
 
-        <div>
-            <label>請假原因</label>
-            <textarea v-model="form.reason"></textarea>
-        </div>
+            <div>
+                <label>請假原因</label>
+                <textarea v-model="form.reason"></textarea>
+            </div>
 
-        <button @click="submit">送出申請</button>
+            <button @click="submit">送出申請</button>
+        </form>
     </div>
 </template>
