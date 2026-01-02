@@ -24,7 +24,6 @@ namespace ERP.WebAPI.Controllers
             this._1000Service = _1000Service;
         }
 
-        [AllowAnonymous]
         [SwaggerOperation("取得員工下拉選單")]
         [HttpGet, Route("GetStaffSelect")]
         public async Task<IActionResult> GetStaffSelect()

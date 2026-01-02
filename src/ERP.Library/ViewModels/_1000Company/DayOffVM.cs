@@ -43,6 +43,7 @@ namespace ERP.Library.ViewModels._1000Company
         [Display(Name = "請假人")]
         public int? LeaveTaker { get; set; }
 
+        [Required(ErrorMessage = "【申請者】為必填欄位")]
         [Display(Name = "申請者")]
         public int? Applicant { get; set; }
 

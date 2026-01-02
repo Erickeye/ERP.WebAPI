@@ -1,11 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getLeaveTypes, createDayOff, GetStaffSelect } from '@/api/dayoff'
-import { useRouter } from 'vue-router';
+import { useRouter } from 'vue-router'
+import Notification from '@/components/common/Notification.vue'
+import { showNotification } from '@/components/common/Notification.vue'
 
 // 假別下拉
 const leaveTypes = ref([])
-//員工下拉
+// 員工下拉
 const staffs = ref([])
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -22,8 +24,8 @@ const form = ref({
     leaveTaker: 1,   // 請假人（必填） 
     applicant: null, // 申請者
     proxy: null, // 代理人
-    leaveType: '', //假別
-    reason: '', //理由
+    leaveType: null, // 假別
+    reason: '', // 理由
     staff: '',
 })
 
@@ -37,10 +39,23 @@ const loadStaffs = async () => {
     const res = await GetStaffSelect()
     staffs.value = res.data.data.items
 }
+
+
 // 送出
 const submit = async () => {
-    await createDayOff(form.value)
-    alert('請假單新增成功')
+    try {
+        const response = await createDayOff(form.value)
+        if (response.data.errorCode === 0) {
+            showNotification('請假單新增成功', 'success')
+        } else {
+            const errorMessage = typeof response.data.data === 'object'
+                ? JSON.stringify(response.data.data) // 將物件轉為 JSON 字串
+                : response.data.data // 如果是字串，直接使用
+            showNotification(`錯誤碼：${response.data.errorCode}，錯誤訊息: ${errorMessage}`, 'error')
+        }
+    } catch (error) {
+        showNotification('請假單新增失敗，請稍後再試', 'error')
+    }
 }
 
 onMounted(() => {
@@ -48,16 +63,16 @@ onMounted(() => {
   loadStaffs()
 })
 
-const router = useRouter();
+const router = useRouter()
 
 const goBack = () => {
-  router.back();
-};
+  router.back()
+}
 </script>
 
 <template>
-    
     <div>
+        <Notification />
         <button @click="goBack" style="margin-bottom: 1rem;">返回</button>
         <h2>新增請假單</h2>
 
@@ -69,25 +84,32 @@ const goBack = () => {
 
             <div>
                 <label>申請者</label>
-                <input type="number" v-model="form.applicant" placeholder="申請者員工ID" />
+                <el-select v-model="form.applicant" placeholder="請選擇員工" clearable>
+                    <el-option
+                        v-for="staff in staffs"
+                        :key="staff.value"
+                        :label="staff.text"
+                        :value="staff.value"
+                    />
+                </el-select>
             </div>
 
             <div>
                 <label>代理人</label>
-                <el-select v-model="selectedStaff" placeholder="請選擇員工" clearable>
-                <el-option
-                    v-for="staff in staffs"
-                    :key="staff.value"
-                    :label="staff.text"
-                    :value="staff.value"
-                />
+                <el-select v-model="form.proxy" placeholder="請選擇員工" clearable>
+                    <el-option
+                        v-for="staff in staffs"
+                        :key="staff.value"
+                        :label="staff.text"
+                        :value="staff.value"
+                    />
                 </el-select>
             </div>
 
             <div>
                 <label>假別</label>
                 <select v-model="form.leaveType">
-                    <option value="">請選擇假別</option>
+                    <option>請選擇假別</option>
                     <option v-for="item in leaveTypes" :key="item.value" :value="item.value">
                         {{ item.text }}
                     </option>
@@ -109,7 +131,7 @@ const goBack = () => {
                 <textarea v-model="form.reason"></textarea>
             </div>
 
-            <button @click="submit">送出申請</button>
+            <button type="button" @click="submit">送出申請</button>
         </form>
     </div>
 </template>
