@@ -28,7 +28,11 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<Role> Role { get; set; }
 
+    public virtual DbSet<SystemConfig> SystemConfig { get; set; }
+
     public virtual DbSet<User> User { get; set; }
+
+    public virtual DbSet<_4011PurchaseDetail> _4011PurchaseDetail { get; set; }
 
     public virtual DbSet<t_1000Staff> t_1000Staff { get; set; }
 
@@ -63,6 +67,12 @@ public partial class ERPDbContext : DbContext
     public virtual DbSet<t_2000Customer> t_2000Customer { get; set; }
 
     public virtual DbSet<t_2010Custemploy> t_2010Custemploy { get; set; }
+
+    public virtual DbSet<t_4000Inventory> t_4000Inventory { get; set; }
+
+    public virtual DbSet<t_4010Purchase> t_4010Purchase { get; set; }
+
+    public virtual DbSet<t_4060Supplier> t_4060Supplier { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -118,6 +128,17 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.RoleName).HasMaxLength(32);
         });
 
+        modelBuilder.Entity<SystemConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__SystemCo__3214EC07F1D023E6");
+
+            entity.Property(e => e.Code).HasMaxLength(32);
+            entity.Property(e => e.ConfigType).HasMaxLength(32);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Name).HasMaxLength(64);
+            entity.Property(e => e.Sort).HasDefaultValue(1);
+        });
+
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasIndex(e => e.RoleId, "IX_User_RoleId");
@@ -127,6 +148,24 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Pwd).HasMaxLength(128);
 
             entity.HasOne(d => d.Role).WithMany(p => p.User).HasForeignKey(d => d.RoleId);
+        });
+
+        modelBuilder.Entity<_4011PurchaseDetail>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_4011PurchaseDetail");
+
+            entity.Property(e => e.Category).HasMaxLength(16);
+            entity.Property(e => e.Name).HasMaxLength(128);
+            entity.Property(e => e.No).HasMaxLength(64);
+            entity.Property(e => e.Price).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Unit).HasMaxLength(16);
+
+            entity.HasOne(d => d.Purchase).WithMany(p => p._4011PurchaseDetail)
+                .HasForeignKey(d => d.PurchaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_4011PurchaseDetail_PurchaseId");
         });
 
         modelBuilder.Entity<t_1000Staff>(entity =>
@@ -379,6 +418,110 @@ public partial class ERPDbContext : DbContext
                 .HasDefaultValue("");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.t_2010Custemploy).HasForeignKey(d => d.CustomerId);
+        });
+
+        modelBuilder.Entity<t_4000Inventory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_4000Inventory");
+
+            entity.HasIndex(e => e.Category, "IX_t_4000Inventory_Category");
+
+            entity.HasIndex(e => e.LocationId, "IX_t_4000Inventory_Location");
+
+            entity.HasIndex(e => e.Name, "IX_t_4000Inventory_Name");
+
+            entity.HasIndex(e => e.Number, "IX_t_4000Inventory_Number");
+
+            entity.HasIndex(e => e.SupplierId, "IX_t_4000Inventory_SupplierId");
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Category).HasMaxLength(64);
+            entity.Property(e => e.LastPurchaseDate).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(128);
+            entity.Property(e => e.Number).HasMaxLength(64);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Unit).HasMaxLength(16);
+        });
+
+        modelBuilder.Entity<t_4010Purchase>(entity =>
+        {
+            entity.HasIndex(e => e.IsApproval, "IX_t_4010Purchase_IsApproval");
+
+            entity.HasIndex(e => e.LocationId, "IX_t_4010Purchase_LocationId");
+
+            entity.HasIndex(e => e.No, "IX_t_4010Purchase_No");
+
+            entity.HasIndex(e => e.PurchaseDate, "IX_t_4010Purchase_PurchaseDate");
+
+            entity.HasIndex(e => e.SupplierId, "IX_t_4010Purchase_SupplierId");
+
+            entity.HasIndex(e => new { e.SupplierId, e.PurchaseDate }, "IX_t_4010Purchase_Supplier_PurchaseDate");
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Authorizator).HasMaxLength(32);
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.InvoiceNumber)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.IsPurchase).HasDefaultValue(true);
+            entity.Property(e => e.No)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Note).HasMaxLength(1024);
+            entity.Property(e => e.Payer).HasMaxLength(32);
+            entity.Property(e => e.ProjectName).HasMaxLength(128);
+            entity.Property(e => e.PurchaseDate).HasColumnType("datetime");
+            entity.Property(e => e.Tax).HasColumnType("decimal(12, 2)");
+
+            entity.HasOne(d => d.CreateUser).WithMany(p => p.t_4010Purchase)
+                .HasForeignKey(d => d.CreateUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4010Purchase_CreateUser");
+
+            entity.HasOne(d => d.Customer).WithMany(p => p.t_4010Purchase)
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("FK_t_4010Purchase_Customer");
+
+            entity.HasOne(d => d.Location).WithMany(p => p.t_4010PurchaseLocation)
+                .HasForeignKey(d => d.LocationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4010Purchase_Location");
+
+            entity.HasOne(d => d.PaymentMethod).WithMany(p => p.t_4010PurchasePaymentMethod)
+                .HasForeignKey(d => d.PaymentMethodId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4010Purchase_PaymentMethod");
+
+            entity.HasOne(d => d.Supplier).WithMany(p => p.t_4010Purchase)
+                .HasForeignKey(d => d.SupplierId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4010Purchase_Supplier");
+        });
+
+        modelBuilder.Entity<t_4060Supplier>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_4060Supplier");
+
+            entity.HasIndex(e => e.No, "IX_t_4060Supplier_No");
+
+            entity.Property(e => e.Address).HasMaxLength(128);
+            entity.Property(e => e.BankName).HasMaxLength(64);
+            entity.Property(e => e.CheckingAccount).HasMaxLength(64);
+            entity.Property(e => e.ContactPhone).HasMaxLength(32);
+            entity.Property(e => e.CreditBalance).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.CreditLine).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.FaxPhone).HasMaxLength(32);
+            entity.Property(e => e.LastTransDate).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(128);
+            entity.Property(e => e.No).HasMaxLength(64);
+            entity.Property(e => e.Owner).HasMaxLength(32);
+            entity.Property(e => e.PayDays).HasColumnType("datetime");
+            entity.Property(e => e.RemittanceAccount).HasMaxLength(64);
+            entity.Property(e => e.Salesperson).HasMaxLength(32);
+            entity.Property(e => e.SubBankName).HasMaxLength(64);
+            entity.Property(e => e.TaxIdNumber).HasMaxLength(8);
+            entity.Property(e => e.TemporaryAmount).HasColumnType("decimal(12, 2)");
         });
 
         OnModelCreatingPartial(modelBuilder);

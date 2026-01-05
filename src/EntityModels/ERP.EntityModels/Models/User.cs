@@ -24,4 +24,6 @@ public partial class User
     public DateTime? RefreshTokenExpiryTime { get; set; }
 
     public virtual Role Role { get; set; } = null!;
+
+    public virtual ICollection<t_4010Purchase> t_4010Purchase { get; set; } = new List<t_4010Purchase>();
 }

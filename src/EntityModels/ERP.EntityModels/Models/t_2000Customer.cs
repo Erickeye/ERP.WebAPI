@@ -46,4 +46,6 @@ public partial class t_2000Customer
     public string? TaxInvoiceAddress { get; set; }
 
     public virtual ICollection<t_2010Custemploy> t_2010Custemploy { get; set; } = new List<t_2010Custemploy>();
+
+    public virtual ICollection<t_4010Purchase> t_4010Purchase { get; set; } = new List<t_4010Purchase>();
 }

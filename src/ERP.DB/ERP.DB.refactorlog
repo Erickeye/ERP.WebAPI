@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="14a3e0c6-3561-43de-ba0d-10a4a64687f7" ChangeDateTime="01/05/2026 07:11:39">
+    <Property Name="ElementName" Value="[dbo].[t_4060Supplier].[Ｎo]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[t_4060Supplier]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="No" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="33370270-d319-42d5-b318-2c6c75b47de1" ChangeDateTime="01/05/2026 07:56:13">
+    <Property Name="ElementName" Value="[dbo].[t_4000Inventory].[Location]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[t_4000Inventory]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="LocationId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="9c13dce4-80b6-484b-a31a-d6c0859ff549" ChangeDateTime="01/05/2026 07:57:23">
+    <Property Name="ElementName" Value="[dbo].[SystemConfig].[SortOrder]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[SystemConfig]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="Sort" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="6a8a1cfc-ed5f-4a30-89f8-7586a599af94" ChangeDateTime="01/05/2026 08:01:39">
+    <Property Name="ElementName" Value="[dbo].[t_4010Purchase].[IsBuy]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[t_4010Purchase]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IsPurchase" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="5f2e960c-84b2-41d3-ba79-c2600c6cf024" ChangeDateTime="01/05/2026 08:03:05">
+    <Property Name="ElementName" Value="[dbo].[t_4010Purchase].[Customer]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[t_4010Purchase]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CustomerId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b5741c5b-6241-4718-baea-0b6aec4d094a" ChangeDateTime="01/05/2026 08:04:00">
+    <Property Name="ElementName" Value="[dbo].[t_4010Purchase].[CreateUser]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[t_4010Purchase]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="CreateUserId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="abcc4d3e-e79c-43b6-9e09-9b1c5fea09e9" ChangeDateTime="01/05/2026 08:25:39">
+    <Property Name="ElementName" Value="[dbo].[t_4010Purchase].[PaymentMethod]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[t_4010Purchase]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="PaymentMethodId" />
+  </Operation>
+</Operations>
