@@ -16,3 +16,10 @@ export const GetStaffSelect = () => {
     headers: getHeaders(),
   });
 };
+
+export const fetchDayOffList = (params) => {
+  const query = new URLSearchParams(params).toString();
+  return http.get(`/_1030DayOff/Index?${query}`,{
+    headers: getHeaders(),
+  });
+};

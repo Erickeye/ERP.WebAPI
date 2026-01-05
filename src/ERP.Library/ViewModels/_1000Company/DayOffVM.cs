@@ -20,6 +20,9 @@ namespace ERP.Library.ViewModels._1000Company
         [Display(Name = "假別")]
         public LeaveType LeaveType { get; set; }
 
+        [Display(Name = "假別顯示")]
+        public string? LeaveTypeDisplay { get; set; }
+
         [Display(Name = "事由")]
         public string? Reason { get; set; }
 

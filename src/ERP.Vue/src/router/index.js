@@ -1,12 +1,14 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '../components/DashboardLayout.vue'
 import DayOffCreate from '@/views/DayOffCreate.vue'
+import DayOffList from '@/views/DayOffList.vue'
 import LoginPage from '../views/LoginPage.vue'
 
 const routes = [
   { path: '/', name: 'login', component: LoginPage },
   { path: '/layout', name: 'layout', component: Layout },
-  { path: '/dayoff/create', component: DayOffCreate }
+  { path: '/dayoff/create', component: DayOffCreate },
+  { path: '/dayoff/index', component: DayOffList }
 ]
 
 const router = createRouter({

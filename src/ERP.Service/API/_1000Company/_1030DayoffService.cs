@@ -117,6 +117,7 @@ namespace ERP.Service.API._1000Company
                     ApplicationDate = x.ApplicationDate,
                     Proxy = x.ProxyNavigation!.ChineseName,
                     LeaveType = (LeaveType)x.LeaveType,
+                    LeaveTypeDisplay = x.LeaveType.GetDisplayName<LeaveType>(),
                     Reason = x.Reason,
                     BeginDate = x.BeginDate,
                     EndDate = x.EndDate
