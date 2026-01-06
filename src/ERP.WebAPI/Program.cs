@@ -1,7 +1,9 @@
+using System.Reflection;
+using System.Text;
 using ERP.EntityModels.Context;
 using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
-using ERP.Service.Helpers;
+using ERP.Service.API.Shared;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -9,8 +11,6 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Reflection;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -143,7 +143,7 @@ builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpCon
 //builder.Services.AddScoped<ISftpService, SftpService>();
 
 // 註冊介面跟服務(自動註冊服務)
-var assembly = Assembly.GetAssembly(typeof(EnumHelper));
+var assembly = Assembly.GetAssembly(typeof(ISharedService));
 var types = assembly!.GetTypes()
             .Where(c => c.Namespace != null)
             .Where(c => c.Namespace!.StartsWith("ERP.Service"))

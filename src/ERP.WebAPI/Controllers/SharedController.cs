@@ -1,8 +1,7 @@
-using System.Threading.Tasks;
 using ERP.Library.Enums._1000Company;
+using ERP.Library.Extensions;
 using ERP.Service.API._1000Company;
 using ERP.Service.API.Shared;
-using ERP.Service.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -37,7 +36,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetBloodType")]
         public IActionResult GetBloodType()
         {
-            var result = EnumHelper.GetEnumList<BloodType>();
+            var result = default(BloodType).ToEnumList();
             return Ok(result);
         }
 
@@ -46,7 +45,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetMarriageStatus")]
         public IActionResult GetMarriageStatus()
         {
-            var result = EnumHelper.GetEnumList<MarriageStatus>();
+            var result = default(MarriageStatus).ToEnumList();
             return Ok(result);
         }
 
@@ -55,7 +54,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetGender")]
         public IActionResult GetGender()
         {
-            var result = EnumHelper.GetEnumList<Gender>();
+            var result = default(Gender).ToEnumList();
             return Ok(result);
         }
 
@@ -64,7 +63,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetJobStatus")]
         public IActionResult GetJobStatus()
         {
-            var result = EnumHelper.GetEnumList<JobStatus>();
+            var result = default(JobStatus).ToEnumList();
             return Ok(result);
         }
 
@@ -73,7 +72,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetLeaveType")]
         public IActionResult GetLeaveType()
         {
-            var result = EnumHelper.GetEnumList<LeaveType>();
+            var result = default(LeaveType).ToEnumList();
             return Ok(result);
         }
 
@@ -82,7 +81,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetOverTimeType")]
         public IActionResult GetOverTimeType()
         {
-            var result = EnumHelper.GetEnumList<OverTimeType>();
+            var result = default(OverTimeType).ToEnumList();
             return Ok(result);
         }
 
@@ -92,7 +91,7 @@ namespace ERP.WebAPI.Controllers
         [HttpGet, Route("GetDocumentLevelType")]
         public IActionResult GetDocumentLevelType()
         {
-            var result = EnumHelper.GetEnumList<DocumentLevelType>();
+            var result = default(DocumentLevelType).ToEnumList();
             return Ok(result);
         }
     }

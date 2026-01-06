@@ -1,8 +1,8 @@
 using ERP.Library.Enums;
 using ERP.Library.Enums._1000Company;
+using ERP.Library.Extensions;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Service.API._1000Company;
-using ERP.Service.Helpers;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -84,7 +84,7 @@ namespace ERP.WebAPI.Controllers._1000Company
         [HttpGet, Route("GetLeaveType")]
         public IActionResult GetLeaveType()
         {
-            var result = EnumHelper.GetEnumList<LeaveType>();
+            var result = default(LeaveType).ToEnumList();
             return Ok(result);
         }
     }
