@@ -32,8 +32,6 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<User> User { get; set; }
 
-    public virtual DbSet<_4011PurchaseDetail> _4011PurchaseDetail { get; set; }
-
     public virtual DbSet<t_1000Staff> t_1000Staff { get; set; }
 
     public virtual DbSet<t_1001StaffCertificates> t_1001StaffCertificates { get; set; }
@@ -71,6 +69,8 @@ public partial class ERPDbContext : DbContext
     public virtual DbSet<t_4000Inventory> t_4000Inventory { get; set; }
 
     public virtual DbSet<t_4010Purchase> t_4010Purchase { get; set; }
+
+    public virtual DbSet<t_4011PurchaseDetail> t_4011PurchaseDetail { get; set; }
 
     public virtual DbSet<t_4060Supplier> t_4060Supplier { get; set; }
 
@@ -148,24 +148,6 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Pwd).HasMaxLength(128);
 
             entity.HasOne(d => d.Role).WithMany(p => p.User).HasForeignKey(d => d.RoleId);
-        });
-
-        modelBuilder.Entity<_4011PurchaseDetail>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK_4011PurchaseDetail");
-
-            entity.Property(e => e.Category).HasMaxLength(16);
-            entity.Property(e => e.Name).HasMaxLength(128);
-            entity.Property(e => e.No).HasMaxLength(64);
-            entity.Property(e => e.Price).HasColumnType("decimal(12, 2)");
-            entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
-            entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
-            entity.Property(e => e.Unit).HasMaxLength(16);
-
-            entity.HasOne(d => d.Purchase).WithMany(p => p._4011PurchaseDetail)
-                .HasForeignKey(d => d.PurchaseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_4011PurchaseDetail_PurchaseId");
         });
 
         modelBuilder.Entity<t_1000Staff>(entity =>
@@ -442,6 +424,16 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Unit).HasMaxLength(16);
+
+            entity.HasOne(d => d.Location).WithMany(p => p.t_4000Inventory)
+                .HasForeignKey(d => d.LocationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4000Inventory_Location");
+
+            entity.HasOne(d => d.Supplier).WithMany(p => p.t_4000Inventory)
+                .HasForeignKey(d => d.SupplierId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4000Inventory_Supplier");
         });
 
         modelBuilder.Entity<t_4010Purchase>(entity =>
@@ -497,6 +489,24 @@ public partial class ERPDbContext : DbContext
                 .HasForeignKey(d => d.SupplierId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_t_4010Purchase_Supplier");
+        });
+
+        modelBuilder.Entity<t_4011PurchaseDetail>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_4011PurchaseDetail");
+
+            entity.Property(e => e.Category).HasMaxLength(16);
+            entity.Property(e => e.Name).HasMaxLength(128);
+            entity.Property(e => e.No).HasMaxLength(64);
+            entity.Property(e => e.Price).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Unit).HasMaxLength(16);
+
+            entity.HasOne(d => d.Purchase).WithMany(p => p.t_4011PurchaseDetail)
+                .HasForeignKey(d => d.PurchaseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_4011PurchaseDetail_PurchaseId");
         });
 
         modelBuilder.Entity<t_4060Supplier>(entity =>

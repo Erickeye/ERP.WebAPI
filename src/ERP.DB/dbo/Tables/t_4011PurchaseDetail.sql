@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[_4011PurchaseDetail]
+CREATE TABLE [dbo].[t_4011PurchaseDetail]
 (
 	[Id] INT IDENTITY (1, 1) NOT NULL, 
     [PurchaseId] INT NOT NULL, 

@@ -51,5 +51,5 @@ public partial class t_4010Purchase
 
     public virtual t_4060Supplier Supplier { get; set; } = null!;
 
-    public virtual ICollection<_4011PurchaseDetail> _4011PurchaseDetail { get; set; } = new List<_4011PurchaseDetail>();
+    public virtual ICollection<t_4011PurchaseDetail> t_4011PurchaseDetail { get; set; } = new List<t_4011PurchaseDetail>();
 }

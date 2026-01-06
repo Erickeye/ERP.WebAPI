@@ -17,6 +17,8 @@ public partial class SystemConfig
 
     public bool IsActive { get; set; }
 
+    public virtual ICollection<t_4000Inventory> t_4000Inventory { get; set; } = new List<t_4000Inventory>();
+
     public virtual ICollection<t_4010Purchase> t_4010PurchaseLocation { get; set; } = new List<t_4010Purchase>();
 
     public virtual ICollection<t_4010Purchase> t_4010PurchasePaymentMethod { get; set; } = new List<t_4010Purchase>();

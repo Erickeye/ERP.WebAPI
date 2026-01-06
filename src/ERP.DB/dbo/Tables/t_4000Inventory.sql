@@ -12,6 +12,8 @@ CREATE TABLE [dbo].[t_4000Inventory]
     [Amount] DECIMAL(12, 2) NULL, 
     [Total] DECIMAL(12, 2) NULL,
     CONSTRAINT [PK_4000Inventory] PRIMARY KEY CLUSTERED ([Id] ASC),
+    CONSTRAINT [FK_t_4000Inventory_Supplier]   FOREIGN KEY ([SupplierId])  REFERENCES [dbo].[t_4060Supplier] ([Id]),
+    CONSTRAINT [FK_t_4000Inventory_Location]   FOREIGN KEY ([LocationId])  REFERENCES [dbo].[SystemConfig] ([Id]),
 )
 -- 供應商（JOIN / 報表）
 GO

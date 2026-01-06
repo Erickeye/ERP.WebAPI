@@ -41,5 +41,7 @@ public partial class t_4060Supplier
 
     public decimal? TemporaryAmount { get; set; }
 
+    public virtual ICollection<t_4000Inventory> t_4000Inventory { get; set; } = new List<t_4000Inventory>();
+
     public virtual ICollection<t_4010Purchase> t_4010Purchase { get; set; } = new List<t_4010Purchase>();
 }
