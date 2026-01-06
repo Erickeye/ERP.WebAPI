@@ -7,7 +7,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.Library.ViewModels._4000Inventory
 {
-    public class InventorySearchVM
+    public class InventorySearchVM : SearchModel
     {
         [SwaggerParameter("供應商")]
         public string? SupplierName { get; set; }

@@ -1,7 +1,5 @@
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
-using ERP.Library.Enums;
-using ERP.Library.Helpers;
 using System.Linq.Expressions;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
@@ -12,6 +10,7 @@ namespace ERP.Service.API._4000Inventory
 {
     public interface I_4000InventoryService
     {
+        Task<ResultModel<PagedResult<InventoryVM>>> Index(InventorySearchVM vm);
     }
     public class _4000InventoryController : I_4000InventoryService
     {
@@ -22,37 +21,39 @@ namespace ERP.Service.API._4000Inventory
             _db = db;
         }
 
-        //public async Task<ResultModel<InventoryVM>> Index(InventorySearchVM vm)
-        //{
-        //    Expression<Func<t_4000Inventory, bool>> filter = i => true;
-        //    if (!string.IsNullOrEmpty(vm.SupplierName))
-        //    {
-        //        filter = filter.ExpressionAnd(x => x.SupplierId.Name.Contains(vm.SupplierName));
-        //    }
+        public async Task<ResultModel<PagedResult<InventoryVM>>> Index(InventorySearchVM vm)
+        {
+            Expression<Func<t_4000Inventory, bool>> filter = i => true;
+            if (!string.IsNullOrEmpty(vm.SupplierName))
+            {
+                filter = filter.ExpressionAnd(x => x.Supplier != null && x.Supplier.Name!.Contains(vm.SupplierName));
+            }
 
-        //    var inventory = await (
-        //        from i in _db.t_4000Inventory
-        //        join s in _db.t_4060Supplier on i.SupplierId equals s.Id into supplierJoin
-        //        from s in supplierJoin.DefaultIfEmpty() // 左外連接
-        //        join l in _db.SystemConfig on i.LocationId equals l.Id into locationJoin
-        //        from l in locationJoin.DefaultIfEmpty() // 左外連接
-        //        select new InventoryVM
-        //        {
-        //            Id = i.Id,
-        //            SupplierId = i.SupplierId,
-        //            SupplierName = s.Name,
-        //            Name = i.Name,
-        //            LocationId = i.LocationId,
-        //            LocationName = l != null ? l.Name : null,
-        //            Category = i.Category,
-        //            LastPurchaseDate = i.LastPurchaseDate,
-        //            Number = i.Number,
-        //            Unit = i.Unit,
-        //            Quantity = i.Quantity,
-        //            Amount = i.Amount,
-        //            Total = i.Total
-        //        }
-        //    ).ToListAsync();
-        //}
+            var query = _db.t_4000Inventory
+                .AsNoTracking()
+                .Include(i => i.Supplier)
+                .Include(i => i.Location)
+                .Where(filter)
+                .Select(x => new InventoryVM
+                {
+                    Id = x.Id,
+                    SupplierId = x.SupplierId,
+                    SupplierName = x.Supplier != null ? x.Supplier.Name : string.Empty,
+                    Name = x.Name,
+                    LocationId = x.LocationId,
+                    LocationName = x.Location != null ? x.Location.Name : string.Empty,
+                    Category = x.Category,
+                    LastPurchaseDate = x.LastPurchaseDate,
+                    Number = x.Number,
+                    Unit = x.Unit,
+                    Quantity = x.Quantity,
+                    Amount = x.Amount,
+                    Total = x.Total
+                });
+
+            var pagedResult = await query.ToPagedResultAsync(vm);
+
+            return ResultModel.Ok(pagedResult);
+        }
     }
 }
