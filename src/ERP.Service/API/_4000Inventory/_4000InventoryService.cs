@@ -1,10 +1,12 @@
+using System.Linq.Expressions;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
-using System.Linq.Expressions;
+using ERP.Library.Extensions;
+using ERP.Library.Helpers;
+using ERP.Library.QuerySort;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
 using Microsoft.EntityFrameworkCore;
-using ERP.Library.Extensions;
 
 namespace ERP.Service.API._4000Inventory
 {
@@ -12,18 +14,18 @@ namespace ERP.Service.API._4000Inventory
     {
         Task<ResultModel<PagedResult<InventoryVM>>> Index(InventorySearchVM vm);
     }
-    public class _4000InventoryController : I_4000InventoryService
+    public class _4000InventoryService : I_4000InventoryService
     {
         private readonly ERPDbContext _db;
 
-        public _4000InventoryController(ERPDbContext db)
+        public _4000InventoryService(ERPDbContext db)
         {
             _db = db;
         }
 
         public async Task<ResultModel<PagedResult<InventoryVM>>> Index(InventorySearchVM vm)
         {
-            Expression<Func<t_4000Inventory, bool>> filter = i => true;
+            Expression<Func<t_4000Inventory, bool>> filter = x => true;
             if (!string.IsNullOrEmpty(vm.SupplierName))
             {
                 filter = filter.ExpressionAnd(x => x.Supplier != null && x.Supplier.Name!.Contains(vm.SupplierName));
@@ -51,7 +53,8 @@ namespace ERP.Service.API._4000Inventory
                     Total = x.Total
                 });
 
-            var pagedResult = await query.ToPagedResultAsync(vm);
+            var orderedQuery = query.ApplySort(vm, SortHelper.GetColumns<InventoryVM>());
+            var pagedResult = await orderedQuery.ToPagedResultAsync(vm);
 
             return ResultModel.Ok(pagedResult);
         }
