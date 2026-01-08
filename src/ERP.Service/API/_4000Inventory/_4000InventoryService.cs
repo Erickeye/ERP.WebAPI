@@ -26,7 +26,7 @@ namespace ERP.Service.API._4000Inventory
         public async Task<ResultModel<PagedResult<InventoryVM>>> Index(InventorySearchVM vm)
         {
             Expression<Func<t_4000Inventory, bool>> filter = x => true;
-            if (!string.IsNullOrEmpty(vm.SupplierName))
+            if (!string.IsNullOrWhiteSpace(vm.SupplierName))
             {
                 filter = filter.ExpressionAnd(x => x.Supplier != null && x.Supplier.Name!.Contains(vm.SupplierName));
             }
@@ -53,8 +53,11 @@ namespace ERP.Service.API._4000Inventory
                     Total = x.Total
                 });
 
-            var orderedQuery = query.ApplySort(vm, SortHelper.GetColumns<InventoryVM>());
-            var pagedResult = await orderedQuery.ToPagedResultAsync(vm);
+            if (!string.IsNullOrWhiteSpace(vm.SortColumn))
+            {
+                query = query.ApplySort(vm, SortHelper.GetColumns<InventoryVM>());
+            }
+            var pagedResult = await query.ToPagedResultAsync(vm);
 
             return ResultModel.Ok(pagedResult);
         }
