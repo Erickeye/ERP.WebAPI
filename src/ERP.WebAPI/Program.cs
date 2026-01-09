@@ -3,6 +3,7 @@ using System.Text;
 using ERP.EntityModels.Context;
 using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
+using ERP.Service.API;
 using ERP.Service.API.Shared;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -144,7 +145,7 @@ builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpCon
 //builder.Services.AddScoped<ISftpService, SftpService>();
 
 // 註冊介面跟服務(自動註冊服務)
-var assembly = Assembly.GetAssembly(typeof(ISharedService));
+var assembly = Assembly.GetAssembly(typeof(IApprovalService));
 var types = assembly!.GetTypes()
             .Where(c => c.Namespace != null)
             .Where(c => c.Namespace!.StartsWith("ERP.Service"))

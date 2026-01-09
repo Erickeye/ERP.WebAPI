@@ -1,3 +1,4 @@
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
 using ERP.Service.API._4000Inventory;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,7 @@ namespace ERP.WebAPI.Controllers._4000Inventory
         public async Task<IActionResult> Index([FromQuery] InventorySearchVM vm)
         {
             var result = await _service.Index(vm);
-            return new OkObjectResult(result);
+            return Ok(result);
         }
     }
 }
