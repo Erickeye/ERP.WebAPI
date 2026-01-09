@@ -28,6 +28,8 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<Role> Role { get; set; }
 
+    public virtual DbSet<SerialNumber> SerialNumber { get; set; }
+
     public virtual DbSet<SystemConfig> SystemConfig { get; set; }
 
     public virtual DbSet<User> User { get; set; }
@@ -126,6 +128,19 @@ public partial class ERPDbContext : DbContext
         modelBuilder.Entity<Role>(entity =>
         {
             entity.Property(e => e.RoleName).HasMaxLength(32);
+        });
+
+        modelBuilder.Entity<SerialNumber>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__SerialNu__3214EC07389EB943");
+
+            entity.HasIndex(e => new { e.Prefix, e.DateKey }, "UX_Serial").IsUnique();
+
+            entity.Property(e => e.DateKey)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .IsFixedLength();
+            entity.Property(e => e.Prefix).HasMaxLength(8);
         });
 
         modelBuilder.Entity<SystemConfig>(entity =>
