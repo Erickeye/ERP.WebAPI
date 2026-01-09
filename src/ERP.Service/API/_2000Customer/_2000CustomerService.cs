@@ -16,6 +16,7 @@ namespace ERP.Service.API._2000Customer
         Task<ResultModel<CustomerInputVM>> Get(int id);
         Task<ResultModel<string>> CreateOrEdit(CustomerInputVM data);
         Task<ResultModel<string>> Delete(int id);
+        Task<ResultModel<ListResult<SelectModel>>> GetCustomerSelect();
     }
     public class _2000CustomerService : I_2000CustomerService
     {
@@ -100,6 +101,19 @@ namespace ERP.Service.API._2000Customer
             _context.Remove(entity);
             await _context.SaveChangesAsync();
             return ResultModel.Ok("資料已刪除");
+        }
+        public async Task<ResultModel<ListResult<SelectModel>>> GetCustomerSelect()
+        {
+            var staff = await _context.t_2000Customer
+                .AsNoTracking()
+                .Select(x => new SelectModel
+                {
+                    Value = x.Id,
+                    Text = x.Name,
+                })
+                .ToListAsync();
+
+            return ResultModel.Ok(staff);
         }
     }
 }

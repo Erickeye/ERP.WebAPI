@@ -221,6 +221,7 @@ namespace ERP.Service.API._1000Company
         public async Task<ResultModel<ListResult<SelectModel>>> GetStaffSelect()
         {
             var staff = await _context.t_1000Staff
+                .AsNoTracking()
                 .Where(x => !x.ResignationDate.HasValue)
                 .Select(x => new SelectModel
                 {

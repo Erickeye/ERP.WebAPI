@@ -1,7 +1,9 @@
 using ERP.Library.Enums._1000Company;
 using ERP.Library.Extensions;
+using ERP.Service.API;
 using ERP.Service.API._1000Company;
-using ERP.Service.API.Shared;
+using ERP.Service.API._2000Customer;
+using ERP.Service.API._4000Inventory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -17,10 +19,14 @@ namespace ERP.WebAPI.Controllers
 
         private readonly ISharedService _service;
         private readonly I_1000Service _1000Service;
-        public SharedController(ISharedService service, I_1000Service _1000Service)
+        private readonly I_2000CustomerService _2000SCustomerService;
+        private readonly I_4060SupplierService _4060SupplierService;
+        public SharedController(ISharedService service, I_1000Service _1000Service, I_2000CustomerService _2000SCustomerService, I_4060SupplierService _4060SupplierService)
         {
             _service = service;
             this._1000Service = _1000Service;
+            this._2000SCustomerService = _2000SCustomerService;
+            this._4060SupplierService = _4060SupplierService;
         }
 
         [SwaggerOperation("取得員工下拉選單")]
@@ -28,6 +34,36 @@ namespace ERP.WebAPI.Controllers
         public async Task<IActionResult> GetStaffSelect()
         {
             var result = await _1000Service.GetStaffSelect();
+            return Ok(result);
+        }
+        [SwaggerOperation("取得客戶下拉選單")]
+        [HttpGet, Route("GetCustomerSelect")]
+        public async Task<IActionResult> GetCustomerSelect()
+        {
+            var result = await _2000SCustomerService.GetCustomerSelect();
+            return Ok(result);
+        }
+        [SwaggerOperation("取得供應商下拉選單")]
+        [HttpGet, Route("GetSupplierSelect")]
+        public async Task<IActionResult> GetSupplierSelect()
+        {
+            var result = await _4060SupplierService.GetSupplierSelect();
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得庫存位下拉選單")]
+        [HttpGet, Route("GetInventorySelect")]
+        public async Task<IActionResult> GetInventorySelect()
+        {
+            var result = await _service.GetInventorySelect();
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得付款方式下拉選單")]
+        [HttpGet, Route("GetPaymentMethodSelect")]
+        public async Task<IActionResult> GetPaymentMethodSelect()
+        {
+            var result = await _service.GetPaymentMethodSelect();
             return Ok(result);
         }
 
