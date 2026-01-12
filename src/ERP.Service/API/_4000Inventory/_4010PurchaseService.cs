@@ -13,7 +13,9 @@ namespace ERP.Service.API._4000Inventory
 {
     public interface I_4010PurchaseService
     {
+        Task<ResultModel<PagedResult<PurchaseVM>>> Index(PurchaseSearchVM vm);
         Task<ResultModel<string>> Add(PurchaseAddVM vm);
+        Task<ResultModel<PurchaseVM>> Get(int id);
     }
     public class _4010PurchaseService : I_4010PurchaseService
     {
@@ -57,6 +59,16 @@ namespace ERP.Service.API._4000Inventory
                     Authorizator = x.Authorizator,
                     IsApproval = x.IsApproval,
                     CreateTime = x.CreateTime,
+                    Items = x.t_4011PurchaseDetail.Select(d => new PurchaseItemVM
+                    {
+                        Category = d.Category,
+                        No = d.No,
+                        Name = d.Name,
+                        Unit = d.Unit,
+                        Quantity = d.Quantity,
+                        Price = d.Price,
+                        Total = d.Quantity * d.Price,
+                    }).ToList(),
                 });
 
             if (!string.IsNullOrWhiteSpace(vm.SortColumn))
@@ -105,7 +117,7 @@ namespace ERP.Service.API._4000Inventory
 
             return ResultModel.Ok(purchase.No);
         }
-        public async Task<ResultModel<PurchaseVM>> GetById(int id)
+        public async Task<ResultModel<PurchaseVM>> Get(int id)
         {
             var data = await _db.t_4010Purchase
                 .AsNoTracking()
@@ -133,8 +145,19 @@ namespace ERP.Service.API._4000Inventory
                     Authorizator = x.Authorizator,
                     IsApproval = x.IsApproval,
                     CreateTime = x.CreateTime,
+                    Items = x.t_4011PurchaseDetail.Select(d => new PurchaseItemVM
+                    {
+                        Category = d.Category,
+                        No = d.No,
+                        Name = d.Name,
+                        Unit = d.Unit,
+                        Quantity = d.Quantity,
+                        Price = d.Price,
+                        Total = d.Quantity * d.Price,
+                    }).ToList()
                 })
                 .FirstOrDefaultAsync();
+
             if (data == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);

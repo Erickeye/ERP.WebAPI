@@ -31,12 +31,12 @@ namespace ERP.Library.ViewModels._4000Inventory
         public string? ProjectName { get; set; } = null!;
 
         [SwaggerParameter("進貨日期開始")]
-        [SearchField("CreateTime", SearchCompare.GreaterThanOrEqual)]
-        public string? CreateTimeStrat { get; set; } = null!;
+        [SearchField("PurchaseDate", SearchCompare.GreaterThanOrEqual)]
+        public DateTime? PurchaseDateStrat { get; set; } = null!;
 
         [SwaggerParameter("進貨日期結束")]
-        [SearchField("CreateTime", SearchCompare.LessThanOrEqual)]
-        public string? CreateTimeEnd { get; set; } = null!;
+        [SearchField("PurchaseDate", SearchCompare.LessThanOrEqual)]
+        public DateTime? PurchaseDateEnd { get; set; } = null!;
     }
     /// <summary>
     /// 查詢-進貨單列表
@@ -105,6 +105,9 @@ namespace ERP.Library.ViewModels._4000Inventory
 
         [SwaggerParameter("建立日期")]
         public DateTime? CreateTime { get; set; }
+
+        public List<PurchaseItemVM> Items { get; set; }
+            = new List<PurchaseItemVM>();
     }
     public class PurchaseAddVM
     {
@@ -155,10 +158,10 @@ namespace ERP.Library.ViewModels._4000Inventory
         [StringLength(1024, ErrorMessage = "長度不可超過 1024 個字元")]
         public string? Note { get; set; }
 
-        public List<PurchaseAddItemVM> Items { get; set; }
-            = new List<PurchaseAddItemVM>();
+        public List<PurchaseItemVM> Items { get; set; }
+            = new List<PurchaseItemVM>();
     }
-    public class PurchaseAddItemVM
+    public class PurchaseItemVM
     {
 
         [SwaggerParameter("種類")]
@@ -179,7 +182,7 @@ namespace ERP.Library.ViewModels._4000Inventory
          [SwaggerParameter("價格")]
         public decimal? Price { get; set; }
 
-        // [SwaggerParameter("總計")]
-        //public decimal? Total { get; set; }
+        [SwaggerParameter("總計")]
+        public decimal? Total { get; set; }
     }
 }

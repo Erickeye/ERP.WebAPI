@@ -76,6 +76,12 @@ namespace ERP.Library.Helpers
             // 將C# 值轉成 Expression Tree 可理解的「常數節點」
             var constant = Expression.Constant(value);
 
+            if (value is DateTime dt && compare == SearchCompare.LessThanOrEqual )
+            {
+                // 將 End 日期調整到當天最後一刻
+                constant = Expression.Constant(dt.Date.AddDays(1).AddTicks(-1));
+            }
+
             return compare switch
             {
                 SearchCompare.Contains =>

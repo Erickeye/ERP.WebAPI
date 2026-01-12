@@ -19,6 +19,22 @@ namespace ERP.WebAPI.Controllers._4000Inventory
             _service = service;
         }
 
+        [SwaggerOperation("查詢進貨單列表")]
+        [HttpGet, Route("Index")]
+        public async Task<IActionResult> Index( [FromQuery] PurchaseSearchVM vm)
+        {
+            var result = await _service.Index(vm);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得進貨單")]
+        [HttpGet, Route("Get")]
+        public async Task<IActionResult> Get( [SwaggerParameter] int id)
+        {
+            var result = await _service.Get(id);
+            return Ok(result);
+        }
+
         [SwaggerOperation("建立進貨單")]
         [ValidateModel]
         [HttpPost, Route("Add")]
