@@ -1,31 +1,50 @@
 using System.Reflection;
 using System.Text;
 using ERP.EntityModels.Context;
+using ERP.Library.Enums;
+using ERP.Library.Extensions;
 using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
 using ERP.Service.API;
-using ERP.Service.API.Shared;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("Default API", new OpenApiInfo { Version = "v1", Title = "API首頁", });
-    options.SwaggerDoc("_1000Company", new OpenApiInfo { Version = "v1", Title = "公司相關", });
-    options.SwaggerDoc("_2000Costomer", new OpenApiInfo { Version = "v1", Title = "客戶資料", });
-    options.SwaggerDoc("_4000Inventory", new OpenApiInfo { Version = "v1", Title = "庫存管理", });
+   foreach (ApiGroupType group in Enum.GetValues(typeof(ApiGroupType)))
+    {
+        options.SwaggerDoc(
+            group.ToString(),
+            new OpenApiInfo
+            {
+                Title = group.GetDisplayName(),
+                Version = "v1"
+            }
+        );
+    }
+    //options.SwaggerDoc("Default API", new OpenApiInfo { Version = "v1", Title = "API首頁", });
+
+    // 自動分組 => 根據資料夾使API分組
+    options.DocInclusionPredicate((docName, apiDesc) =>
+    {
+        if (apiDesc.ActionDescriptor is not ControllerActionDescriptor cad)
+            return false;
+
+        var groupName = SwaggerGroupResolver.Resolve(cad);
+        return docName == groupName;
+    });
+
     options.EnableAnnotations();
 
     // 加入 Bearer token 認證方式
@@ -136,13 +155,6 @@ builder.Services.AddDbContext<ERPDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP")));
 
 builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));
-//builder.Services.AddScoped<ILoginService, LoginService>();
-//builder.Services.AddScoped<I_1000Service, _1000Service>();
-//builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
-//builder.Services.AddScoped<IUserInfoService, UserInfoService>();
-//builder.Services.AddScoped<IUserService, UserService>();
-//builder.Services.AddScoped<IRoleService, RoleService>();
-//builder.Services.AddScoped<ISftpService, SftpService>();
 
 // 註冊介面跟服務(自動註冊服務)
 var assembly = Assembly.GetAssembly(typeof(IApprovalService));
@@ -174,11 +186,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/Default API/swagger.json", "Default API");
-        options.SwaggerEndpoint("/swagger/_1000Company/swagger.json", "_1000Company API");
-        options.SwaggerEndpoint("/swagger/_2000Costomer/swagger.json", "_2000Costomer API");
-        options.SwaggerEndpoint("/swagger/_4000Inventory/swagger.json", "_4000Inventory API");
-        options.RoutePrefix = "swagger";
+        foreach (ApiGroupType group in Enum.GetValues(typeof(ApiGroupType)))
+        {
+            options.SwaggerEndpoint($"/swagger/{group.ToString()}/swagger.json",group.GetDisplayName());
+        }
+        //options.SwaggerEndpoint("/swagger/Default API/swagger.json", "Default API");
     });
 }
 
@@ -191,3 +203,22 @@ app.UseMiddleware<ActionLoggingMiddleware>();
 app.MapControllers();
 
 app.Run();
+
+public static class SwaggerGroupResolver
+{
+    public static string Resolve(ControllerActionDescriptor descriptor)
+    {
+        var ns = descriptor.ControllerTypeInfo.Namespace ?? "";
+
+        if (ns.Contains("Company"))
+            return ApiGroupType.Company.ToString();
+
+        if (ns.Contains("Customer"))
+            return ApiGroupType.Customer.ToString();
+
+        if (ns.Contains("Inventory"))
+            return ApiGroupType.Inventory.ToString();
+
+        return ApiGroupType.Home.ToString();
+    }
+}

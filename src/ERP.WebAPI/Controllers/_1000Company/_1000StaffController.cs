@@ -1,5 +1,6 @@
 using ERP.Library.Enums;
 using ERP.Library.Enums.Login;
+using ERP.Library.Extensions;
 using ERP.Library.ViewModels._1000Company;
 using ERP.Service.API._1000Company;
 using ERP.WebAPI.CustomAttributes;
@@ -11,7 +12,7 @@ namespace ERP.WebAPI.Controllers._1000Company
     [SwaggerTag("員工")]
     [ApiController]
     [Route("api/[controller]")]
-    [ApiExplorerSettings(GroupName = "_1000Company")]
+    [ApiExplorerSettings]
     public class _1000StaffController : ControllerBase
     {
         private readonly I_1000Service _service;

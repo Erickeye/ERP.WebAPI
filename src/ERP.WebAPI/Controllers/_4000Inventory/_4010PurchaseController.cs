@@ -10,7 +10,6 @@ namespace ERP.WebAPI.Controllers._4000Inventory
     [SwaggerTag("庫存")]
     [ApiController]
     [Route("api/[controller]")]
-    [ApiExplorerSettings(GroupName = "_4000Inventory")]
     public class _4010PurchaseController : ControllerBase
     {
         private readonly I_4010PurchaseService _service;

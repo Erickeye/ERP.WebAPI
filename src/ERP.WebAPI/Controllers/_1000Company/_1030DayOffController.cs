@@ -13,7 +13,6 @@ namespace ERP.WebAPI.Controllers._1000Company
     [SwaggerTag("請假單")]
     [ApiController]
     [Route("api/[controller]")]
-    [ApiExplorerSettings(GroupName = "_1000Company")]
     public class _1030DayOffController : ControllerBase
     {
         private readonly I_1030DayoffService _service;

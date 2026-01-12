@@ -1,4 +1,4 @@
-﻿using ERP.Library.Enums;
+using ERP.Library.Enums;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._2000Customer;
 using ERP.Service.API._2000Customer;
@@ -12,7 +12,6 @@ namespace ERP.WebAPI.Controllers._2000Customer
     [SwaggerTag("客戶")]
     [ApiController]
     [Route("api/[controller]")]
-    [ApiExplorerSettings(GroupName = "_2000Costomer")]
     public class _2000CustomerController : ControllerBase
     {
         private readonly I_2000CustomerService _service;
