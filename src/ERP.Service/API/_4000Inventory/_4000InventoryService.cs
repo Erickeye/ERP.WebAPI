@@ -25,11 +25,7 @@ namespace ERP.Service.API._4000Inventory
 
         public async Task<ResultModel<PagedResult<InventoryVM>>> Index(InventorySearchVM vm)
         {
-            Expression<Func<t_4000Inventory, bool>> filter = x => true;
-            if (!string.IsNullOrWhiteSpace(vm.SupplierName))
-            {
-                filter = filter.ExpressionAnd(x => x.Supplier != null && x.Supplier.Name!.Contains(vm.SupplierName));
-            }
+            var filter = SearchExpressionBuilder.Build<t_4000Inventory>(vm);
 
             var query = _db.t_4000Inventory
                 .AsNoTracking()

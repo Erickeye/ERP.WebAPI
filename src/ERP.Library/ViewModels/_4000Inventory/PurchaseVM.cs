@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ERP.Library.Attributes;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.Library.ViewModels._4000Inventory
@@ -14,16 +15,28 @@ namespace ERP.Library.ViewModels._4000Inventory
     public class PurchaseSearchVM : SearchModel
     {
         [SwaggerParameter("進貨單號")]
+        [SearchField("No", SearchCompare.Contains)]
         public string? No { get; set; }
 
         [SwaggerParameter("供應商識別碼")]
+        [SearchField("Supplier.Name", SearchCompare.Contains)]
         public string? SupplierName { get; set; }
 
         [SwaggerParameter("客戶名稱")]
+        [SearchField("Customer.Name", SearchCompare.Contains)]
         public string? CustomerName { get; set; }
 
         [SwaggerParameter("專案名稱")]
+        [SearchField("ProjectName", SearchCompare.Contains)]
         public string? ProjectName { get; set; } = null!;
+
+        [SwaggerParameter("進貨日期開始")]
+        [SearchField("CreateTime", SearchCompare.GreaterThanOrEqual)]
+        public string? CreateTimeStrat { get; set; } = null!;
+
+        [SwaggerParameter("進貨日期結束")]
+        [SearchField("CreateTime", SearchCompare.LessThanOrEqual)]
+        public string? CreateTimeEnd { get; set; } = null!;
     }
     /// <summary>
     /// 查詢-進貨單列表

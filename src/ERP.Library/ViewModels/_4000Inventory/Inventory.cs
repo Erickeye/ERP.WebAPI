@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ERP.Library.Attributes;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.Library.ViewModels._4000Inventory
@@ -10,15 +11,19 @@ namespace ERP.Library.ViewModels._4000Inventory
     public class InventorySearchVM : SearchModel
     {
         [SwaggerParameter("供應商")]
+        [SearchField("Supplier.Name", SearchCompare.Contains)]
         public string? SupplierName { get; set; }
 
         [SwaggerParameter("位置")]
+        [SearchField("Location.Name", SearchCompare.Contains)]
         public string? LocationName { get; set; }
 
         [SwaggerParameter("類別")]
+        [SearchField("Category", SearchCompare.Equal)]
         public string? Category { get; set; }
 
         [SwaggerParameter("名稱")]
+        [SearchField("Name", SearchCompare.Contains)]
         public string? Name { get; set; }
     }
     public class InventoryVM

@@ -29,23 +29,7 @@ namespace ERP.Service.API._4000Inventory
 
         public async Task<ResultModel<PagedResult<PurchaseVM>>> Index(PurchaseSearchVM vm)
         {
-            Expression<Func<t_4010Purchase,bool>> filter = x => true;
-            if (!string.IsNullOrWhiteSpace(vm.No))
-            {
-                filter = filter.ExpressionAnd(x => x.No!.Contains(vm.No));
-            }
-            if (!string.IsNullOrWhiteSpace(vm.SupplierName))
-            {
-                filter = filter.ExpressionAnd(x => x.Supplier!.Name!.Contains(vm.SupplierName));
-            }
-            if(!string.IsNullOrWhiteSpace(vm.CustomerName))
-            {
-                filter = filter.ExpressionAnd(x => x.Customer!.Name!.Contains(vm.CustomerName));
-            }
-            if (!string.IsNullOrWhiteSpace(vm.ProjectName))
-            {
-                filter = filter.ExpressionAnd(x => x.ProjectName!.Contains(vm.ProjectName));
-            }
+            var filter = SearchExpressionBuilder.Build<t_4010Purchase>(vm);
 
             var query = _db.t_4010Purchase
                 .AsNoTracking()
