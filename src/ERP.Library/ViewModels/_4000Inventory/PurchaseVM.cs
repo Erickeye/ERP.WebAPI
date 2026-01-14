@@ -111,6 +111,8 @@ namespace ERP.Library.ViewModels._4000Inventory
     }
     public class PurchaseAddVM
     {
+        [SwaggerParameter("識別碼")]
+        public int Id { get; set; }
 
         [SwaggerParameter("供應商識別碼")]
         [Required(ErrorMessage = "必填欄位")]
@@ -163,6 +165,8 @@ namespace ERP.Library.ViewModels._4000Inventory
     }
     public class PurchaseItemVM
     {
+        [SwaggerParameter("識別碼")]
+        public int Id { get; set; }
 
         [SwaggerParameter("種類")]
         public string? Category { get; set; }
@@ -177,7 +181,7 @@ namespace ERP.Library.ViewModels._4000Inventory
         public string? Unit { get; set; }
 
          [SwaggerParameter("數量")]
-        public decimal Quantity { get; set; }
+        public decimal Quantity{ get; set; }
 
          [SwaggerParameter("價格")]
         public decimal? Price { get; set; }

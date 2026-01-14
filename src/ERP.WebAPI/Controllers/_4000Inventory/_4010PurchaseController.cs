@@ -44,5 +44,15 @@ namespace ERP.WebAPI.Controllers._4000Inventory
             var result = await _service.Add(vm);
             return Ok(result);
         }
+
+        [SwaggerOperation("修改進貨單")]
+        [ValidateModel]
+        [HttpPost, Route("Edit")]
+        [Log(OperationActionType.Create, "修改進貨單")]
+        public async Task<IActionResult> Edit(PurchaseAddVM vm)
+        {
+            var result = await _service.Edit(vm);
+            return Ok(result);
+        }
     }
 }
