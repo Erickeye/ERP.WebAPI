@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
+using ERP.Library.Enums.Other;
 using ERP.Library.Extensions;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
@@ -23,11 +24,13 @@ namespace ERP.Service.API._4000Inventory
         private readonly ERPDbContext _db;
         private readonly ICurrentUserService _currentUserService;
         private readonly ISerialService _serialService;
-        public _4010PurchaseService(ERPDbContext db, ICurrentUserService currentUserService, ISerialService serialService)
+        private readonly IApprovalService _approvalService;
+        public _4010PurchaseService(ERPDbContext db, ICurrentUserService currentUserService, ISerialService serialService, IApprovalService approvalService)
         {
             _db = db;
             _currentUserService = currentUserService;
             _serialService = serialService;
+            _approvalService = approvalService;
         }
 
         public async Task<ResultModel<PagedResult<PurchaseVM>>> Index(PurchaseSearchVM vm)
@@ -135,38 +138,11 @@ namespace ERP.Service.API._4000Inventory
                 CreateTime = DateTime.Now,
                 CreateUserId = _currentUserService.UserId,
             };
-            await Modify(vm, entity);
-
-            //var purchase = new t_4010Purchase
-            //{
-            //    No = "",
-            //    SupplierId = vm.SupplierId,
-            //    CustomerId = vm.CustomerId,
-            //    LocationId = vm.LocationId,
-            //    ProjectName = vm.ProjectName ?? "",
-            //    PurchaseDate = vm.PurchaseDate,
-            //    IsPurchase = vm.IsPurchase,
-            //    PaymentMethodId = vm.PaymentMethodId,
-            //    Payer = vm.Payer,
-            //    InvoiceNumber = vm.InvoiceNumber,
-            //    Note = vm.Note,
-            //    CreateTime = DateTime.Now,
-            //    CreateUserId = _currentUserService.UserId,
-            //};
-            //var purchaseItems = vm.Items.Select(x => new t_4011PurchaseDetail
-            //{
-            //    Category = x.Category,
-            //    No = x.No,
-            //    Name = x.Name ?? "",
-            //    Unit = x.Unit,
-            //    Quantity = x.Quantity,
-            //    Price = x.Price,
-            //    Total = x.Quantity * x.Price,
-            //}).ToList();
-
-            //purchase.t_4011PurchaseDetail = purchaseItems;
-
-            //_db.t_4010Purchase.Add(purchase);
+            var result = Modify(vm, entity);
+            if (!result)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
 
             entity.No = await _serialService.GenerateAsync("PU");
             await _db.SaveChangesAsync();
@@ -185,12 +161,16 @@ namespace ERP.Service.API._4000Inventory
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
 
-            await Modify(vm, entity);
+            var result = Modify(vm, entity);
+            if (!result)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
 
             await _db.SaveChangesAsync();
             return ResultModel.Ok(entity.No!);
         }
-        private async Task<ResultModel<string>> Modify(PurchaseAddVM vm, t_4010Purchase entity)
+        private ResultModel<string> Modify(PurchaseAddVM vm, t_4010Purchase entity)
         {
             entity.SupplierId = vm.SupplierId;
             entity.CustomerId = vm.CustomerId;
@@ -199,7 +179,7 @@ namespace ERP.Service.API._4000Inventory
             entity.PurchaseDate = vm.PurchaseDate;
             entity.IsPurchase = vm.IsPurchase;
             entity.PaymentMethodId = vm.PaymentMethodId;
-            entity.Payer = vm.Payer;
+            entity.Payer = vm.Payer ?? "";
             entity.InvoiceNumber = vm.InvoiceNumber;
             entity.Note = vm.Note;
 
@@ -234,5 +214,46 @@ namespace ERP.Service.API._4000Inventory
 
             return ResultModel.Ok();
         }
+        public async Task<ResultModel<string>> Approval(ApprovalVM vm)
+        {
+            var result = await _approvalService.Approval(vm);
+            if (!result)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
+
+            //簽核成功後 => 更新庫存數量
+            var purchase = await _db.t_4010Purchase
+                .Include(x => x.t_4011PurchaseDetail)
+                .Where(x => x.Id.ToString() == vm.TableId)
+                .FirstOrDefaultAsync();
+
+            var purchaseItem = purchase!.t_4011PurchaseDetail.ToList();
+
+            //抓出庫存
+            var inventories = await _db.t_4000Inventory
+                .Where(x =>
+                    x.LocationId == purchase.LocationId &&
+                    x.SupplierId == purchase.SupplierId &&
+                    purchaseItem.Any(c => c.No == x.Number)
+                )
+                .ToListAsync();
+
+            foreach (var inventory in inventories )
+            {
+                var item = purchaseItem
+                    .Where(x => x.No == inventory.Number)
+                    .FirstOrDefault();
+
+                if( item != null)
+                {
+                    item.Quantity += (decimal)inventory.Quantity!;
+                }
+            }
+            await _db.SaveChangesAsync();
+
+            return ResultModel.Ok($"{result.Data}");
+        }
+
     }
 }

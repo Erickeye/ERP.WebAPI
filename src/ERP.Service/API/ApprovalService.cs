@@ -168,7 +168,7 @@ namespace ERP.Service.API
                 }
             }
             await _context.SaveChangesAsync();
-            return ResultModel.Ok("簽核流程成功送出");
+            return ResultModel.Ok($"單號{data.TableId}成功送出簽核請求。");
         }
         public async Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(SendApprovalProcessVM data)
         {
