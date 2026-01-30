@@ -45,17 +45,21 @@ namespace ERP.Library.Extensions
         /// <returns></returns>
         public static IQueryable<T> ApplySort<T>(
          this IQueryable<T> query,
-         SearchModel search,
+         SortModel search,
          IDictionary<string, Expression<Func<T, object>>> allowedColumns)
         {
             if (string.IsNullOrWhiteSpace(search.SortColumn))
+            {
                 return query;
+            }
 
             var column = allowedColumns
                 .FirstOrDefault(x =>string.Equals(x.Key, search.SortColumn, StringComparison.OrdinalIgnoreCase));
 
             if (column.Value == null)
+            {
                 return query;
+            }
 
             var isDesc = string.Equals(
                 search.SortDirection,

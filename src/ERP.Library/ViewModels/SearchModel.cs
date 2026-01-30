@@ -8,7 +8,7 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.Library.ViewModels
 {
-    public class SearchModel
+    public class SearchModel : SortModel
     {
         public SearchModel()
         {
@@ -31,7 +31,9 @@ namespace ERP.Library.ViewModels
             get => _pageSize;
             set => _pageSize = (value > 0) ? value : 10;  // 確保 PageSize 至少為 1
         }
-
+    }
+    public class SortModel
+    {
         [SwaggerParameter("排序欄位")]
         public string? SortColumn { get; set; }
 
