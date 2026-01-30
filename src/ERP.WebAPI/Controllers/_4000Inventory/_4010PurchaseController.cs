@@ -1,5 +1,6 @@
 using ERP.Library.Enums;
 using ERP.Library.ViewModels._4000Inventory;
+using ERP.Service.API;
 using ERP.Service.API._4000Inventory;
 using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Mvc;
@@ -7,16 +8,18 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.WebAPI.Controllers._4000Inventory
 {
-    [SwaggerTag("庫存")]
+    [SwaggerTag("進貨單")]
     [ApiController]
     [Route("api/[controller]")]
     public class _4010PurchaseController : ControllerBase
     {
         private readonly I_4010PurchaseService _service;
+        private readonly ISharedService _sharedService;
 
-        public _4010PurchaseController(I_4010PurchaseService service)
+        public _4010PurchaseController(I_4010PurchaseService service, ISharedService sharedService)
         {
             _service = service;
+            _sharedService = sharedService;
         }
 
         [SwaggerOperation("查詢進貨單列表")]
@@ -52,6 +55,14 @@ namespace ERP.WebAPI.Controllers._4000Inventory
         public async Task<IActionResult> Edit(PurchaseAddVM vm)
         {
             var result = await _service.Edit(vm);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("取得庫存位下拉選單")]
+        [HttpGet, Route("GetInventorySelect")]
+        public async Task<IActionResult> GetInventorySelect()
+        {
+            var result = await _sharedService.GetInventorySelect();
             return Ok(result);
         }
     }

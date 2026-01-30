@@ -18,7 +18,7 @@ namespace ERP.Library.ViewModels._4000Inventory
         [SearchField("No", SearchCompare.Contains)]
         public string? No { get; set; }
 
-        [SwaggerParameter("供應商識別碼")]
+        [SwaggerParameter("供應商名稱")]
         [SearchField("Supplier.Name", SearchCompare.Contains)]
         public string? SupplierName { get; set; }
 
@@ -29,6 +29,10 @@ namespace ERP.Library.ViewModels._4000Inventory
         [SwaggerParameter("專案名稱")]
         [SearchField("ProjectName", SearchCompare.Contains)]
         public string? ProjectName { get; set; } = null!;
+
+        [SwaggerParameter("進貨位置")]
+        [SearchField("LocationId", SearchCompare.Equal)]
+        public int? LocationId { get; set; } = null!;
 
         [SwaggerParameter("進貨日期開始")]
         [SearchField("PurchaseDate", SearchCompare.GreaterThanOrEqual)]

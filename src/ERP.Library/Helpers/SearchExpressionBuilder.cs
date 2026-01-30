@@ -41,7 +41,7 @@ namespace ERP.Library.Helpers
                 //組合 => ex: x.Name
                 var member = BuildMemberExpression(parameter, attr.EntityProperty);
                 //x.Name.Contains("白粉")
-                var condition = BuildCondition(member, value, attr.Compare);
+                var condition = BuildCondition(member, value!, attr.Compare);
 
                 body = Expression.AndAlso(body, condition);
             }
@@ -67,7 +67,13 @@ namespace ERP.Library.Helpers
             }
             return (MemberExpression)current;
         }
-
+        /// <summary>
+        /// 建立對應的查詢條件 Expression
+        /// </summary>
+        /// <param name="member">比較的屬性成員（x.Name）</param>
+        /// <param name="value">該屬性的值</param>
+        /// <param name="compare">指較方式（等於、包含、大於等於、小於等於）</param>
+        /// <returns></returns>
         private static Expression BuildCondition(
             MemberExpression member,
             object value,

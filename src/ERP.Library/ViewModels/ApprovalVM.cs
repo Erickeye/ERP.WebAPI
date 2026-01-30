@@ -40,7 +40,7 @@ namespace ERP.Library.ViewModels
 
         [StringLength(64, ErrorMessage = "【簽核模組名稱】長度不可超過 64 個字元")]
         [SwaggerSchema("簽核模組名稱")]
-        public string? Name { get; set; } = null!;
+        public string Name { get; set; } = null!;
 
         [SwaggerSchema("是否啟用")]
         public bool IsActive { get; set; }
