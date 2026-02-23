@@ -22,8 +22,7 @@ namespace ERP.WebAPI.Controllers.Approval
 
         [SwaggerOperation("送出簽核流程")]
         [HttpPost, Route("SendApprovalProcess")]
-        [Log(OperationActionType.Submit, "送出簽核流程")]
-        public async Task<IActionResult> SendApprovalProcess(SendApprovalProcessVM data)
+        public async Task<IActionResult> SendApprovalProcess(ApprovalVM data)
         {
             var result = await _service.SendApprovalProcess(data);
             return Ok(result);
@@ -31,8 +30,7 @@ namespace ERP.WebAPI.Controllers.Approval
 
         [SwaggerOperation("檢視簽核紀錄")]
         [HttpGet, Route("GetApprovalProgress")]
-        [Log(OperationActionType.Submit, "送出簽核流程")]
-        public async Task<IActionResult> GetApprovalProgress([FromQuery] SendApprovalProcessVM data)
+        public async Task<IActionResult> GetApprovalProgress([FromQuery] ApprovalVM data)
         {
             var result = await _service.GetApprovalProgress(data);
             return Ok(result);
@@ -40,7 +38,7 @@ namespace ERP.WebAPI.Controllers.Approval
 
         [SwaggerOperation("簽核作業")]
         [HttpPost, Route("Approval")]
-        [Log(OperationActionType.Submit, "簽核作業")]
+        [Log(OperationActionType.Approval, "簽核作業")]
         public async Task<IActionResult> Approval(ApprovalVM data)
         {
             var result = await _service.Approval(data);
@@ -49,7 +47,6 @@ namespace ERP.WebAPI.Controllers.Approval
 
         [SwaggerOperation("拒絕簽核作業")]
         [HttpPost, Route("RejectApproval")]
-        [Log(OperationActionType.Submit, "拒絕簽核作業")]
         public async Task<IActionResult> RejectApproval(ApprovalVM data)
         {
             var result = await _service.RejectApproval(data);
@@ -58,7 +55,6 @@ namespace ERP.WebAPI.Controllers.Approval
 
         [SwaggerOperation("取得簽核訊息通知")]
         [HttpGet, Route("GetApprovalNotify")]
-        [Log(OperationActionType.Submit, "取得簽核訊息通知")]
         public async Task<IActionResult> GetApprovalNotify()
         {
             var result = await _service.GetApprovalNotify();

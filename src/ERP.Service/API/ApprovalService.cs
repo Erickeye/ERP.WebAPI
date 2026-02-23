@@ -13,8 +13,8 @@ namespace ERP.Service.API
 {
     public interface IApprovalService
     {
-        Task<ResultModel<string>> SendApprovalProcess(SendApprovalProcessVM data);
-        Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(SendApprovalProcessVM data);
+        Task<ResultModel<string>> SendApprovalProcess(ApprovalVM data);
+        Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(ApprovalVM data);
         Task<ResultModel<string>> Approval(ApprovalVM data);
         Task<ResultModel<string>> RejectApproval(ApprovalVM data);
         Task<ResultModel<ListResult<GetApprovalNotifyVM>>> GetApprovalNotify();
@@ -23,6 +23,7 @@ namespace ERP.Service.API
         Task<ResultModel<string>> CreateSettings(ApprovalSettingsInputVM vm);
         Task<ResultModel<string>> EditSetting(ApprovalCheckSettingsVM vm);
         Task<ResultModel<string>> DeleteSettings(int id);
+        Task<ResultModel<string>> RevokeApproval(ApprovalVM data);
     }
     public class ApprovalService : IApprovalService
     {
@@ -35,7 +36,7 @@ namespace ERP.Service.API
             _currentUserService = currentUserService;
         }
         //============================= 【簽核動作執行】=============================
-        public async Task<ResultModel<string>> SendApprovalProcess(SendApprovalProcessVM data)
+        public async Task<ResultModel<string>> SendApprovalProcess(ApprovalVM data)
         {
             //檢查設定檔
             var settingList = await _context.ApprovalSettings
@@ -170,7 +171,7 @@ namespace ERP.Service.API
             await _context.SaveChangesAsync();
             return ResultModel.Ok($"單號{data.TableId}成功送出簽核請求。");
         }
-        public async Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(SendApprovalProcessVM data)
+        public async Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(ApprovalVM data)
         {
             var recoreds = await _context.ApprovalRecord
                 .Where(x => x.TableId == data.TableId && x.TableId == data.TableId)
@@ -341,6 +342,42 @@ namespace ERP.Service.API
 
             await _context.SaveChangesAsync();
             return ResultModel.Ok("已拒絕該簽核作業");
+        }
+        public async Task<ResultModel<string>>RevokeApproval(ApprovalVM data)
+        {
+            int userId = _currentUserService.UserId;
+
+            var recordList = await _context.ApprovalRecord
+                .Where(x => x.TableType == (int)data.TableType &&
+                        x.TableId == data.TableId)
+                .OrderByDescending(x => x.StepOrder)
+                .ToListAsync();
+
+            var record = recordList.FirstOrDefault();
+
+            if (record == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核內容。");
+            }
+            if(record.Status != (int)ApprovalStatus.Pending)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidUserOperation, "無法撤銷簽核作業，因為目前簽核狀態不是待簽核中。");
+            }
+            if(record.UserId != userId)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "權限不足，無法撤銷簽核作業。");
+            }
+
+            foreach (var recordItem in recordList)
+            {
+                if (recordItem.Status == (int)ApprovalStatus.Pending)
+                {
+                    recordItem.Status = (int)ApprovalStatus.GetRevoked;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return ResultModel.Ok("已撤回該簽核作業");
         }
         public async Task<ResultModel<ListResult<GetApprovalNotifyVM>>> GetApprovalNotify()
         {

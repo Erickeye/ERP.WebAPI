@@ -1,4 +1,5 @@
 using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
 using ERP.Service.API;
 using ERP.Service.API._4000Inventory;
@@ -63,6 +64,26 @@ namespace ERP.WebAPI.Controllers._4000Inventory
         public async Task<IActionResult> GetInventorySelect()
         {
             var result = await _sharedService.GetInventorySelect();
+            return Ok(result);
+        }
+
+        [SwaggerOperation("簽核進貨單")]
+        [ValidateModel]
+        [HttpPost, Route("Approval")]
+        [Log(OperationActionType.Approval, "修改進貨單")]
+        public async Task<IActionResult> Approval(ApprovalVM vm)
+        {
+            var result = await _service.Approval(vm);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("撤銷簽核進貨單")]
+        [ValidateModel]
+        [HttpPost, Route("RevokeApproval")]
+        [Log(OperationActionType.RevokeApproval, "修改進貨單")]
+        public async Task<IActionResult> RevokeApproval(ApprovalVM vm)
+        {
+            var result = await _service.RevokeApproval(vm);
             return Ok(result);
         }
     }

@@ -1,6 +1,7 @@
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
+using ERP.Library.Enums.Other;
 using ERP.Library.Extensions;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
@@ -16,6 +17,8 @@ namespace ERP.Service.API._4000Inventory
         Task<ResultModel<PurchaseVM>> Get(int id);
         Task<ResultModel<string>> Add(PurchaseAddVM vm);
         Task<ResultModel<string>> Edit(PurchaseAddVM vm);
+        Task<ResultModel<string>> Approval(ApprovalVM vm);
+        Task<ResultModel<string>> RevokeApproval(ApprovalVM vm);
     }
     public class _4010PurchaseService : I_4010PurchaseService
     {
@@ -214,7 +217,8 @@ namespace ERP.Service.API._4000Inventory
         }
         public async Task<ResultModel<string>> Approval(ApprovalVM vm)
         {
-            var result = await _approvalService.Approval(vm);
+            vm.TableType = TableType.進貨單;
+            var result = await _approvalService.SendApprovalProcess(vm);
             if (!result)
             {
                 return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
@@ -250,6 +254,41 @@ namespace ERP.Service.API._4000Inventory
             }
             await _db.SaveChangesAsync();
 
+            return ResultModel.Ok($"{result.Data}");
+        }
+        public async Task<ResultModel<string>> RevokeApproval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.進貨單;
+            var result = await _approvalService.RevokeApproval(vm);
+            if (!result)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
+            //撤銷簽核成功後 => 更新庫存數量
+            var purchase = await _db.t_4010Purchase
+                .Include(x => x.t_4011PurchaseDetail)
+                .Where(x => x.Id.ToString() == vm.TableId)
+                .FirstOrDefaultAsync();
+            var purchaseItem = purchase!.t_4011PurchaseDetail.ToList();
+            //抓出庫存
+            var inventories = await _db.t_4000Inventory
+                .Where(x =>
+                    x.LocationId == purchase.LocationId &&
+                    x.SupplierId == purchase.SupplierId &&
+                    purchaseItem.Any(c => c.No == x.Number)
+                )
+                .ToListAsync();
+            foreach (var inventory in inventories)
+            {
+                var item = purchaseItem
+                    .Where(x => x.No == inventory.Number)
+                    .FirstOrDefault();
+                if (item != null)
+                {
+                    item.Quantity -= (decimal)inventory.Quantity!;
+                }
+            }
+            await _db.SaveChangesAsync();
             return ResultModel.Ok($"{result.Data}");
         }
 

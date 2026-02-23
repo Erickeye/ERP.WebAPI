@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -47,33 +47,21 @@ namespace ERP.Library.Enums
         Import,
 
         /// <summary>
+        /// 簽核
+        /// </summary>
+        [Display(Name = "簽核", Description = "簽核")]
+        Approval,
+
+        /// <summary>
+        /// 撤銷簽核
+        /// </summary>
+        [Display(Name = "撤銷簽核", Description = "撤銷簽核")]
+        RevokeApproval,
+
+        /// <summary>
         /// 重設密碼
         /// </summary>
         [Display(Name = "重設密碼", Description = "重設密碼")]
         ResetSw,
-
-        /// <summary>
-        /// 下載
-        /// </summary>
-        [Display(Name = "下載", Description = "下載")]
-        Download,
-
-        /// <summary>
-        /// 暫存
-        /// </summary>
-        [Display(Name = "暫存", Description = "暫存")]
-        TempSave,
-
-        /// <summary>
-        /// 送出（送出審核）
-        /// </summary>
-        [Display(Name = "送出", Description = "送出")]
-        Submit,
-
-        /// <summary>
-        /// 切換帳號
-        /// </summary>
-        [Display(Name = "切換帳號", Description = "切換帳號")]
-        Imitatie,
     }
 }

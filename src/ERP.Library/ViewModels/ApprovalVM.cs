@@ -5,18 +5,15 @@ using Swashbuckle.AspNetCore.Annotations;
 
 namespace ERP.Library.ViewModels
 {
-    public class SendApprovalProcessVM
+
+    public class ApprovalVM
     {
         [SwaggerParameter("表格種類")]
         public TableType TableType { get; set; }
 
         [SwaggerParameter("表格Id")]
         public string TableId { get; set; } = null!;
-    }
-    public class ApprovalVM
-    {
-        public TableType TableType { get; set; }
-        public string? TableId { get; set; } = null!;
+        [SwaggerParameter("備註")]
         public string? Memo { get; set; } = null!;
     }
     public class RejectApprovalVM

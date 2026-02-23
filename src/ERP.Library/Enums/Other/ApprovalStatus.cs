@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -17,5 +17,7 @@ namespace ERP.Library.Enums.Other
         Rejected = 2,
         [Display(Name = "流程遭拒絕")]
         GetRejected = 3,
+        [Display(Name = "流程遭撤銷")]
+        GetRevoked = 4,
     }
 }
