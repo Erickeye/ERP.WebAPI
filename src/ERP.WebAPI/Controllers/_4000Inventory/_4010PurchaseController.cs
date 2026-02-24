@@ -67,10 +67,20 @@ namespace ERP.WebAPI.Controllers._4000Inventory
             return Ok(result);
         }
 
+        [SwaggerOperation("送出簽核進貨單")]
+        [ValidateModel]
+        [HttpPost, Route("SendApproval")]
+        [Log(OperationActionType.Approval, "送出簽核進貨單")]
+        public async Task<IActionResult> SendApproval(ApprovalVM vm)
+        {
+            var result = await _service.SendApproval(vm);
+            return Ok(result);
+        }
+
         [SwaggerOperation("簽核進貨單")]
         [ValidateModel]
         [HttpPost, Route("Approval")]
-        [Log(OperationActionType.Approval, "修改進貨單")]
+        [Log(OperationActionType.Approval, "簽核進貨單")]
         public async Task<IActionResult> Approval(ApprovalVM vm)
         {
             var result = await _service.Approval(vm);

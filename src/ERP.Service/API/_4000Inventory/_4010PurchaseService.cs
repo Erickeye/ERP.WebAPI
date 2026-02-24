@@ -17,6 +17,7 @@ namespace ERP.Service.API._4000Inventory
         Task<ResultModel<PurchaseVM>> Get(int id);
         Task<ResultModel<string>> Add(PurchaseAddVM vm);
         Task<ResultModel<string>> Edit(PurchaseAddVM vm);
+        Task<ResultModel<string>> SendApproval(ApprovalVM vm);
         Task<ResultModel<string>> Approval(ApprovalVM vm);
         Task<ResultModel<string>> RevokeApproval(ApprovalVM vm);
     }
@@ -157,7 +158,7 @@ namespace ERP.Service.API._4000Inventory
                 .Where(x => x.Id == vm.Id)
                 .FirstOrDefaultAsync();
 
-            if(entity == null)
+            if (entity == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
@@ -199,7 +200,7 @@ namespace ERP.Service.API._4000Inventory
                     .Where(x => x.Id == item.Id)
                     .FirstOrDefault();
 
-                if(entityItem == null)
+                if (entityItem == null)
                 {
                     entityItem = new t_4011PurchaseDetail();
                     entity.t_4011PurchaseDetail.Add(entityItem);
@@ -215,7 +216,7 @@ namespace ERP.Service.API._4000Inventory
 
             return ResultModel.Ok();
         }
-        public async Task<ResultModel<string>> Approval(ApprovalVM vm)
+        public async Task<ResultModel<string>> SendApproval(ApprovalVM vm)
         {
             vm.TableType = TableType.進貨單;
             var result = await _approvalService.SendApprovalProcess(vm);
@@ -224,36 +225,74 @@ namespace ERP.Service.API._4000Inventory
                 return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
             }
 
-            //簽核成功後 => 更新庫存數量
+            await _db.SaveChangesAsync();
+            return ResultModel.Ok($"{result.Data}");
+        }
+        public async Task<ResultModel<string>> Approval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.進貨單;
+            var result = await _approvalService.Approval(vm);
+            if (!result)
+            {
+                return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+            }
+            if(!result.Data!.Contains("全數完成"))
+            {
+                return ResultModel.Ok($"{result.Data}");
+            }
+
+            //簽核全數完成後 => 更新庫存數量
             var purchase = await _db.t_4010Purchase
                 .Include(x => x.t_4011PurchaseDetail)
-                .Where(x => x.Id.ToString() == vm.TableId)
+                .Where(x => x.No == vm.TableId)
                 .FirstOrDefaultAsync();
 
             var purchaseItem = purchase!.t_4011PurchaseDetail.ToList();
+            var purchaseItemNo = purchaseItem.Select(x => x.No).ToList();
 
             //抓出庫存
             var inventories = await _db.t_4000Inventory
                 .Where(x =>
                     x.LocationId == purchase.LocationId &&
                     x.SupplierId == purchase.SupplierId &&
-                    purchaseItem.Any(c => c.No == x.Number)
+                    purchaseItemNo.Contains(x.Number)
                 )
                 .ToListAsync();
 
-            foreach (var inventory in inventories )
-            {
-                var item = purchaseItem
-                    .Where(x => x.No == inventory.Number)
-                    .FirstOrDefault();
+            var now = DateTime.Now;
 
-                if( item != null)
+            foreach (var item in purchaseItem)
+            {
+                var inventory = inventories
+                     .Where(x => x.Number == item.No)
+                     .FirstOrDefault();
+
+                if (inventory != null)
                 {
-                    item.Quantity += (decimal)inventory.Quantity!;
+                    inventory.Quantity += (decimal)item.Quantity!;
+                }
+                else
+                {
+                    //庫存沒有則新增一筆
+                    inventory = new t_4000Inventory
+                    {
+                        SupplierId = purchase.SupplierId,
+                        Name = item.Name,
+                        LocationId = purchase.LocationId,
+                        Category = item.Category,
+                        Number = item.No,
+                        Unit = item.Unit,
+                        Quantity = item.Quantity,
+                        Amount = item.Price,
+                        Total = item.Quantity * item.Price,
+                        LastPurchaseDate = now
+                    };
+                    _db.t_4000Inventory.Add(inventory);
                 }
             }
-            await _db.SaveChangesAsync();
+            purchase.IsApproval = true;
 
+            await _db.SaveChangesAsync();
             return ResultModel.Ok($"{result.Data}");
         }
         public async Task<ResultModel<string>> RevokeApproval(ApprovalVM vm)
@@ -267,26 +306,32 @@ namespace ERP.Service.API._4000Inventory
             //撤銷簽核成功後 => 更新庫存數量
             var purchase = await _db.t_4010Purchase
                 .Include(x => x.t_4011PurchaseDetail)
-                .Where(x => x.Id.ToString() == vm.TableId)
+                .Where(x => x.No == vm.TableId)
                 .FirstOrDefaultAsync();
+
             var purchaseItem = purchase!.t_4011PurchaseDetail.ToList();
+            var purchaseItemNo = purchaseItem.Select(x => x.No).ToList();
+
             //抓出庫存
             var inventories = await _db.t_4000Inventory
                 .Where(x =>
                     x.LocationId == purchase.LocationId &&
                     x.SupplierId == purchase.SupplierId &&
-                    purchaseItem.Any(c => c.No == x.Number)
+                    purchaseItemNo.Contains(x.Number)
                 )
                 .ToListAsync();
-            foreach (var inventory in inventories)
+
+            foreach (var item in purchase!.t_4011PurchaseDetail)
             {
-                var item = purchaseItem
-                    .Where(x => x.No == inventory.Number)
-                    .FirstOrDefault();
-                if (item != null)
+                var inventory = inventories
+                     .Where(x => x.Number == item.No)
+                     .FirstOrDefault();
+
+                if (inventory == null)
                 {
-                    item.Quantity -= (decimal)inventory.Quantity!;
+                    return ResultModel.Error(ErrorCodeType.InvalidApproval, "撤銷簽核失敗，該庫存數量不足。");
                 }
+                inventory.Quantity -= (decimal)item.Quantity!;
             }
             await _db.SaveChangesAsync();
             return ResultModel.Ok($"{result.Data}");

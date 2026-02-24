@@ -86,7 +86,8 @@ namespace ERP.Service.API
             var tableCheckers = new Dictionary<TableType, Func<string, Task<bool>>>
             {
                 { TableType.請假單, async id => await _context.t_1030Dayoff.AnyAsync(x => x.Id.ToString() == id) },
-                { TableType.公文,   async id => await _context.t_1040Document.AnyAsync(x => x.Id.ToString() == id) }
+                { TableType.公文, async id => await _context.t_1040Document.AnyAsync(x => x.Id.ToString() == id) },
+                { TableType.進貨單, async id => await _context.t_4010Purchase.AnyAsync(x => x.No!.ToString() == id) },
             };
             //檢查是否有該單號
             if (tableCheckers.TryGetValue((TableType)setting.TableType, out var checker))
@@ -343,7 +344,7 @@ namespace ERP.Service.API
             await _context.SaveChangesAsync();
             return ResultModel.Ok("已拒絕該簽核作業");
         }
-        public async Task<ResultModel<string>>RevokeApproval(ApprovalVM data)
+        public async Task<ResultModel<string>> RevokeApproval(ApprovalVM data)
         {
             int userId = _currentUserService.UserId;
 
@@ -359,11 +360,11 @@ namespace ERP.Service.API
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核內容。");
             }
-            if(record.Status != (int)ApprovalStatus.Pending)
+            if (record.Status != (int)ApprovalStatus.Pending)
             {
                 return ResultModel.Error(ErrorCodeType.InvalidUserOperation, "無法撤銷簽核作業，因為目前簽核狀態不是待簽核中。");
             }
-            if(record.UserId != userId)
+            if (record.UserId != userId)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData, "權限不足，無法撤銷簽核作業。");
             }
@@ -376,7 +377,40 @@ namespace ERP.Service.API
                 }
             }
 
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
+            return ResultModel.Ok("已撤回該簽核作業");
+        }
+        public async Task<ResultModel<string>> VoidApproval(ApprovalVM data)
+        {
+            int userId = _currentUserService.UserId;
+
+            var recordList = await _context.ApprovalRecord
+                .Where(x => x.TableType == (int)data.TableType &&
+                        x.TableId == data.TableId)
+                .OrderByDescending(x => x.StepOrder)
+                .ToListAsync();
+
+            var record = recordList.FirstOrDefault();
+
+            if (!recordList.Any() || record == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到該簽核內容。");
+            }
+            if (record.UserId != userId)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "權限不足，無法撤銷簽核作業。");
+            }
+
+            foreach (var recordItem in recordList)
+            {
+                if (record.Status != (int)ApprovalStatus.Approved)
+                {
+                    return ResultModel.Error(ErrorCodeType.InvalidUserOperation, "無法作廢簽核作業，因為目前簽核狀態不是待簽核中。");
+                }
+                recordItem.Status = (int)ApprovalStatus.GetRevoked;
+            }
+
+            //await _context.SaveChangesAsync();
             return ResultModel.Ok("已撤回該簽核作業");
         }
         public async Task<ResultModel<ListResult<GetApprovalNotifyVM>>> GetApprovalNotify()
@@ -499,19 +533,25 @@ namespace ERP.Service.API
                 _context.Remove(step);
             }
 
+            // 檢查是否有 0 或 重複的 StepOrder
+            if (vm.Steps == null ||
+                vm.Steps.Any(x => x.StepOrder == 0) ||
+                vm.Steps.GroupBy(x => x.StepOrder).Any(g => g.Count() > 1))
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "簽核順序設定有誤。");
+            }
+
             foreach (var stepVm in vm.Steps)
             {
                 var stepEntity = entitySetting.ApprovalStep.FirstOrDefault(x => x.Id == stepVm.Id);
                 if (stepEntity == null)
                 {
                     //新增步驟
-                    stepEntity = new ApprovalStep
-                    {
-                        StepOrder = 0,
-                    };
+                    stepEntity = new ApprovalStep();
                     entitySetting.ApprovalStep.Add(stepEntity);
                 }
                 stepEntity.RoleId = stepVm.RoleId;
+                stepEntity.StepOrder = stepVm.StepOrder;
                 stepEntity.Mode = stepVm.Mode;
                 stepEntity.RequiredCounts = stepVm.RequiredCounts;
 
@@ -547,7 +587,7 @@ namespace ERP.Service.API
 
             await _context.SaveChangesAsync();
             return ResultModel.Ok();
-        }        
+        }
         public async Task<ResultModel<string>> DeleteSettings(int id)
         {
             var result = new ResultModel<string>();
