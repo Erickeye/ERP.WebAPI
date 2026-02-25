@@ -427,7 +427,7 @@ public partial class ERPDbContext : DbContext
 
             entity.HasIndex(e => e.Name, "IX_t_4000Inventory_Name");
 
-            entity.HasIndex(e => e.Number, "IX_t_4000Inventory_Number");
+            entity.HasIndex(e => e.No, "IX_t_4000Inventory_Number");
 
             entity.HasIndex(e => e.SupplierId, "IX_t_4000Inventory_SupplierId");
 
@@ -435,7 +435,7 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Category).HasMaxLength(64);
             entity.Property(e => e.LastPurchaseDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(128);
-            entity.Property(e => e.Number).HasMaxLength(64);
+            entity.Property(e => e.No).HasMaxLength(64);
             entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Unit).HasMaxLength(16);

@@ -42,7 +42,7 @@ namespace ERP.Service.API._4000Inventory
                     LocationName = x.Location != null ? x.Location.Name : string.Empty,
                     Category = x.Category,
                     LastPurchaseDate = x.LastPurchaseDate,
-                    Number = x.Number,
+                    No = x.No,
                     Unit = x.Unit,
                     Quantity = x.Quantity,
                     Amount = x.Amount,

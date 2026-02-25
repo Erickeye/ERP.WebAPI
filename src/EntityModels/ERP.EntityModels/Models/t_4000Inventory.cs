@@ -17,7 +17,7 @@ public partial class t_4000Inventory
 
     public DateTime? LastPurchaseDate { get; set; }
 
-    public string? Number { get; set; }
+    public string? No { get; set; }
 
     public string? Unit { get; set; }
 

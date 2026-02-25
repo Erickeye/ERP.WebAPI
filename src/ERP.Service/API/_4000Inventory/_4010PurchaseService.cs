@@ -257,7 +257,7 @@ namespace ERP.Service.API._4000Inventory
                 .Where(x =>
                     x.LocationId == purchase.LocationId &&
                     x.SupplierId == purchase.SupplierId &&
-                    purchaseItemNo.Contains(x.Number)
+                    purchaseItemNo.Contains(x.No)
                 )
                 .ToListAsync();
 
@@ -266,7 +266,7 @@ namespace ERP.Service.API._4000Inventory
             foreach (var item in purchaseItem)
             {
                 var inventory = inventories
-                     .Where(x => x.Number == item.No)
+                     .Where(x => x.No == item.No)
                      .FirstOrDefault();
 
                 if (inventory != null)
@@ -282,7 +282,7 @@ namespace ERP.Service.API._4000Inventory
                         Name = item.Name,
                         LocationId = purchase.LocationId,
                         Category = item.Category,
-                        Number = item.No,
+                        No = item.No,
                         Unit = item.Unit,
                         Quantity = item.Quantity,
                         Amount = item.Price,
@@ -319,14 +319,14 @@ namespace ERP.Service.API._4000Inventory
                 .Where(x =>
                     x.LocationId == purchase.LocationId &&
                     x.SupplierId == purchase.SupplierId &&
-                    purchaseItemNo.Contains(x.Number)
+                    purchaseItemNo.Contains(x.No)
                 )
                 .ToListAsync();
 
             foreach (var item in purchase!.t_4011PurchaseDetail)
             {
                 var inventory = inventories
-                     .Where(x => x.Number == item.No)
+                     .Where(x => x.No == item.No)
                      .FirstOrDefault();
 
                 if (inventory == null)

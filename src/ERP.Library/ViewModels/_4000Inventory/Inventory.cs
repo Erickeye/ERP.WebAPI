@@ -52,7 +52,7 @@ namespace ERP.Library.ViewModels._4000Inventory
         public DateTime? LastPurchaseDate { get; set; }
 
         [SwaggerParameter("編號")]
-        public string? Number { get; set; }
+        public string? No { get; set; }
 
         [SwaggerParameter("單位")]
         public string? Unit { get; set; }

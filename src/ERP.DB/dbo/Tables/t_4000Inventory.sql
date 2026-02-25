@@ -6,7 +6,7 @@ CREATE TABLE [dbo].[t_4000Inventory]
     [LocationId] INT NOT NULL, 
     [Category] NVARCHAR(64) NULL, 
     [LastPurchaseDate] DATETIME NULL, 
-    [Number] NVARCHAR(64) NULL, 
+    [No] NVARCHAR(64) NULL, 
     [Unit] NVARCHAR(16) NULL, 
     [Quantity] DECIMAL(12, 2) NULL, 
     [Amount] DECIMAL(12, 2) NULL, 
@@ -26,7 +26,7 @@ ON dbo.t_4000Inventory (Category);
 -- 料號（精準查詢）
 GO
 CREATE NONCLUSTERED INDEX IX_t_4000Inventory_Number
-ON dbo.t_4000Inventory (Number);
+ON dbo.t_4000Inventory ([No]);
 -- 品名（搜尋）
 GO
 CREATE NONCLUSTERED INDEX IX_t_4000Inventory_Name

@@ -9,7 +9,7 @@ namespace ERP.Library.QuerySort
             = new()
             {
             { "Category",   x => x.Category! },
-            { "Number",     x => x.Number! },
+            { "Number",     x => x.No! },
             { "Name",       x => x.Name! },
             { "SupplierName", x => x.SupplierName! },
             { "LocationName", x => x.LocationName! },
