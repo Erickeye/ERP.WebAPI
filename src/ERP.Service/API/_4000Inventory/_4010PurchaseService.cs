@@ -19,7 +19,7 @@ namespace ERP.Service.API._4000Inventory
         Task<ResultModel<string>> Edit(PurchaseAddVM vm);
         Task<ResultModel<string>> SendApproval(ApprovalVM vm);
         Task<ResultModel<string>> Approval(ApprovalVM vm);
-        Task<ResultModel<string>> RevokeApproval(ApprovalVM vm);
+        Task<ResultModel<string>> VoidApproval(ApprovalVM vm);
     }
     public class _4010PurchaseService : I_4010PurchaseService
     {
@@ -147,6 +147,8 @@ namespace ERP.Service.API._4000Inventory
             }
 
             entity.No = await _serialService.GenerateAsync("PU");
+
+            _db.t_4010Purchase.Add(entity);
             await _db.SaveChangesAsync();
 
             return ResultModel.Ok(entity.No);
@@ -295,10 +297,10 @@ namespace ERP.Service.API._4000Inventory
             await _db.SaveChangesAsync();
             return ResultModel.Ok($"{result.Data}");
         }
-        public async Task<ResultModel<string>> RevokeApproval(ApprovalVM vm)
+        public async Task<ResultModel<string>> VoidApproval(ApprovalVM vm)
         {
             vm.TableType = TableType.進貨單;
-            var result = await _approvalService.RevokeApproval(vm);
+            var result = await _approvalService.VoidApproval(vm);
             if (!result)
             {
                 return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
@@ -329,9 +331,15 @@ namespace ERP.Service.API._4000Inventory
 
                 if (inventory == null)
                 {
-                    return ResultModel.Error(ErrorCodeType.InvalidApproval, "撤銷簽核失敗，該庫存數量不足。");
+                    return ResultModel.Error(ErrorCodeType.InvalidApproval, $"撤銷簽核失敗，找不到該庫存物品:【{item.No}】{item.Name}。");
                 }
+
                 inventory.Quantity -= (decimal)item.Quantity!;
+                if(inventory.Quantity < 0)
+                {
+                    return ResultModel.Error(ErrorCodeType.InvalidApproval, $"撤銷簽核失敗，該庫存數量不足:【{item.No}】{item.Name} /r/n" +
+                        $"進貨單數量:{item.Quantity}，庫存數量{inventory.Quantity}。");
+                }
             }
             await _db.SaveChangesAsync();
             return ResultModel.Ok($"{result.Data}");

@@ -24,6 +24,7 @@ namespace ERP.Service.API
         Task<ResultModel<string>> EditSetting(ApprovalCheckSettingsVM vm);
         Task<ResultModel<string>> DeleteSettings(int id);
         Task<ResultModel<string>> RevokeApproval(ApprovalVM data);
+        Task<ResultModel<string>> VoidApproval(ApprovalVM data);
     }
     public class ApprovalService : IApprovalService
     {
@@ -386,7 +387,8 @@ namespace ERP.Service.API
 
             var recordList = await _context.ApprovalRecord
                 .Where(x => x.TableType == (int)data.TableType &&
-                        x.TableId == data.TableId)
+                        x.TableId == data.TableId &&
+                        x.Status != (int)ApprovalStatus.GetRevoked)
                 .OrderByDescending(x => x.StepOrder)
                 .ToListAsync();
 
@@ -403,9 +405,9 @@ namespace ERP.Service.API
 
             foreach (var recordItem in recordList)
             {
-                if (record.Status != (int)ApprovalStatus.Approved)
+                if (recordItem.Status != (int)ApprovalStatus.Approved)
                 {
-                    return ResultModel.Error(ErrorCodeType.InvalidUserOperation, "無法作廢簽核作業，因為目前簽核狀態不是待簽核中。");
+                    return ResultModel.Error(ErrorCodeType.InvalidUserOperation, "無法作廢簽核作業，該簽核流程尚未完成。");
                 }
                 recordItem.Status = (int)ApprovalStatus.GetRevoked;
             }

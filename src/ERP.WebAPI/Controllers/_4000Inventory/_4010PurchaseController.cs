@@ -89,11 +89,11 @@ namespace ERP.WebAPI.Controllers._4000Inventory
 
         [SwaggerOperation("撤銷簽核進貨單")]
         [ValidateModel]
-        [HttpPost, Route("RevokeApproval")]
+        [HttpPost, Route("VoidApproval")]
         [Log(OperationActionType.RevokeApproval, "修改進貨單")]
-        public async Task<IActionResult> RevokeApproval(ApprovalVM vm)
+        public async Task<IActionResult> VoidApproval(ApprovalVM vm)
         {
-            var result = await _service.RevokeApproval(vm);
+            var result = await _service.VoidApproval(vm);
             return Ok(result);
         }
     }

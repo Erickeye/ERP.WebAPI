@@ -105,5 +105,24 @@ namespace ERP.WebAPI.Controllers.Approval
             var result = await _service.DeleteSettings(id);
             return Ok(result);
         }
+
+        [ValidateModel]
+        [SwaggerOperation("撤銷簽核作業")]
+        [HttpPost, Route("RevokeApproval")]
+        [Log(OperationActionType.RevokeApproval, "撤銷簽核作業")]
+        public async Task<IActionResult> RevokeApproval(ApprovalVM data)
+        {
+            var result = await _service.RevokeApproval(data);
+            return Ok(result);
+        }
+        [ValidateModel]
+        [SwaggerOperation("撤銷簽核作業")]
+        [HttpPost, Route("VoidApproval")]
+        [Log(OperationActionType.RevokeApproval, "撤銷簽核作業")]
+        public async Task<IActionResult> VoidApproval(ApprovalVM data)
+        {
+            var result = await _service.VoidApproval(data);
+            return Ok(result);
+        }
     }
 }
