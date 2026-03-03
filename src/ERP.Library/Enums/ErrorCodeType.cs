@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -146,6 +146,9 @@ namespace ERP.Library.Enums
 
         [Display(Name = "稽核紀錄不存在", Description = "稽核紀錄不存在")]
         AuditLogNotFound = 1201,
+
+        [Display(Name = "關聯資料錯誤", Description = "關聯資料錯誤")]
+        DbRelationError = 1301,
 
         /// <summary>
         /// 例外錯誤
