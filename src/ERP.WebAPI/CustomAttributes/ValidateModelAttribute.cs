@@ -1,4 +1,4 @@
-﻿using ERP.Library.Enums;
+using ERP.Library.Enums;
 using ERP.Library.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -15,6 +15,7 @@ namespace ERP.WebAPI.CustomAttributes
                 var result = new ResultModel<Dictionary<string, List<string>>>();
 
                 result.ErrorCode = ErrorCodeType.FieldValueIsInvalid;
+                result.ErrorMessage = ErrorCodeType.FieldValueIsInvalid.GetDisplayName();
                 result.Data = context.ModelState.GetErrorsDictionary();
 
                 context.Result = new JsonResult(result)

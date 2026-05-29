@@ -32,7 +32,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-   foreach (ApiGroupType group in Enum.GetValues(typeof(ApiGroupType)))
+    options.SchemaFilter<DisplayNameSchemaFilter>();
+
+    foreach (ApiGroupType group in Enum.GetValues(typeof(ApiGroupType)))
     {
         options.SwaggerDoc(
             group.ToString(),

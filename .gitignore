@@ -6,6 +6,8 @@
 *.sdf
 *.dbmdl
 # *.db
+# logs
+logs/
 *.log
 *.ncb
 *.opendb
