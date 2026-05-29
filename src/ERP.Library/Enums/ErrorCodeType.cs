@@ -24,11 +24,17 @@ namespace ERP.Library.Enums
         [Display(Name = "無效的權杖", Description = "無效的權杖")]
         InvalidToken = 1008,
 
-        [Display(Name = "不支援的驗證方法", Description = "不支援的驗證方法")]
-        UnsupportedAuthenticateType = 1009,
-
         [Display(Name = "權杖已到期", Description = "權杖已到期")]
         TokenExpiredOrInvalid = 1010,
+
+        [Display(Name = "請輸入驗證碼", Description = "請輸入驗證碼")]
+        CaptchaRequired = 1011,
+
+        [Display(Name = "驗證碼已失效，請重新取得", Description = "驗證碼已失效，請重新取得")]
+        CaptchaExpired = 1011,
+
+        [Display(Name = "驗證碼錯誤", Description = "驗證碼錯誤")]
+        InvalidCaptcha = 1012,
 
         [Display(Name = "密碼未設定", Description = "密碼未設定")]
         PasswordUnassigned = 1021,

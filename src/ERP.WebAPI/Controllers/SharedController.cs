@@ -5,6 +5,7 @@ using ERP.Service.API._1000Company;
 using ERP.Service.API._2000Customer;
 using ERP.Service.API._4000Inventory;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -21,12 +22,23 @@ namespace ERP.WebAPI.Controllers
         private readonly I_1000Service _1000Service;
         private readonly I_2000CustomerService _2000SCustomerService;
         private readonly I_4060SupplierService _4060SupplierService;
-        public SharedController(ISharedService service, I_1000Service _1000Service, I_2000CustomerService _2000SCustomerService, I_4060SupplierService _4060SupplierService)
+        private readonly ICaptchaService _captchaService;
+        public SharedController(ISharedService service, I_1000Service _1000Service, I_2000CustomerService _2000SCustomerService, I_4060SupplierService _4060SupplierService, ICaptchaService captchaService)
         {
             _service = service;
             this._1000Service = _1000Service;
             this._2000SCustomerService = _2000SCustomerService;
             this._4060SupplierService = _4060SupplierService;
+            _captchaService = captchaService;
+        }
+
+        [AllowAnonymous]
+        [SwaggerOperation("取得圖形驗證碼")]
+        [HttpGet("Captcha")]
+        public async Task<IActionResult> GetCaptcha()
+        {
+            var result = await _captchaService.GenerateAsync();
+            return Ok(result);
         }
 
         [SwaggerOperation("取得員工下拉選單")]

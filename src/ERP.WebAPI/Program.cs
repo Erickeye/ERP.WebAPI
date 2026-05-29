@@ -3,9 +3,11 @@ using System.Text;
 using ERP.EntityModels.Context;
 using ERP.Library.Enums;
 using ERP.Library.Extensions;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
 using ERP.Service.API;
+using ERP.WebAPI.Filters;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -15,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +36,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SchemaFilter<DisplayNameSchemaFilter>();
+    options.OperationFilter<RequireCaptchaOperationFilter>();
 
     foreach (ApiGroupType group in Enum.GetValues(typeof(ApiGroupType)))
     {
@@ -168,7 +172,21 @@ builder.Services.AddDbContext<ERPDbContext>(options =>
 
 builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));
 
-    builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+
+    var options = new ConfigurationOptions
+    {
+        EndPoints = { builder.Configuration["RedisSettings:ConnectionString"] ?? "" },
+        Password = builder.Configuration["RedisSettings:Password"],
+        AbortOnConnectFail = false,
+        ConnectRetry = 5,
+        ConnectTimeout = 5000,
+        KeepAlive = 60
+    };
+
+    return ConnectionMultiplexer.Connect(options);
+});
 // 註冊介面跟服務(自動註冊服務)
 var assembly = Assembly.GetAssembly(typeof(IApprovalService));
 var types = assembly!.GetTypes()

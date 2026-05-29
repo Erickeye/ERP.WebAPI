@@ -66,7 +66,7 @@ namespace ERP.Service.API.AMS
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = RefreshTokenExpirationTime;
-            _context.SaveChanges();
+            //_context.SaveChanges();
 
             var result = new LoginResponse
             {
