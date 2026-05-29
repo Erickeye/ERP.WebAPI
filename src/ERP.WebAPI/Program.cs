@@ -168,6 +168,7 @@ builder.Services.AddDbContext<ERPDbContext>(options =>
 
 builder.Services.Configure<SftpConfig>(builder.Configuration.GetSection("SftpConfig"));
 
+    builder.Services.Configure<RedisSettings>(builder.Configuration.GetSection("JwtSettings"));
 // 註冊介面跟服務(自動註冊服務)
 var assembly = Assembly.GetAssembly(typeof(IApprovalService));
 var types = assembly!.GetTypes()
