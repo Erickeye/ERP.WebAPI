@@ -1,12 +1,14 @@
 using System.Reflection;
 using System.Text;
+using ERP.Approval.Extensions;
 using ERP.EntityModels.Context;
 using ERP.Library.Enums;
 using ERP.Library.Extensions;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels.Login;
 using ERP.Library.ViewModels.Sftp;
-using ERP.Service.API;
+using ERP.Service.API.Approval;
+using ERP.Service.API.AMS;
 using ERP.WebAPI.Filters;
 using ERP.WebAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -189,8 +191,11 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 
     return ConnectionMultiplexer.Connect(options);
 });
+builder.Services.AddApprovalModule();
+builder.Services.AddApprovalServiceAdapters();
+
 // 註冊介面跟服務(自動註冊服務)
-var assembly = Assembly.GetAssembly(typeof(IApprovalService));
+var assembly = Assembly.GetAssembly(typeof(ICurrentUserService));
 var types = assembly!.GetTypes()
             .Where(c => c.Namespace != null)
             .Where(c => c.Namespace!.StartsWith("ERP.Service"))

@@ -11,6 +11,9 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ERP.Service.API
 {
+    /// <summary>
+    /// 已模組化，該頁面已棄用
+    /// </summary>
     public interface IApprovalService
     {
         Task<ResultModel<string>> SendApprovalProcess(ApprovalVM data);

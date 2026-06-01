@@ -1,3 +1,4 @@
+using ERP.Approval.Abstractions;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
@@ -26,13 +27,13 @@ namespace ERP.Service.API._4000Inventory
         private readonly ERPDbContext _db;
         private readonly ICurrentUserService _currentUserService;
         private readonly ISerialService _serialService;
-        private readonly IApprovalService _approvalService;
-        public _4010PurchaseService(ERPDbContext db, ICurrentUserService currentUserService, ISerialService serialService, IApprovalService approvalService)
+        private readonly IApprovalWorkflowService _approvalWorkflowService;
+        public _4010PurchaseService(ERPDbContext db, ICurrentUserService currentUserService, ISerialService serialService, IApprovalWorkflowService approvalWorkflowService)
         {
             _db = db;
             _currentUserService = currentUserService;
             _serialService = serialService;
-            _approvalService = approvalService;
+            _approvalWorkflowService = approvalWorkflowService;
         }
 
         public async Task<ResultModel<PagedResult<PurchaseVM>>> Index(PurchaseSearchVM vm)
@@ -221,7 +222,7 @@ namespace ERP.Service.API._4000Inventory
         public async Task<ResultModel<string>> SendApproval(ApprovalVM vm)
         {
             vm.TableType = TableType.進貨單;
-            var result = await _approvalService.SendApprovalProcess(vm);
+            var result = await _approvalWorkflowService.SendApprovalProcess(vm);
             if (!result)
             {
                 return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
@@ -233,12 +234,12 @@ namespace ERP.Service.API._4000Inventory
         public async Task<ResultModel<string>> Approval(ApprovalVM vm)
         {
             vm.TableType = TableType.進貨單;
-            var result = await _approvalService.Approval(vm);
+            var result = await _approvalWorkflowService.Approval(vm);
             if (!result)
             {
                 return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
             }
-            if(!result.Data!.Contains("全數完成"))
+            if(!result.Data!.Contains("全部流程已結束"))
             {
                 return ResultModel.Ok($"{result.Data}");
             }
@@ -300,7 +301,7 @@ namespace ERP.Service.API._4000Inventory
         public async Task<ResultModel<string>> VoidApproval(ApprovalVM vm)
         {
             vm.TableType = TableType.進貨單;
-            var result = await _approvalService.VoidApproval(vm);
+            var result = await _approvalWorkflowService.VoidApproval(vm);
             if (!result)
             {
                 return ResultModel.Error(result.ErrorCode, result.ErrorMessage);

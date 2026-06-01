@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ERP.Approval\ERP.Approval.csproj" />
     <ProjectReference Include="..\EntityModels\ERP.EntityModels\ERP.EntityModels.csproj" />
     <ProjectReference Include="..\ERP.Library\ERP.Library.csproj" />
   </ItemGroup>
