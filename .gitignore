@@ -12,6 +12,7 @@ logs/
 *.ncb
 *.opendb
 *.VC.db
+appsettings.Development.json
 
 # Build
 bin/

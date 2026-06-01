@@ -167,6 +167,8 @@ builder.Services.AddAuthentication(options =>
 });
 //--------------------JWT Settings-------------------
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddDbContext<ERPDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ERP")));
 
@@ -226,11 +228,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("DevCors");
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<ActionLoggingMiddleware>();
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 
