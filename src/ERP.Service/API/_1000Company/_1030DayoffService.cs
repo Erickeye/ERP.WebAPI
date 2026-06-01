@@ -105,7 +105,7 @@ namespace ERP.Service.API._1000Company
             if (search.EndDate.HasValue)
             {
                 var date = search.EndDate.Value.To235959();
-                filter = filter.ExpressionAnd(x => x.EndDate >= date);
+                filter = filter.ExpressionAnd(x => x.EndDate <= date);
             }
 
             var list = await _context.t_1030Dayoff
@@ -245,7 +245,7 @@ namespace ERP.Service.API._1000Company
             {
                 return ResultModel.Error(specialLeaveDaysResult.ErrorCode, specialLeaveDaysResult.ErrorMessage);
             }
-            var specialLeaveDays = totalDaysResult.Data;
+            var specialLeaveDays = specialLeaveDaysResult.Data;
 
             return ResultModel.Ok(totalDays - specialLeaveDays);
         }

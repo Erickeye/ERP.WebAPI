@@ -48,10 +48,10 @@ namespace ERP.Service.API.AMS
                 return ResultModel.Error(ErrorCodeType.UserNotFound);
             }
 
-            if (PasswordHelper.IsPasswordValid(login.Password, user.Pwd!))
-            {
-                return ResultModel.Error(ErrorCodeType.IncorrectUsernameOrPassword);
-            }
+            //if (!PasswordHelper.IsPasswordValid(login.Password, user.Pwd!))
+            //{
+            //    return ResultModel.Error(ErrorCodeType.IncorrectUsernameOrPassword);
+            //}
             if (user.IsLock)
             {
                 return ResultModel.Error(ErrorCodeType.UserLocked);
@@ -66,7 +66,6 @@ namespace ERP.Service.API.AMS
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = RefreshTokenExpirationTime;
-            //_context.SaveChanges();
 
             var result = new LoginResponse
             {
@@ -79,7 +78,15 @@ namespace ERP.Service.API.AMS
                 Permissions = permissions
             };
             //紀錄登入Log
-            LoginLog(login, user.Id);
+            var log = new t_1700LoginLog
+            {
+                UserId = user.Id,
+                Account = login.Account,
+                IpAddress = GetClientIp(),
+                CrateDate = DateTime.Now
+            };
+            _context.t_1700LoginLog!.Add(log);
+            await _context.SaveChangesAsync();
             return ResultModel.Ok(result);
         }
 
@@ -213,18 +220,6 @@ namespace ERP.Service.API.AMS
             return Convert.ToBase64String(randomBytes);
         }
 
-        private void LoginLog(LoginRequest login, int userId)
-        {
-            var log = new t_1700LoginLog
-            {
-                UserId = userId,
-                Account = login.Account,
-                IpAddress = GetClientIp(),
-                CrateDate = DateTime.Now
-            };
-            _context.t_1700LoginLog!.Add(log);
-            _context.SaveChangesAsync();
-        }
         public string GetClientIp()
         {
             var ip = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
