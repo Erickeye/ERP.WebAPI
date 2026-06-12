@@ -2,15 +2,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.5.11723.231
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "方案項目", "方案項目", "{8DDC4786-5FC8-F15C-1CA5-9F41FD4BEB75}"
-	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
-		.gitattributes = .gitattributes
-		.gitignore = .gitignore
-		README.md = README.md
-		.github\workflows\sensitive-scan.yml = .github\workflows\sensitive-scan.yml
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.EntityModels", "src\EntityModels\ERP.EntityModels\ERP.EntityModels.csproj", "{FE56CD9F-4F3E-D5B3-598B-2C562AFE0DCA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Service", "src\ERP.Service\ERP.Service.csproj", "{A0515B21-0C71-A636-CE7E-96E97482FB8E}"

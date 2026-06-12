@@ -29,4 +29,10 @@
     <ProjectReference Include="..\ERP.Service\ERP.Service.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Templates\庫存列表.xlsx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
