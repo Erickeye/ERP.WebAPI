@@ -38,8 +38,17 @@ namespace ERP.Service.API._4000Inventory
      
         public async Task<ResultModel<FileModel>> Export(InventorySearchVM vm)
         {
-            var query = QueryList(vm);
-            var list = await query.ToListAsync();
+            //var query = QueryList(vm);
+
+            var list = await _db.Database.StoredProcedureQueryAsync<InventoryVM>(
+                "sp_Inventory_Search",
+                new
+                {
+                    vm.SupplierName,
+                    vm.LocationName,
+                    vm.Category,
+                    vm.Name,
+                });
 
             var reportData = new InventoryExportVM
             {

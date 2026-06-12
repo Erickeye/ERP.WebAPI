@@ -58,6 +58,7 @@
     <Folder Include="Properties" />
     <Folder Include="dbo\" />
     <Folder Include="dbo\Tables\" />
+    <Folder Include="dbo\SP" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="dbo\Tables\User.sql" />
@@ -93,6 +94,7 @@
     <Build Include="dbo\Tables\SystemConfig.sql" />
     <Build Include="dbo\Tables\t_4011PurchaseDetail.sql" />
     <Build Include="dbo\Tables\SerialNumber.sql" />
+    <Build Include="dbo\SP\sp_Inventory_Search.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="ERP.DB.refactorlog" />
