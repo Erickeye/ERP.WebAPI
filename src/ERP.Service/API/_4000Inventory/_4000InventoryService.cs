@@ -5,7 +5,7 @@ using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
 using Microsoft.EntityFrameworkCore;
-using Aspose.Cells;
+using ClosedXML.Excel;
 
 namespace ERP.Service.API._4000Inventory
 {
@@ -69,10 +69,10 @@ namespace ERP.Service.API._4000Inventory
 
             var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "庫存列表.xlsx");
 
-            var workbook = new Workbook(templatePath);
+            var workbook = new XLWorkbook(templatePath);
             workbook.BindData(reportData);
 
-            var file = workbook.ConvertToFileModel((Aspose.Cells.SaveFormat)vm.SaveFormat, "退費資料列表");
+            var file = workbook.ConvertToFileModel((ClosedXmlSaveFormat)vm.SaveFormat, "退費資料列表");
 
             return ResultModel.Ok(file);
         }
