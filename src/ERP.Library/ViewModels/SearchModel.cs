@@ -17,7 +17,7 @@ namespace ERP.Library.ViewModels
         }
 
         private int _pageNumber;
-        [SwaggerParameter("頁數，預設第1頁")]
+        [Display(Name = "頁數，預設第1頁")]
         public int PageNumber
         {
             get => _pageNumber;
@@ -25,7 +25,7 @@ namespace ERP.Library.ViewModels
         }
 
         private int _pageSize;
-        [SwaggerParameter("每頁資料筆數，預設10筆")]
+        [Display(Name = "每頁資料筆數，預設10筆")]
         public int PageSize
         {
             get => _pageSize;
@@ -34,10 +34,10 @@ namespace ERP.Library.ViewModels
     }
     public class SortModel
     {
-        [SwaggerParameter("排序欄位")]
+        [Display(Name = "排序欄位")]
         public string? SortColumn { get; set; }
 
-        [SwaggerParameter("排序方向(預設正序:asc,倒序:desc)")]
+        [Display(Name = "排序方向(預設正序:asc,倒序:desc)")]
         public string SortDirection { get; set; } = "asc";
     }
 

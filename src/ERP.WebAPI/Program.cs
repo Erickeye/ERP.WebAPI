@@ -37,7 +37,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SchemaFilter<DisplayNameSchemaFilter>();
+    //options.SchemaFilter<DisplayNameSchemaFilter>();
+    options.OperationFilter<DisplayNameOperationFilter>();
     options.OperationFilter<RequireCaptchaOperationFilter>();
 
     foreach (ApiGroupType group in Enum.GetValues(typeof(ApiGroupType)))

@@ -40,6 +40,7 @@ namespace ERP.Service.API._4000Inventory
         {
             //var query = QueryList(vm);
 
+            // 報表用SP
             var list = await _db.Database.StoredProcedureQueryAsync<InventoryVM>(
                 "sp_Inventory_Search",
                 new
@@ -67,6 +68,13 @@ namespace ERP.Service.API._4000Inventory
                 }).ToList()
             };
 
+            // PDF
+            if (vm.SaveFormat == 13)
+            {
+                return ResultModel.Ok(reportData.Items.ConvertToPdfFileModel("退費資料列表"));
+            }
+
+            // XLSX
             var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "庫存列表.xlsx");
 
             var workbook = new XLWorkbook(templatePath);
@@ -76,6 +84,7 @@ namespace ERP.Service.API._4000Inventory
 
             return ResultModel.Ok(file);
         }
+
         public IQueryable<InventoryVM> QueryList(InventorySearchVM vm)
         {
             var filter = SearchExpressionBuilder.Build<t_4000Inventory>(vm);
