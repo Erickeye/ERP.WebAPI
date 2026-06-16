@@ -71,16 +71,21 @@ namespace ERP.Service.API._4000Inventory
             // PDF
             if (vm.SaveFormat == 13)
             {
-                return ResultModel.Ok(reportData.Items.ConvertToPdfFileModel("退費資料列表"));
+                return ResultModel.Ok(reportData.Items.ConvertToPdfFileModel("庫存管理列表"));
             }
 
             // XLSX
-            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "庫存列表.xlsx");
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Templates", "共用查詢模板.xlsx");
 
             var workbook = new XLWorkbook(templatePath);
-            workbook.BindData(reportData);
 
-            var file = workbook.ConvertToFileModel((ClosedXmlSaveFormat)vm.SaveFormat, "退費資料列表");
+            //指定xlsx套版
+            //workbook.BindData(reportData);
+
+            //共用套版
+            workbook.BindQueryTable(reportData.Items, "庫存管理列表");
+
+            var file = workbook.ConvertToFileModel((ClosedXmlSaveFormat)vm.SaveFormat, "庫存管理列表");
 
             return ResultModel.Ok(file);
         }

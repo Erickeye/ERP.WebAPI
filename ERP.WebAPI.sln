@@ -14,7 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Library", "src\ERP.Libr
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{B336AD55-3B8D-4333-ACB3-B40C63DD90DA}"
 	ProjectSection(SolutionItems) = preProject
-		reviewPrompt.md = reviewPrompt.md
+		document\codeingStyle.md = document\codeingStyle.md
+		document\reviewPrompt.md = document\reviewPrompt.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Approval", "src\ERP.Approval\ERP.Approval.csproj", "{6115E051-0BC7-429F-ACBA-34995052E1BE}"

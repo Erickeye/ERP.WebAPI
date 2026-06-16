@@ -369,7 +369,7 @@ var entity = await _db.t_4010Purchase
 ```csharp
 public class PurchaseSearchVM : SearchModel
 {
-    [SwaggerParameter("進貨單號")]
+    [Display("進貨單號")]
     [SearchField("No", SearchCompare.Contains)]
     public string? No { get; set; }
 }
@@ -448,11 +448,11 @@ src/ERP.Library/ViewModels/{ModuleFolder}
 ```csharp
 public class PurchaseAddVM
 {
-    [SwaggerParameter("供應商識別碼")]
+    [Display("供應商識別碼")]
     [Required(ErrorMessage = "必填欄位")]
     public int SupplierId { get; set; }
 
-    [SwaggerParameter("專案名稱")]
+    [Display("專案名稱")]
     [Required(ErrorMessage = "必填欄位")]
     [StringLength(128, ErrorMessage = "長度不可超過 128 個字元")]
     public string? ProjectName { get; set; } = null!;
@@ -462,12 +462,12 @@ public class PurchaseAddVM
 有使用 DataAnnotations 的 Action 要加 `[ValidateModel]`。  
 驗證失敗時，由 `ValidateModelAttribute` 統一回傳 `ResultModel<Dictionary<string, List<string>>>`。
 
-### 6.2 SwaggerParameter
+### 6.2 Display
 
-API 文件欄位說明使用 `[SwaggerParameter]`：
+API 文件欄位說明使用 `[Display]`：
 
 ```csharp
-[SwaggerParameter("進貨單號")]
+[Display("進貨單號")]
 public string? No { get; set; }
 ```
 
@@ -638,7 +638,7 @@ public async Task<ResultModel<string>> Add(PurchaseAddVM vm)
 1. 在 `ERP.Library/ViewModels/{Module}` 新增或更新 VM。
 2. 輸入 VM 加上 `[Required]`、`[StringLength]` 等驗證。
 3. 查詢 VM 若需要分頁，繼承 `SearchModel`。
-4. 查詢欄位加上 `[SearchField]` 與 `[SwaggerParameter]`。
+4. 查詢欄位加上 `[SearchField]` 與 `[Display]`。
 5. 在 `ERP.Service/API/{Module}` 新增 Interface 與 Service。
 6. Service 方法統一回傳 `ResultModel<T>`。
 7. 查詢使用 `AsNoTracking()` 與 VM projection。
