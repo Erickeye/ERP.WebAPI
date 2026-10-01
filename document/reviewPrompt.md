@@ -18,8 +18,19 @@
 * Repository
 * Entity / DTO / ViewModel
 * SQL / Stored Procedure
+* Vue（前端）
 
 ---
+
+
+## Review 讀取
+
+先讀取：
+
+* 涉及後端：`document/codingStyle.md` 與 `.claude/skills/backend-coding-style/SKILL.md`
+* 涉及前端：`document/vueCodingStyle.md` 與 `.claude/skills/vue-coding-style/SKILL.md`
+
+文件中標示「現況落差」的既有程式，不當作本次缺陷，除非本次變更觸及或擴大該落差。
 
 ## Review 重點
 
