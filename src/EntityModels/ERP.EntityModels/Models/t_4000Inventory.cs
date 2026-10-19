@@ -27,6 +27,8 @@ public partial class t_4000Inventory
 
     public decimal? Total { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual SystemConfig Location { get; set; } = null!;
 
     public virtual t_4060Supplier Supplier { get; set; } = null!;

@@ -11,6 +11,8 @@ CREATE TABLE [dbo].[t_4000Inventory]
     [Quantity] DECIMAL(12, 2) NULL, 
     [Amount] DECIMAL(12, 2) NULL, 
     [Total] DECIMAL(12, 2) NULL,
+    -- 樂觀並發控制：同時核准領料/進貨時，偵測庫存列已被他人異動
+    [RowVersion] ROWVERSION NOT NULL,
     CONSTRAINT [PK_4000Inventory] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_t_4000Inventory_Supplier]   FOREIGN KEY ([SupplierId])  REFERENCES [dbo].[t_4060Supplier] ([Id]),
     CONSTRAINT [FK_t_4000Inventory_Location]   FOREIGN KEY ([LocationId])  REFERENCES [dbo].[SystemConfig] ([Id]),

@@ -93,6 +93,9 @@
     <Build Include="dbo\Tables\t_4010Purchase.sql" />
     <Build Include="dbo\Tables\SystemConfig.sql" />
     <Build Include="dbo\Tables\t_4011PurchaseDetail.sql" />
+    <Build Include="dbo\Tables\t_4030MaterialIssue.sql" />
+    <Build Include="dbo\Tables\t_4031MaterialIssueDetail.sql" />
+    <Build Include="dbo\Tables\t_4040StockMovement.sql" />
     <Build Include="dbo\Tables\SerialNumber.sql" />
     <Build Include="dbo\SP\sp_Inventory_Search.sql" />
   </ItemGroup>

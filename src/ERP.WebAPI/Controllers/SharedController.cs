@@ -71,6 +71,14 @@ namespace ERP.WebAPI.Controllers
             return Ok(result);
         }
 
+        [SwaggerOperation("取得領料用途下拉選單")]
+        [HttpGet, Route("GetMaterialIssuePurposeSelect")]
+        public async Task<IActionResult> GetMaterialIssuePurposeSelect()
+        {
+            var result = await _service.GetMaterialIssuePurposeSelect();
+            return Ok(result);
+        }
+
         [SwaggerOperation("取得付款方式下拉選單")]
         [HttpGet, Route("GetPaymentMethodSelect")]
         public async Task<IActionResult> GetPaymentMethodSelect()

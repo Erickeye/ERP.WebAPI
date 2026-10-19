@@ -252,6 +252,12 @@ namespace ERP.Library.Enums
         [Display(Name = "尚未輪到此簽核步驟", Description = "尚未輪到此簽核步驟")]
         NotYetTurnForApprovalStep = 4017,
 
+        [Display(Name = "庫存不足", Description = "庫存不足")]
+        InsufficientInventory = 4018,
+
+        [Display(Name = "單據目前狀態不允許此操作", Description = "單據目前狀態不允許此操作")]
+        InvalidDocumentStatus = 4019,
+
         [Display(Name = "指定的紀錄已異動", Description = "指定的紀錄已異動")]
         SpecificRecordChanged = 9501,
 
