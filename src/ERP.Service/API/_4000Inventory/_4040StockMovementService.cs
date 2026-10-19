@@ -32,6 +32,12 @@ namespace ERP.Service.API._4000Inventory
 
         public async Task<ResultModel<PagedResult<StockMovementVM>>> Index(StockMovementSearchVM vm)
         {
+            // 結束時間只有日期（00:00）時，視為包含當天整天
+            if (vm.MovementTimeEnd.HasValue && vm.MovementTimeEnd.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                vm.MovementTimeEnd = vm.MovementTimeEnd.Value.Date.AddDays(1).AddTicks(-1);
+            }
+
             var filter = SearchExpressionBuilder.Build<t_4040StockMovement>(vm);
 
             // 預設最新的異動在前面

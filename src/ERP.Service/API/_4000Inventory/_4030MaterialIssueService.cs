@@ -179,6 +179,12 @@ namespace ERP.Service.API._4000Inventory
 
         private IQueryable<MaterialIssueVM> QueryList(MaterialIssueSearchVM vm)
         {
+            // 結束日只有日期（00:00）時，視為包含當天整天
+            if (vm.IssueDateEnd.HasValue && vm.IssueDateEnd.Value.TimeOfDay == TimeSpan.Zero)
+            {
+                vm.IssueDateEnd = vm.IssueDateEnd.Value.Date.AddDays(1).AddTicks(-1);
+            }
+
             var filter = SearchExpressionBuilder.Build<t_4030MaterialIssue>(vm);
 
             return _db.t_4030MaterialIssue
@@ -372,7 +378,9 @@ namespace ERP.Service.API._4000Inventory
             }
 
             var inventoryIds = vm.Items.Select(x => x.InventoryId).ToList();
+            // 這裡只讀取庫存做驗證與快照，不需要追蹤
             var inventories = await _db.t_4000Inventory
+                .AsNoTracking()
                 .Where(x => inventoryIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id);
 

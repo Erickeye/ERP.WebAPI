@@ -194,6 +194,7 @@ namespace ERP.Library.ViewModels._4000Inventory
 
         [Display(Name = "領料數量")]
         [Required(ErrorMessage = "{0}-必填欄位")]
+        [Range(0.01, 9999999999.99, ErrorMessage = "{0}-必須大於 0")]
         public decimal Quantity { get; set; }
     }
 

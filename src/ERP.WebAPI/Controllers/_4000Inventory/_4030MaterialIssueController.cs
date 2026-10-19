@@ -1,4 +1,4 @@
-﻿using ERP.Library.Enums;
+using ERP.Library.Enums;
 using ERP.Library.Enums.Login;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
@@ -127,7 +127,7 @@ namespace ERP.WebAPI.Controllers._4000Inventory
         }
 
         [SwaggerOperation("作廢領料單")]
-        [PermissionAuthorize((int)PermissionType.領料單編輯)]
+        [PermissionAuthorize((int)PermissionType.領料單檢視)]
         [ValidateModel]
         [HttpPost, Route("VoidApproval")]
         [Log(OperationActionType.RevokeApproval, "作廢領料單")]

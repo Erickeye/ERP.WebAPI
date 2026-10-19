@@ -52,7 +52,7 @@ namespace ERP.Service.API
         {
             var data = await _db.SystemConfig
                 .AsNoTracking()
-                .Where(x => x.ConfigType == "MaterialIssuePurpose")
+                .Where(x => x.ConfigType == "MaterialIssuePurpose" && x.IsActive)
                 .Select(x => new SelectModel
                 {
                     Value = x.Id,
