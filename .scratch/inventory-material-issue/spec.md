@@ -2,7 +2,7 @@
 
 Status: resolved
 
-相關文件：`GLOSSARY.md`（術語以此為準）、`docs/adr/0001`（簽核動作與同一交易）、`docs/adr/0002`（異動不建品項主檔）。
+相關文件：`docs/inventory/GLOSSARY.md`（術語以此為準）、`docs/inventory/adr/0001`（簽核動作與同一交易）、`docs/inventory/adr/0002`（異動不建品項主檔）。
 
 ## Problem Statement
 
@@ -91,7 +91,7 @@ Status: resolved
 
 ### 領域模型與術語
 
-- 遵循 `GLOSSARY.md`：庫存項目、庫位、庫存異動、進貨單、領料單、出貨單、領料人、出庫、領料用途、領料單狀態、作廢。
+- 遵循 `docs/inventory/GLOSSARY.md`：庫存項目、庫位、庫存異動、進貨單、領料單、出貨單、領料人、出庫、領料用途、領料單狀態、作廢。
 - 本次只做領料單；出貨單（對客銷售）不在範圍，`TableType.出貨單 = 8` 保留。新增 `TableType.領料單 = 9`。
 - 領料單狀態共五種：草稿、簽核中、已核准、已退回、已作廢。不使用進貨單的 `IsApproval` 布林值。
 

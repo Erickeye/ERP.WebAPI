@@ -10,6 +10,25 @@ How the engineering skills should consume this repo's domain documentation when 
 
 If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.
 
+## This repo's layout (overrides the paths below)
+
+This repo is multi-context, but contexts live under `docs/<context>/` (not `src/<context>/`, because `src/` is split by layer). There is no root `GLOSSARY.md`.
+
+```
+/
+├── GLOSSARY-MAP.md                    ← index of contexts
+└── docs/
+    ├── adr/                           ← system-wide decisions (none yet; create lazily)
+    ├── inventory/                     ← 庫存管理
+    │   ├── GLOSSARY.md
+    │   └── adr/
+    └── attendance/                    ← 差勤
+        ├── GLOSSARY.md
+        └── adr/
+```
+
+Start from `GLOSSARY-MAP.md`. New context-specific ADRs go in `docs/<context>/adr/`; `docs/adr/` is only for decisions that span contexts.
+
 ## File structure
 
 Single-context repo (most repos):

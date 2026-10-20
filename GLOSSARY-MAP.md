@@ -2,7 +2,7 @@
 
 ## Contexts
 
-- [庫存管理](./GLOSSARY.md): 物料如何進入、停留在、離開公司倉庫（進貨、領料、庫存異動）
+- [庫存管理](./docs/inventory/GLOSSARY.md): 物料如何進入、停留在、離開公司倉庫（進貨、領料、庫存異動）
 - [差勤](./docs/attendance/GLOSSARY.md): 員工因公離開公司的申請與簽核（目前為出差）
 
 ## Relationships
