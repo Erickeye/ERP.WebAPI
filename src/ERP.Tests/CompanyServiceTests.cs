@@ -10,7 +10,7 @@ namespace ERP.Tests;
 
 /// <summary>
 /// 公司服務的行為測試：新增、編輯、欄位驗證、簡稱與統編唯一、停用與啟用、刪除、填單選單與列表。
-/// 被領料單引用過的公司不可刪除已涵蓋（ticket 02）；被出差單引用的部分在 ticket 03 補上。
+/// 被領料單（ticket 02）與出差單（ticket 03）引用過的公司不可刪除，都已涵蓋。
 /// </summary>
 public class CompanyServiceTests : IDisposable
 {
@@ -457,6 +457,44 @@ public class CompanyServiceTests : IDisposable
                 Status = 0,
                 CreateTime = DateTime.Now,
                 CreateUserId = 1
+            });
+            seed.SaveChanges();
+        }
+
+        using var db = _testDb.CreateContext();
+        var service = CreateService(db);
+
+        var deleted = await service.Delete(used);
+        Assert.False(deleted.IsSuccess);
+        Assert.Contains("停用", deleted.ErrorMessage);
+        Assert.NotNull(LoadCompany(used));
+
+        // 被引用的公司仍可停用（還有另一間啟用中）
+        var disabled = await service.Disable(used);
+        Assert.True(disabled.IsSuccess, disabled.ErrorMessage);
+        Assert.False(LoadCompany(used).IsActive);
+        Assert.True(LoadCompany(other).IsActive);
+    }
+
+    [Fact]
+    public async Task Delete_ACompanyUsedByABusinessTrip_IsRejectedButCanBeDisabled()
+    {
+        var used = SeedCompany("甲公司", "12345678");
+        var other = SeedCompany("乙公司", "87654321");
+        using (var seed = _testDb.CreateContext())
+        {
+            seed.t_1060BusinessTrip.Add(new t_1060BusinessTrip
+            {
+                No = "BT11510001",
+                TravelerStaffId = 1,
+                CreateUserId = 1,
+                Destination = "台中客戶端",
+                Reason = "系統上線支援",
+                StartDate = new DateTime(2026, 10, 5),
+                EndDate = new DateTime(2026, 10, 6),
+                Status = 0,
+                CreateTime = DateTime.Now,
+                CompanyId = used
             });
             seed.SaveChanges();
         }

@@ -292,6 +292,8 @@ public partial class ERPDbContext : DbContext
 
         modelBuilder.Entity<t_1060BusinessTrip>(entity =>
         {
+            entity.HasIndex(e => e.CompanyId, "IX_t_1060BusinessTrip_CompanyId");
+
             entity.HasIndex(e => e.CreateUserId, "IX_t_1060BusinessTrip_CreateUserId");
 
             entity.HasIndex(e => e.No, "IX_t_1060BusinessTrip_No").IsUnique();
@@ -312,6 +314,11 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Reason).HasMaxLength(256);
             entity.Property(e => e.StartDate).HasColumnType("date");
             entity.Property(e => e.Status).HasDefaultValue(0);
+
+            entity.HasOne(d => d.Company).WithMany()
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_1060BusinessTrip_Company");
 
             entity.HasOne(d => d.CreateUser).WithMany()
                 .HasForeignKey(d => d.CreateUserId)

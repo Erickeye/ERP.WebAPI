@@ -356,11 +356,12 @@ namespace ERP.Service.API._1000Company
 
         /// <summary>
         /// 公司是否被任何單據引用過。
-        /// 目前已納入領料單；出差單加上公司欄位時（ticket 03）要在這裡補上對應的查詢。
+        /// 已納入領料單與出差單；之後有其他單據加上公司欄位時，要在這裡補上對應的查詢。
         /// </summary>
         private async Task<bool> IsReferencedAsync(int id)
         {
-            return await _db.t_4030MaterialIssue.AnyAsync(x => x.CompanyId == id);
+            return await _db.t_4030MaterialIssue.AnyAsync(x => x.CompanyId == id)
+                || await _db.t_1060BusinessTrip.AnyAsync(x => x.CompanyId == id);
         }
 
         #endregion

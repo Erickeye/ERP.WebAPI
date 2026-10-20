@@ -32,6 +32,7 @@ public class BusinessTripServiceTests : IDisposable
     private readonly int _otherStaffId;
     private readonly int _resignedStaffId;
     private readonly int _customerId;
+    private readonly int _companyId;
 
     public BusinessTripServiceTests()
     {
@@ -45,7 +46,10 @@ public class BusinessTripServiceTests : IDisposable
         db.t_1000Staff.AddRange(me, other, resigned);
         db.t_2000Customer.Add(customer);
         db.SaveChanges();
+        // 單據公司必填，先建一間啟用中的預設公司
+        var company = SeedData.CreateCompany(db, "預設公司", "00000000", isActive: true);
 
+        _companyId = company.Id;
         _meStaffId = me.StaffId;
         _otherStaffId = other.StaffId;
         _resignedStaffId = resigned.StaffId;
@@ -101,11 +105,25 @@ public class BusinessTripServiceTests : IDisposable
     private BusinessTripAddVM NewTrip(int? travelerStaffId = null) => new BusinessTripAddVM
     {
         TravelerStaffId = travelerStaffId ?? _meStaffId,
+        CompanyId = _companyId,
         Destination = "台中客戶端",
         Reason = "系統上線支援",
         StartDate = new DateTime(2026, 10, 5),
         EndDate = new DateTime(2026, 10, 6)
     };
+
+    private int AddCompany(string attribName, string taxInvoiceNumber, bool isActive = true)
+    {
+        using var db = _testDb.CreateContext();
+        return SeedData.CreateCompany(db, attribName, taxInvoiceNumber, isActive).Id;
+    }
+
+    private void SetCompanyActive(int companyId, bool isActive)
+    {
+        using var db = _testDb.CreateContext();
+        db.t_1080Company.Single(x => x.Id == companyId).IsActive = isActive;
+        db.SaveChanges();
+    }
 
     private t_1060BusinessTrip LoadTrip(string no)
     {
@@ -132,6 +150,51 @@ public class BusinessTripServiceTests : IDisposable
         Assert.Equal("系統上線支援", trip.Reason);
         Assert.Equal(new DateTime(2026, 10, 5), trip.StartDate);
         Assert.Equal(new DateTime(2026, 10, 6), trip.EndDate);
+    }
+
+    [Fact]
+    public async Task Add_記錄單據公司()
+    {
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewTrip();
+        vm.CompanyId = companyB;
+        var service = CreateService();
+
+        var result = await service.Add(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(companyB, LoadTrip(result.Data!.No).CompanyId);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(9999)]
+    public async Task Add_公司未選或不存在被拒絕(int companyId)
+    {
+        var vm = NewTrip();
+        vm.CompanyId = companyId;
+        var service = CreateService();
+
+        var result = await service.Add(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("公司", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task Add_公司已停用被拒絕()
+    {
+        var disabled = AddCompany("停用公司", "22222222", isActive: false);
+        var vm = NewTrip();
+        vm.CompanyId = disabled;
+        var service = CreateService();
+
+        var result = await service.Add(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("已停用", result.ErrorMessage);
     }
 
     // ---------- 欄位驗證 ----------
@@ -403,6 +466,93 @@ public class BusinessTripServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Edit_草稿可更換單據公司()
+    {
+        var (id, no) = await AddTripAsync();
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewTrip();
+        vm.Id = id;
+        vm.CompanyId = companyB;
+
+        var result = await CreateService().Edit(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(companyB, LoadTrip(no).CompanyId);
+    }
+
+    [Fact]
+    public async Task Edit_草稿原公司被停用_維持原公司仍可儲存其他欄位()
+    {
+        var companyB = AddCompany("乙公司", "11111111");
+        var addVm = NewTrip();
+        addVm.CompanyId = companyB;
+        var added = await CreateService().Add(addVm);
+        SetCompanyActive(companyB, false);
+        var vm = NewTrip();
+        vm.Id = added.Data!.Id;
+        vm.CompanyId = companyB;
+        vm.Destination = "改去高雄";
+
+        var result = await CreateService().Edit(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var trip = LoadTrip(added.Data.No);
+        Assert.Equal(companyB, trip.CompanyId);
+        Assert.Equal("改去高雄", trip.Destination);
+    }
+
+    [Fact]
+    public async Task Edit_草稿改選已停用的其他公司被拒絕()
+    {
+        var (id, no) = await AddTripAsync();
+        var disabled = AddCompany("停用公司", "22222222", isActive: false);
+        var vm = NewTrip();
+        vm.Id = id;
+        vm.CompanyId = disabled;
+
+        var result = await CreateService().Edit(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Equal(_companyId, LoadTrip(no).CompanyId);
+    }
+
+    [Fact]
+    public async Task Edit_簽核中不可更換單據公司()
+    {
+        var (id, no) = await AddTripAsync();
+        SetStatus(no, BusinessTripStatus.簽核中);
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewTrip();
+        vm.Id = id;
+        vm.CompanyId = companyB;
+
+        var result = await CreateService().Edit(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Equal(_companyId, LoadTrip(no).CompanyId);
+    }
+
+    [Fact]
+    public async Task Edit_已退回可更換單據公司()
+    {
+        var (id, no) = await AddTripAsync();
+        SetStatus(no, BusinessTripStatus.已退回);
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewTrip();
+        vm.Id = id;
+        vm.CompanyId = companyB;
+
+        var result = await CreateService().Edit(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var trip = LoadTrip(no);
+        Assert.Equal(companyB, trip.CompanyId);
+        Assert.Equal((int)BusinessTripStatus.已退回, trip.Status);
+    }
+
+    [Fact]
     public async Task Edit_找不到出差單時回傳找不到資料()
     {
         var vm = NewTrip();
@@ -522,6 +672,42 @@ public class BusinessTripServiceTests : IDisposable
         var result = await CreateService().Get(id);
 
         Assert.Equal(expectedDays, result.Data!.Days);
+    }
+
+    [Fact]
+    public async Task Get_回傳公司簡稱_統編與啟用狀態()
+    {
+        var added = await AddTripAsync();
+        SetCompanyActive(_companyId, false);
+
+        var result = await CreateService().Get(added.Id);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(_companyId, result.Data!.CompanyId);
+        Assert.Equal("預設公司", result.Data.CompanyName);
+        Assert.Equal("00000000", result.Data.CompanyTaxInvoiceNumber);
+        Assert.False(result.Data.CompanyIsActive);
+    }
+
+    [Fact]
+    public async Task Index_回傳公司簡稱並可依公司篩選()
+    {
+        var companyB = AddCompany("乙公司", "11111111");
+        await AddTripOnAsync(new DateTime(2026, 10, 1), new DateTime(2026, 10, 1));
+        var vmB = NewTrip();
+        vmB.CompanyId = companyB;
+        var addedB = await CreateService().Add(vmB);
+
+        var all = await CreateService().Index(new BusinessTripSearchVM());
+        Assert.True(all.IsSuccess, all.ErrorMessage);
+        Assert.Equal(2, all.Data!.Items.Count);
+        Assert.Contains(all.Data.Items, x => x.CompanyName == "預設公司");
+        Assert.Contains(all.Data.Items, x => x.CompanyName == "乙公司");
+
+        var filtered = await CreateService().Index(new BusinessTripSearchVM { CompanyId = companyB });
+        var item = Assert.Single(filtered.Data!.Items);
+        Assert.Equal(addedB.Data!.No, item.No);
+        Assert.Equal(companyB, item.CompanyId);
     }
 
     [Fact]
@@ -805,6 +991,42 @@ public class BusinessTripServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task SendApproval_公司已停用被拒絕且狀態維持草稿()
+    {
+        var no = await AddDraftAsync();
+        SetCompanyActive(_companyId, false);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("公司已停用", result.ErrorMessage);
+        Assert.Equal((int)BusinessTripStatus.草稿, LoadTrip(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_已退回的單公司已停用同樣被拒絕_改選啟用中公司後可送簽()
+    {
+        var added = await AddTripAsync();
+        SetStatus(added.No, BusinessTripStatus.已退回);
+        SetCompanyActive(_companyId, false);
+
+        var blocked = await CreateService().SendApproval(Vm(added.No));
+        Assert.False(blocked.IsSuccess);
+        Assert.Equal((int)BusinessTripStatus.已退回, LoadTrip(added.No).Status);
+
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewTrip();
+        vm.Id = added.Id;
+        vm.CompanyId = companyB;
+        Assert.True((await CreateService().Edit(vm)).IsSuccess);
+
+        var sent = await CreateService().SendApproval(Vm(added.No));
+        Assert.True(sent.IsSuccess, sent.ErrorMessage);
+        Assert.Equal((int)BusinessTripStatus.簽核中, LoadTrip(added.No).Status);
+    }
+
+    [Fact]
     public async Task SendApproval_引擎失敗時狀態維持草稿且錯誤原樣轉出()
     {
         var no = await AddDraftAsync();
@@ -1062,6 +1284,22 @@ public class BusinessTripServiceTests : IDisposable
         Assert.True(result.IsSuccess, result.ErrorMessage);
         Assert.Equal(engineMessage, result.Data);
         Assert.Equal((int)BusinessTripStatus.簽核中, LoadTrip(no).Status);
+    }
+
+    [Fact]
+    public async Task Approval_送簽後公司被停用_簽核與核准照常進行()
+    {
+        var no = await AddInApprovalAsync();
+        SetCompanyActive(_companyId, false);
+        MakeMyTurn(no);
+        _approval.ApprovalResult = ResultModel<string>.Ok(ApprovalWorkflowService.CompletedMessage);
+
+        var result = await CreateService(OtherUserId).Approval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var trip = LoadTrip(no);
+        Assert.Equal((int)BusinessTripStatus.已核准, trip.Status);
+        Assert.Equal(_companyId, trip.CompanyId);
     }
 
     [Fact]

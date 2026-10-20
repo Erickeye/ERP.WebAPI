@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { businessTripApi } from '@/api/businessTripApi'
+import { companyApi } from '@/api/companyApi'
 import { sharedApi } from '@/api/sharedApi'
 import { getApiErrorMessage, isSuccess, unwrap } from '@/utils/api'
 import { BUSINESS_TRIP_STATUS_OPTIONS, businessTripStatusTagType } from '@/utils/businessTrip'
@@ -21,6 +22,7 @@ const search = reactive({
   // 單號關鍵字、出差人、出差單狀態
   no: '',
   travelerStaffId: null,
+  companyId: null,
   status: null,
   // el-date-picker daterange 的值：[區間開始, 區間結束]，以「與出差起訖有交集」查詢
   dateRange: [],
@@ -28,12 +30,15 @@ const search = reactive({
   pendingMyApproval: false
 })
 const staffOptions = ref([])
+// 公司篩選選單：只列啟用中的公司（已停用公司的歷史單據仍會顯示在列表，只是不能用它篩選）
+const companyOptions = ref([])
 const pagination = reactive({ totalCount: 0 })
 
 function normalizeRow(row = {}) {
   return {
     id: row.id,
     no: row.no ?? '',
+    companyName: row.companyName ?? '',
     travelerName: row.travelerName ?? '',
     destination: row.destination ?? '',
     reason: row.reason ?? '',
@@ -59,6 +64,18 @@ async function loadStaffOptions() {
   }
 }
 
+async function loadCompanyOptions() {
+  try {
+    const response = await companyApi.getSelect()
+    if (isSuccess(response)) {
+      companyOptions.value = unwrap(response)?.items ?? []
+    }
+  } catch (error) {
+    // 公司下拉載入失敗不影響列表查詢，只提示
+    ElMessage.warning(getApiErrorMessage(error, '無法取得公司下拉選單'))
+  }
+}
+
 function buildQuery() {
   const [periodStart, periodEnd] = search.dateRange ?? []
 
@@ -71,6 +88,7 @@ function buildQuery() {
     // 空字串、null 與未選日期送出前轉 undefined，讓後端略過該條件（狀態 0 是草稿，不能用 || 轉換）
     no: search.no.trim() || undefined,
     travelerStaffId: search.travelerStaffId ?? undefined,
+    companyId: search.companyId ?? undefined,
     status: search.status ?? undefined,
     periodStart: periodStart || undefined,
     periodEnd: periodEnd || undefined,
@@ -121,6 +139,7 @@ function searchRows() {
 function resetSearch() {
   search.no = ''
   search.travelerStaffId = null
+  search.companyId = null
   search.status = null
   search.dateRange = []
   search.pendingMyApproval = false
@@ -144,6 +163,7 @@ function openRow(row) {
 
 onMounted(() => {
   loadStaffOptions()
+  loadCompanyOptions()
   loadRows()
 })
 </script>
@@ -158,6 +178,11 @@ onMounted(() => {
     <el-form class="search-bar" inline @submit.prevent="searchRows">
       <el-form-item label="單號">
         <el-input v-model="search.no" placeholder="單號關鍵字" clearable />
+      </el-form-item>
+      <el-form-item label="公司">
+        <el-select v-model="search.companyId" placeholder="全部" clearable filterable>
+          <el-option v-for="company in companyOptions" :key="company.value" :label="company.text" :value="company.value" />
+        </el-select>
       </el-form-item>
       <el-form-item label="出差人">
         <el-select v-model="search.travelerStaffId" placeholder="全部" clearable filterable>
@@ -203,6 +228,7 @@ onMounted(() => {
       @sort-change="changeSort"
     >
       <el-table-column prop="no" label="單號" min-width="130" sortable="custom" />
+      <el-table-column prop="companyName" label="公司" min-width="110" />
       <el-table-column prop="travelerName" label="出差人" min-width="100" />
       <el-table-column prop="destination" label="出差地點" min-width="140" />
       <el-table-column prop="reason" label="出差事由" min-width="180" show-overflow-tooltip />

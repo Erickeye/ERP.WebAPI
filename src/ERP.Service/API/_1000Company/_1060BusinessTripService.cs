@@ -81,6 +81,7 @@ namespace ERP.Service.API._1000Company
     public class _1060BusinessTripService : I_1060BusinessTripService
     {
         private const string SerialPrefix = "BT";
+        private const string CompanyDisabledMessage = "所選公司已停用，請改選其他公司";
 
         private readonly ERPDbContext _db;
         private readonly ICurrentUserService _currentUserService;
@@ -214,6 +215,10 @@ namespace ERP.Service.API._1000Company
                     No = x.No,
                     TravelerStaffId = x.TravelerStaffId,
                     TravelerName = x.TravelerStaff.ChineseName,
+                    CompanyId = x.CompanyId,
+                    CompanyName = x.Company.AttribName,
+                    CompanyTaxInvoiceNumber = x.Company.TaxInvoiceNumber,
+                    CompanyIsActive = x.Company.IsActive,
                     Destination = x.Destination,
                     Reason = x.Reason,
                     StartDate = x.StartDate,
@@ -541,6 +546,23 @@ namespace ERP.Service.API._1000Company
                 return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "出差人必須是在職員工");
             }
 
+            // 單據公司必填且必須存在；啟用中才可選。
+            // 例外：編輯時維持原本的公司（即使它後來被停用）不阻擋儲存其他欄位，送簽時才擋停用的公司。
+            var company = await _db.t_1080Company
+                .AsNoTracking()
+                .Where(x => x.Id == vm.CompanyId)
+                .Select(x => new { x.IsActive })
+                .FirstOrDefaultAsync();
+            if (company == null)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "單據公司必填，且公司必須存在");
+            }
+
+            if (!company.IsActive && entity.CompanyId != vm.CompanyId)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, CompanyDisabledMessage);
+            }
+
             if (vm.CustomerId.HasValue)
             {
                 var customerExists = await _db.t_2000Customer.AnyAsync(x => x.Id == vm.CustomerId.Value);
@@ -551,6 +573,7 @@ namespace ERP.Service.API._1000Company
             }
 
             entity.TravelerStaffId = vm.TravelerStaffId;
+            entity.CompanyId = vm.CompanyId;
             entity.Destination = destination;
             entity.Reason = reason;
             entity.StartDate = vm.StartDate.Value.Date;
@@ -581,6 +604,15 @@ namespace ERP.Service.API._1000Company
             {
                 return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
                     $"目前狀態為【{GetStatusDisplay(trip.Status)}】，不可送出簽核");
+            }
+
+            // 單據公司已停用就不可送簽；送簽之後的簽核、核准、撤銷、作廢不受公司停用影響
+            var companyActive = await _db.t_1080Company
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == trip.CompanyId && x.IsActive);
+            if (!companyActive)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, CompanyDisabledMessage);
             }
 
             // 重疊檢查需看全部有效出差單，不受目前使用者的可見範圍限制

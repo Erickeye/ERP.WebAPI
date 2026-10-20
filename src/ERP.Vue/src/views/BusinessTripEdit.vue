@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { approvalApi } from '@/api/approvalApi'
 import { businessTripApi } from '@/api/businessTripApi'
+import { companyApi } from '@/api/companyApi'
 import { sharedApi } from '@/api/sharedApi'
 import { getApiErrorMessage, isSuccess, unwrap } from '@/utils/api'
 import {
@@ -33,6 +34,8 @@ const progressError = ref('')
 const formError = ref('')
 const staffOptions = ref([])
 const customerOptions = ref([])
+// 填單用的公司選單：只列啟用中；編輯時原本的公司即使已停用也會回傳（isActive 為 false）
+const companyOptions = ref([])
 
 const tripId = computed(() => (route.params.id ? Number(route.params.id) : null))
 const isCreate = computed(() => tripId.value === null)
@@ -48,6 +51,9 @@ function createEmptyForm() {
     canEdit: false,
     canRevoke: false,
     canVoid: false,
+    companyId: null,
+    companyName: '',
+    companyTaxInvoiceNumber: '',
     travelerStaffId: null,
     destination: '',
     reason: '',
@@ -61,6 +67,7 @@ function createEmptyForm() {
 const form = reactive(createEmptyForm())
 
 const rules = {
+  companyId: [{ required: true, message: '請選擇單據公司', trigger: 'change' }],
   travelerStaffId: [{ required: true, message: '請選擇出差人', trigger: 'change' }],
   destination: [{ required: true, message: '請填寫出差地點', trigger: 'blur' }],
   reason: [{ required: true, message: '請填寫出差事由', trigger: 'blur' }],
@@ -88,6 +95,11 @@ const busy = computed(
     revoking.value ||
     voiding.value
 )
+// 目前選的公司若已停用（只會出現在編輯原本的單據時），提醒送簽前要改選；後端送簽時也會擋下
+const selectedCompanyDisabled = computed(() => {
+  const selected = companyOptions.value.find((company) => company.value === form.companyId)
+  return !!selected && selected.isActive === false
+})
 const readonlyHint = computed(() => {
   // 尚未載入或載入失敗（沒有單號）時不顯示唯讀提示
   if (editable.value || loading.value || !form.no) return ''
@@ -104,6 +116,9 @@ function applyTrip(data = {}) {
     canEdit: data.canEdit ?? false,
     canRevoke: data.canRevoke ?? false,
     canVoid: data.canVoid ?? false,
+    companyId: data.companyId ?? null,
+    companyName: data.companyName ?? '',
+    companyTaxInvoiceNumber: data.companyTaxInvoiceNumber ?? '',
     travelerStaffId: data.travelerStaffId ?? null,
     destination: data.destination ?? '',
     reason: data.reason ?? '',
@@ -117,6 +132,7 @@ function buildPayload() {
   const [startDate, endDate] = form.dateRange
   return {
     id: tripId.value ?? 0,
+    companyId: form.companyId,
     travelerStaffId: form.travelerStaffId,
     destination: form.destination.trim(),
     reason: form.reason.trim(),
@@ -143,6 +159,29 @@ async function loadOptions() {
     formError.value = getApiErrorMessage(error, '無法取得下拉選單資料')
     ElMessage.error(formError.value)
   }
+}
+
+// 載入公司選單；includeId 是單據原本的公司，已停用也會一併列出
+async function loadCompanyOptions(includeId, token) {
+  try {
+    const response = await companyApi.getSelect(includeId ?? undefined)
+    if (token !== loadToken) return
+    if (!isSuccess(response)) {
+      formError.value = getApiErrorMessage(response, '無法取得公司下拉選單')
+      ElMessage.error(formError.value)
+      return
+    }
+    companyOptions.value = unwrap(response)?.items ?? []
+  } catch (error) {
+    if (token !== loadToken) return
+    formError.value = getApiErrorMessage(error, '無法取得公司下拉選單')
+    ElMessage.error(formError.value)
+  }
+}
+
+// 選了別間公司後，原本的統編就不是目前選的公司，先清掉
+function changeCompany() {
+  form.companyTaxInvoiceNumber = ''
 }
 
 // 新增時預設出差人為本人；取不到時顯示原因，仍可自行選擇出差人
@@ -204,6 +243,12 @@ async function loadTrip() {
   progressError.value = ''
 
   if (isCreate.value) {
+    await loadCompanyOptions(null, token)
+    // 只有一間啟用中的公司時自動帶入，少選一個欄位
+    const activeCompanies = companyOptions.value.filter((company) => company.isActive !== false)
+    if (token === loadToken && activeCompanies.length === 1) {
+      form.companyId = activeCompanies[0].value
+    }
     await applyDefaultTraveler()
     return
   }
@@ -218,6 +263,7 @@ async function loadTrip() {
       return
     }
     applyTrip(unwrap(response) ?? {})
+    await loadCompanyOptions(form.companyId, token)
   } catch (error) {
     if (token !== loadToken) return
     formError.value = getApiErrorMessage(error, '無法取得出差單')
@@ -525,6 +571,19 @@ onMounted(() => {
       :disabled="!editable"
       label-width="100px"
     >
+      <el-form-item label="公司" prop="companyId">
+        <el-select v-model="form.companyId" placeholder="請選擇公司" filterable @change="changeCompany">
+          <el-option
+            v-for="company in companyOptions"
+            :key="company.value"
+            :label="company.isActive === false ? `${company.text}（已停用）` : company.text"
+            :value="company.value"
+          />
+        </el-select>
+        <span v-if="form.companyTaxInvoiceNumber" class="company-tax-id">統編 {{ form.companyTaxInvoiceNumber }}</span>
+        <span v-if="editable && selectedCompanyDisabled" class="company-disabled-hint">此公司已停用，送簽前請改選其他公司</span>
+      </el-form-item>
+
       <el-form-item label="出差人" prop="travelerStaffId">
         <el-select v-model="form.travelerStaffId" placeholder="請選擇在職員工" filterable>
           <el-option v-for="staff in staffOptions" :key="staff.value" :label="staff.text" :value="staff.value" />
@@ -621,6 +680,16 @@ onMounted(() => {
 .trip-days {
   margin-left: 12px;
   color: var(--el-text-color-secondary);
+}
+
+.company-tax-id {
+  margin-left: 12px;
+  color: var(--el-text-color-secondary);
+}
+
+.company-disabled-hint {
+  margin-left: 12px;
+  color: var(--el-color-warning);
 }
 
 .form-actions {

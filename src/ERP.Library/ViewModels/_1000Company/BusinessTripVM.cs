@@ -16,6 +16,10 @@ namespace ERP.Library.ViewModels._1000Company
         [SearchField("TravelerStaffId", SearchCompare.Equal)]
         public int? TravelerStaffId { get; set; }
 
+        [Display(Name = "單據公司識別碼")]
+        [SearchField("CompanyId", SearchCompare.Equal)]
+        public int? CompanyId { get; set; }
+
         [Display(Name = "出差單狀態(0草稿;1簽核中;2已核准;3已退回;4已作廢)")]
         [SearchField("Status", SearchCompare.Equal)]
         public int? Status { get; set; }
@@ -49,6 +53,18 @@ namespace ERP.Library.ViewModels._1000Company
 
         [Display(Name = "出差人")]
         public string? TravelerName { get; set; }
+
+        [Display(Name = "單據公司識別碼")]
+        public int CompanyId { get; set; }
+
+        [Display(Name = "單據公司(公司簡稱)")]
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "單據公司統一編號")]
+        public string? CompanyTaxInvoiceNumber { get; set; }
+
+        [Display(Name = "單據公司是否啟用中(已停用的公司，畫面標示已停用)")]
+        public bool CompanyIsActive { get; set; }
 
         [Display(Name = "出差地點")]
         public string? Destination { get; set; }
@@ -128,6 +144,10 @@ namespace ERP.Library.ViewModels._1000Company
         [Display(Name = "出差人識別碼")]
         [Required(ErrorMessage = "{0}-必填欄位")]
         public int TravelerStaffId { get; set; }
+
+        [Display(Name = "單據公司識別碼")]
+        [Required(ErrorMessage = "{0}-必填欄位")]
+        public int CompanyId { get; set; }
 
         [Display(Name = "出差地點")]
         [Required(ErrorMessage = "{0}-必填欄位")]
