@@ -136,16 +136,22 @@ namespace ERP.WebAPI.Controllers.Approval
         }
 
         /// <summary>
-        /// 領料單、出差單的簽核動作需與單據狀態（領料單另含庫存）同一交易，必須走各自的專用端點
+        /// 簽核動作需與單據狀態（領料單另含庫存）同一交易的單據類型，必須走各自的專用端點。新增這類模組時只改這裡。
         /// </summary>
+        private static readonly HashSet<TableType> ModuleHandledTypes = new()
+        {
+            TableType.領料單,
+            TableType.出差單
+        };
+
         private static bool IsHandledByModule(TableType tableType)
         {
-            return tableType == TableType.領料單 || tableType == TableType.出差單;
+            return ModuleHandledTypes.Contains(tableType);
         }
 
         private static ResultModel<string> ModuleBlocked(TableType tableType)
         {
-            var name = tableType == TableType.出差單 ? "出差單" : "領料單";
+            var name = tableType.ToString();
             return ResultModel.Error(ErrorCodeType.InvalidApproval, $"{name}請使用{name}專用的簽核功能");
         }
     }

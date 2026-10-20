@@ -116,7 +116,7 @@ namespace ERP.Service.API._1000Company
             }
             var pendingNos = pending.Data!;
 
-            var trips = await ViewableTripsForReadingAsync(pendingNos);
+            var trips = await ReadableTripsAsync(pendingNos);
             if (vm.PendingMyApproval)
             {
                 // 「待我簽核」取自引擎的待簽核查詢，並限定簽核中的出差單
@@ -171,7 +171,7 @@ namespace ERP.Service.API._1000Company
                 return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
             }
 
-            var data = await QueryList(await ViewableTripsForReadingAsync(pending.Data!))
+            var data = await QueryList(await ReadableTripsAsync(pending.Data!))
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
 
@@ -229,14 +229,14 @@ namespace ERP.Service.API._1000Company
         }
 
         /// <summary>
-        /// 列表與檢視的可見範圍：有「出差單管理」權限者看全部，其餘為 ViewableTrips。
+        /// 列表與檢視的讀取範圍：有「出差單管理」權限者看全部，其餘為 OwnOrSignerTrips（自己的，加上簽核人身分的）。
         /// 管理權限只放寬列表與檢視；編輯、送簽、撤銷、核准、拒絕、作廢仍各自依 OwnTrips 或簽核人範圍，不看管理權限。
         /// </summary>
-        private async Task<IQueryable<t_1060BusinessTrip>> ViewableTripsForReadingAsync(List<string> pendingNos)
+        private async Task<IQueryable<t_1060BusinessTrip>> ReadableTripsAsync(List<string> pendingNos)
         {
             return await HasManagePermissionAsync()
                 ? _db.t_1060BusinessTrip
-                : ViewableTrips(pendingNos);
+                : OwnOrSignerTrips(pendingNos);
         }
 
         /// <summary>
@@ -255,7 +255,7 @@ namespace ERP.Service.API._1000Company
         /// 輪到自己簽核的，或簽核紀錄中有自己（指定人員）／自己的角色正在待簽（指定角色）的。
         /// 簽核人不必是建單人或出差人；編輯、刪除、送簽仍只限 OwnTrips。簽核動作（核准、拒絕、作廢）找單也用這個範圍，不放寬給管理權限。
         /// </summary>
-        private IQueryable<t_1060BusinessTrip> ViewableTrips(List<string> pendingNos)
+        private IQueryable<t_1060BusinessTrip> OwnOrSignerTrips(List<string> pendingNos)
         {
             var userId = _currentUserService.UserId;
             var roleId = _currentUserService.RoleId;
@@ -569,7 +569,7 @@ namespace ERP.Service.API._1000Company
         {
             vm.TableType = TableType.出差單;
 
-            var trip = await GetTripForApprovalAsync(vm.TableId);
+            var trip = await GetOwnTripAsync(vm.TableId);
             if (trip == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
@@ -618,9 +618,9 @@ namespace ERP.Service.API._1000Company
         }
 
         /// <summary>
-        /// 以單號取得出差單（追蹤中，限制在可見範圍），簽核引擎的 TableId 為單號
+        /// 以單號取得自己的出差單（追蹤中，限建單人或出差人，見 OwnTrips），簽核引擎的 TableId 為單號
         /// </summary>
-        private Task<t_1060BusinessTrip?> GetTripForApprovalAsync(string tableId)
+        private Task<t_1060BusinessTrip?> GetOwnTripAsync(string tableId)
         {
             return OwnTrips()
                 .Where(x => x.No == tableId)
@@ -631,7 +631,7 @@ namespace ERP.Service.API._1000Company
         {
             vm.TableType = TableType.出差單;
 
-            var found = await GetTripForSigningAsync(vm.TableId);
+            var found = await GetOwnOrSignerTripAsync(vm.TableId);
             if (!found)
             {
                 return ResultModel.Error(found.ErrorCode, found.ErrorMessage);
@@ -667,7 +667,7 @@ namespace ERP.Service.API._1000Company
         {
             vm.TableType = TableType.出差單;
 
-            var found = await GetTripForSigningAsync(vm.TableId);
+            var found = await GetOwnOrSignerTripAsync(vm.TableId);
             if (!found)
             {
                 return ResultModel.Error(found.ErrorCode, found.ErrorMessage);
@@ -701,7 +701,7 @@ namespace ERP.Service.API._1000Company
             vm.TableType = TableType.出差單;
 
             // 撤銷限建單人或出差人範圍；是否為送簽人由引擎檢查，錯誤原樣轉出
-            var trip = await GetTripForApprovalAsync(vm.TableId);
+            var trip = await GetOwnTripAsync(vm.TableId);
             if (trip == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
@@ -733,7 +733,7 @@ namespace ERP.Service.API._1000Company
             vm.TableType = TableType.出差單;
 
             // 最後一關簽核人不必是建單人或出差人，所以用簽核人的檢視範圍找單；是否為最後一關簽核人由引擎檢查，錯誤原樣轉出
-            var found = await GetTripForSigningAsync(vm.TableId);
+            var found = await GetOwnOrSignerTripAsync(vm.TableId);
             if (!found)
             {
                 return ResultModel.Error(found.ErrorCode, found.ErrorMessage);
@@ -766,7 +766,7 @@ namespace ERP.Service.API._1000Company
         /// 以單號取得簽核人可檢視的出差單（追蹤中）。簽核人不必是建單人或出差人，
         /// 看不到的單據視為找不到；輪到誰簽、是否擋下由引擎判斷。
         /// </summary>
-        private async Task<ResultModel<t_1060BusinessTrip>> GetTripForSigningAsync(string tableId)
+        private async Task<ResultModel<t_1060BusinessTrip>> GetOwnOrSignerTripAsync(string tableId)
         {
             var pending = await GetMyPendingTripNosAsync();
             if (!pending)
@@ -774,7 +774,7 @@ namespace ERP.Service.API._1000Company
                 return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
             }
 
-            var trip = await ViewableTrips(pending.Data!)
+            var trip = await OwnOrSignerTrips(pending.Data!)
                 .Where(x => x.No == tableId)
                 .FirstOrDefaultAsync();
             if (trip == null)

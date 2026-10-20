@@ -11,8 +11,7 @@ import {
   BUSINESS_TRIP_TABLE_TYPE,
   approvalStepLabel,
   businessTripStatusTagType,
-  canDeleteBusinessTrip,
-  isEditableStatus
+  canDeleteBusinessTrip
 } from '@/utils/businessTrip'
 import { countInclusiveDays, formatDateTime, toDateOnly } from '@/utils/dateUtils'
 
@@ -92,9 +91,8 @@ const busy = computed(
 const readonlyHint = computed(() => {
   // 尚未載入或載入失敗（沒有單號）時不顯示唯讀提示
   if (editable.value || loading.value || !form.no) return ''
-  // 簽核人檢視他人的已退回單：狀態可編輯，但自己不是建單人或出差人
-  if (isEditableStatus(form.status)) return '您不是此出差單的建單人或出差人，僅能檢視'
-  return `目前狀態為【${form.statusDisplay}】，不可編輯`
+  // 能不能編輯由後端的 canEdit 決定；原因可能是狀態，也可能是自己不是建單人或出差人
+  return `目前狀態為【${form.statusDisplay}】，您僅能檢視（只有建單人或出差人能編輯草稿與已退回的出差單）`
 })
 
 function applyTrip(data = {}) {
@@ -147,17 +145,24 @@ async function loadOptions() {
   }
 }
 
-// 新增時預設出差人為本人；找不到對應員工就留白讓使用者自己選
+// 新增時預設出差人為本人；取不到時顯示原因，仍可自行選擇出差人
 async function applyDefaultTraveler() {
   try {
     const response = await businessTripApi.getCurrentStaff()
-    if (isSuccess(response)) {
-      form.travelerStaffId = unwrap(response)?.value ?? null
+    if (!isSuccess(response)) {
+      formError.value = getApiErrorMessage(response, '無法帶入預設出差人')
+      ElMessage.error(formError.value)
+      return
     }
-  } catch {
-    // 預設值取不到不影響填單，由使用者自行選擇出差人
+    form.travelerStaffId = unwrap(response)?.value ?? null
+  } catch (error) {
+    formError.value = getApiErrorMessage(error, '無法帶入預設出差人')
+    ElMessage.error(formError.value)
   }
 }
+
+// 切換單據時，只接受最後一次請求的結果，避免後送先回覆蓋畫面
+let loadToken = 0
 
 // 簽核進度只供顯示：查詢失敗不影響單據本身，錯誤顯示在進度區塊
 async function loadProgress(token) {
@@ -190,9 +195,6 @@ async function loadProgress(token) {
     if (token === loadToken) progressLoading.value = false
   }
 }
-
-// 切換單據時，只接受最後一次請求的結果，避免後送先回覆蓋畫面
-let loadToken = 0
 
 async function loadTrip() {
   const token = ++loadToken

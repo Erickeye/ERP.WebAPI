@@ -3,21 +3,22 @@ using ERP.EntityModels.Context;
 using ERP.Library.Enums.Other;
 using Microsoft.EntityFrameworkCore;
 
-namespace ERP.Service.API.Approval;
-
-public class BusinessTripApprovalTargetHandler : IApprovalTargetHandler
+namespace ERP.Service.API.Approval
 {
-    private readonly ERPDbContext _context;
-
-    public BusinessTripApprovalTargetHandler(ERPDbContext context)
+    public class BusinessTripApprovalTargetHandler : IApprovalTargetHandler
     {
-        _context = context;
-    }
+        private readonly ERPDbContext _context;
 
-    public TableType TableType => TableType.出差單;
+        public BusinessTripApprovalTargetHandler(ERPDbContext context)
+        {
+            _context = context;
+        }
 
-    public Task<bool> ExistsAsync(string tableId)
-    {
-        return _context.t_1060BusinessTrip.AnyAsync(x => x.No == tableId);
+        public TableType TableType => TableType.出差單;
+
+        public Task<bool> ExistsAsync(string tableId)
+        {
+            return _context.t_1060BusinessTrip.AnyAsync(x => x.No == tableId);
+        }
     }
 }

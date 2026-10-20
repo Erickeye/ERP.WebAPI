@@ -24,11 +24,6 @@ export function approvalStepLabel(stepOrder) {
   return stepOrder === 0 ? '送簽' : `第 ${stepOrder} 關`
 }
 
-// 草稿與已退回才有「可編輯」的狀態；實際能不能編輯由後端的 canEdit 決定（還要是建單人或出差人）
-export function isEditableStatus(status) {
-  return status === BUSINESS_TRIP_STATUS.DRAFT || status === BUSINESS_TRIP_STATUS.REJECTED
-}
-
 // 只有草稿可以刪除
 export function canDeleteBusinessTrip(status) {
   return status === BUSINESS_TRIP_STATUS.DRAFT
