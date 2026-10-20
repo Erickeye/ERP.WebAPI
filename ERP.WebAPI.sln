@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "document", "document", "{B3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Approval", "src\ERP.Approval\ERP.Approval.csproj", "{6115E051-0BC7-429F-ACBA-34995052E1BE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ERP.Tests", "src\ERP.Tests\ERP.Tests.csproj", "{D46CF249-2637-4EDB-BF5E-F4DF0D7DE12C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{6115E051-0BC7-429F-ACBA-34995052E1BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6115E051-0BC7-429F-ACBA-34995052E1BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6115E051-0BC7-429F-ACBA-34995052E1BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D46CF249-2637-4EDB-BF5E-F4DF0D7DE12C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D46CF249-2637-4EDB-BF5E-F4DF0D7DE12C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D46CF249-2637-4EDB-BF5E-F4DF0D7DE12C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D46CF249-2637-4EDB-BF5E-F4DF0D7DE12C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

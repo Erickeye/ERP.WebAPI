@@ -9,6 +9,7 @@ namespace ERP.Service.API
     {
         Task<ResultModel<ListResult<SelectModel>>> GetInventorySelect();
         Task<ResultModel<ListResult<SelectModel>>> GetPaymentMethodSelect();
+        Task<ResultModel<ListResult<SelectModel>>> GetMaterialIssuePurposeSelect();
     }
     public class SharedService : ISharedService
     {
@@ -38,6 +39,20 @@ namespace ERP.Service.API
             var data = await _db.SystemConfig
                 .AsNoTracking()
                 .Where(x => x.ConfigType == "PaymentMethod")
+                .Select(x => new SelectModel
+                {
+                    Value = x.Id,
+                    Text = x.Name
+                })
+                .ToListAsync();
+
+            return ResultModel.Ok(data);
+        }
+        public async Task<ResultModel<ListResult<SelectModel>>> GetMaterialIssuePurposeSelect()
+        {
+            var data = await _db.SystemConfig
+                .AsNoTracking()
+                .Where(x => x.ConfigType == "MaterialIssuePurpose" && x.IsActive)
                 .Select(x => new SelectModel
                 {
                     Value = x.Id,

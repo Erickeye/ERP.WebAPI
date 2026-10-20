@@ -14,6 +14,10 @@ namespace ERP.Library.ViewModels._4000Inventory
         [SearchField("Location.Name", SearchCompare.Contains)]
         public string? LocationName { get; set; }
 
+        [Display(Name = "庫位識別碼")]
+        [SearchField("LocationId", SearchCompare.Equal)]
+        public int? LocationId { get; set; }
+
         [Display(Name = "類別")]
         [SearchField("Category", SearchCompare.Equal)]
         public string? Category { get; set; }

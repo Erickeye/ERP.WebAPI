@@ -1,6 +1,7 @@
 using ERP.Approval.Abstractions;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
+using ERP.Library.Enums._4000Inventory;
 using ERP.Library.Enums;
 using ERP.Library.Enums.Other;
 using ERP.Library.Extensions;
@@ -28,12 +29,14 @@ namespace ERP.Service.API._4000Inventory
         private readonly ICurrentUserService _currentUserService;
         private readonly ISerialService _serialService;
         private readonly IApprovalWorkflowService _approvalWorkflowService;
-        public _4010PurchaseService(ERPDbContext db, ICurrentUserService currentUserService, ISerialService serialService, IApprovalWorkflowService approvalWorkflowService)
+        private readonly IStockMovementRecorder _stockMovementRecorder;
+        public _4010PurchaseService(ERPDbContext db, ICurrentUserService currentUserService, ISerialService serialService, IApprovalWorkflowService approvalWorkflowService, IStockMovementRecorder stockMovementRecorder)
         {
             _db = db;
             _currentUserService = currentUserService;
             _serialService = serialService;
             _approvalWorkflowService = approvalWorkflowService;
+            _stockMovementRecorder = stockMovementRecorder;
         }
 
         public async Task<ResultModel<PagedResult<PurchaseVM>>> Index(PurchaseSearchVM vm)
@@ -272,7 +275,7 @@ namespace ERP.Service.API._4000Inventory
 
                 if (inventory != null)
                 {
-                    inventory.Quantity += (decimal)item.Quantity!;
+                    _stockMovementRecorder.Apply(inventory, StockMovementType.進貨入庫, TableType.進貨單, purchase.No!, (decimal)item.Quantity!, _currentUserService.UserId, now);
                 }
                 else
                 {
@@ -285,17 +288,25 @@ namespace ERP.Service.API._4000Inventory
                         Category = item.Category,
                         No = item.No,
                         Unit = item.Unit,
-                        Quantity = item.Quantity,
+                        Quantity = 0m,
                         Amount = item.Price,
                         Total = item.Quantity * item.Price,
                         LastPurchaseDate = now
                     };
                     _db.t_4000Inventory.Add(inventory);
+                    _stockMovementRecorder.Apply(inventory, StockMovementType.進貨入庫, TableType.進貨單, purchase.No!, (decimal)item.Quantity!, _currentUserService.UserId, now);
                 }
             }
             purchase.IsApproval = true;
 
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return ResultModel.Error(ErrorCodeType.SpecificRecordChanged, "庫存已被異動，請重新操作");
+            }
             return ResultModel.Ok($"{result.Data}");
         }
         public async Task<ResultModel<string>> VoidApproval(ApprovalVM vm)
@@ -324,6 +335,8 @@ namespace ERP.Service.API._4000Inventory
                 )
                 .ToListAsync();
 
+            var now = DateTime.Now;
+
             foreach (var item in purchase!.t_4011PurchaseDetail)
             {
                 var inventory = inventories
@@ -335,14 +348,21 @@ namespace ERP.Service.API._4000Inventory
                     return ResultModel.Error(ErrorCodeType.InvalidApproval, $"撤銷簽核失敗，找不到該庫存物品:【{item.No}】{item.Name}。");
                 }
 
-                inventory.Quantity -= (decimal)item.Quantity!;
-                if(inventory.Quantity < 0)
+                if ((inventory.Quantity ?? 0m) - (decimal)item.Quantity! < 0)
                 {
                     return ResultModel.Error(ErrorCodeType.InvalidApproval, $"撤銷簽核失敗，該庫存數量不足:【{item.No}】{item.Name} /r/n" +
                         $"進貨單數量:{item.Quantity}，庫存數量{inventory.Quantity}。");
                 }
+                _stockMovementRecorder.Apply(inventory, StockMovementType.進貨作廢, TableType.進貨單, purchase.No!, -(decimal)item.Quantity!, _currentUserService.UserId, now);
             }
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return ResultModel.Error(ErrorCodeType.SpecificRecordChanged, "庫存已被異動，請重新操作");
+            }
             return ResultModel.Ok($"{result.Data}");
         }
 

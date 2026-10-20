@@ -74,6 +74,12 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<t_4011PurchaseDetail> t_4011PurchaseDetail { get; set; }
 
+    public virtual DbSet<t_4030MaterialIssue> t_4030MaterialIssue { get; set; }
+
+    public virtual DbSet<t_4031MaterialIssueDetail> t_4031MaterialIssueDetail { get; set; }
+
+    public virtual DbSet<t_4040StockMovement> t_4040StockMovement { get; set; }
+
     public virtual DbSet<t_4060Supplier> t_4060Supplier { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -437,6 +443,9 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(128);
             entity.Property(e => e.No).HasMaxLength(64);
             entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
             entity.Property(e => e.Total).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Unit).HasMaxLength(16);
 
@@ -522,6 +531,99 @@ public partial class ERPDbContext : DbContext
                 .HasForeignKey(d => d.PurchaseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_4011PurchaseDetail_PurchaseId");
+        });
+
+        modelBuilder.Entity<t_4030MaterialIssue>(entity =>
+        {
+            entity.HasIndex(e => e.IssueDate, "IX_t_4030MaterialIssue_IssueDate");
+
+            entity.HasIndex(e => e.LocationId, "IX_t_4030MaterialIssue_LocationId");
+
+            entity.HasIndex(e => e.No, "IX_t_4030MaterialIssue_No").IsUnique();
+
+            entity.HasIndex(e => e.ReceiverStaffId, "IX_t_4030MaterialIssue_ReceiverStaffId");
+
+            entity.HasIndex(e => e.Status, "IX_t_4030MaterialIssue_Status");
+
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.IssueDate).HasColumnType("datetime");
+            entity.Property(e => e.No)
+                .HasMaxLength(64)
+                .IsUnicode(false);
+            entity.Property(e => e.Note).HasMaxLength(1024);
+            entity.Property(e => e.ProjectName).HasMaxLength(128);
+            entity.Property(e => e.Status).HasDefaultValue(0);
+
+            entity.HasOne(d => d.CreateUser).WithMany()
+                .HasForeignKey(d => d.CreateUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4030MaterialIssue_CreateUser");
+
+            entity.HasOne(d => d.Customer).WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("FK_t_4030MaterialIssue_Customer");
+
+            entity.HasOne(d => d.Location).WithMany()
+                .HasForeignKey(d => d.LocationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4030MaterialIssue_Location");
+
+            entity.HasOne(d => d.Purpose).WithMany()
+                .HasForeignKey(d => d.PurposeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4030MaterialIssue_Purpose");
+
+            entity.HasOne(d => d.ReceiverStaff).WithMany()
+                .HasForeignKey(d => d.ReceiverStaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4030MaterialIssue_Receiver");
+        });
+
+        modelBuilder.Entity<t_4031MaterialIssueDetail>(entity =>
+        {
+            entity.HasIndex(e => e.InventoryId, "IX_t_4031MaterialIssueDetail_InventoryId");
+
+            entity.HasIndex(e => new { e.MaterialIssueId, e.InventoryId }, "IX_t_4031MaterialIssueDetail_Issue_Inventory").IsUnique();
+
+            entity.Property(e => e.Name).HasMaxLength(128);
+            entity.Property(e => e.No).HasMaxLength(64);
+            entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Unit).HasMaxLength(16);
+
+            entity.HasOne(d => d.Inventory).WithMany()
+                .HasForeignKey(d => d.InventoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4031MaterialIssueDetail_Inventory");
+
+            entity.HasOne(d => d.MaterialIssue).WithMany(p => p.t_4031MaterialIssueDetail)
+                .HasForeignKey(d => d.MaterialIssueId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4031MaterialIssueDetail_MaterialIssue");
+        });
+
+        modelBuilder.Entity<t_4040StockMovement>(entity =>
+        {
+            entity.HasIndex(e => new { e.InventoryId, e.MovementTime }, "IX_t_4040StockMovement_Inventory_Time");
+
+            entity.HasIndex(e => e.MovementType, "IX_t_4040StockMovement_MovementType");
+
+            entity.HasIndex(e => new { e.SourceTableType, e.SourceNo }, "IX_t_4040StockMovement_Source");
+
+            entity.Property(e => e.AfterQuantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.BeforeQuantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.MovementTime).HasColumnType("datetime");
+            entity.Property(e => e.Quantity).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.SourceNo).HasMaxLength(64);
+
+            entity.HasOne(d => d.Inventory).WithMany()
+                .HasForeignKey(d => d.InventoryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4040StockMovement_Inventory");
+
+            entity.HasOne(d => d.OperatorUser).WithMany()
+                .HasForeignKey(d => d.OperatorUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4040StockMovement_Operator");
         });
 
         modelBuilder.Entity<t_4060Supplier>(entity =>

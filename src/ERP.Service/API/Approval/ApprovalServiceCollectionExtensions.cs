@@ -11,6 +11,7 @@ public static class ApprovalServiceCollectionExtensions
         services.AddScoped<IApprovalTargetHandler, DayoffApprovalTargetHandler>();
         services.AddScoped<IApprovalTargetHandler, DocumentApprovalTargetHandler>();
         services.AddScoped<IApprovalTargetHandler, PurchaseApprovalTargetHandler>();
+        services.AddScoped<IApprovalTargetHandler, MaterialIssueApprovalTargetHandler>();
 
         return services;
     }
