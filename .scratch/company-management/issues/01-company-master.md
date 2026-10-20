@@ -38,3 +38,8 @@
 - 填單選單依建立順序（Id）排序，沒有依簡稱排序，因為中文簡稱的排序在 SQLite 與 SQL Server 的定序下結果不同。
 - 新增公司成功後回到列表頁（不是停在編輯頁）。
 - 本 ticket 沒有新增詞彙，`docs/company/GLOSSARY.md` 無變動。
+
+### 後續更新（2026-10-20，ticket 02）
+
+`IsReferencedAsync` 已補上領料單判斷（commit `5c2d228`）；出差單的判斷待 ticket 03。
+
