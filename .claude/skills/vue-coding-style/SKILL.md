@@ -5,11 +5,11 @@ description: Apply the ERP.Vue frontend conventions when creating, modifying, re
 
 # Vue Coding Style
 
-依專案的 `document/vueCodingStyle.md` 維護 `src/ERP.Vue`。該文件是唯一規範來源；本 skill 只固定執行順序與完成前檢查，不複製整份規範。
+依本 skill 資料夾內的 `references/vueCodingStyle.md` 維護 `src/ERP.Vue`。該文件是唯一規範來源；本 skill 只固定執行順序與完成前檢查，不複製整份規範。
 
 ## 必做流程
 
-1. 先讀 `document/vueCodingStyle.md`，再讀受影響的 view、`src/api/*`、`src/api/http.js`、`router/index.js`、`DashboardLayout.vue` 與相關工具。
+1. 先讀 `references/vueCodingStyle.md`，再讀受影響的 view、`src/api/*`、`src/api/http.js`、`router/index.js`、`DashboardLayout.vue` 與相關工具。
 2. 先確認後端 Controller 的實際 Route 與 `SearchVM`／輸入 VM 欄位（Route 為 `/{ModuleNo}{Name}/{Action}`，例如 `/_4010Purchase/Index`），不要先建立平行功能或猜測欄位。
 3. 新檔使用 `<script setup>`；順序為 `<script setup>`、`<template>`、`<style scoped>`。UI 優先使用 Element Plus（`el-table`、`el-form`、`el-dialog`、`el-pagination`、`el-date-picker`），不用原生元件重做。
 4. HTTP 路徑只放 `src/api`；只有 `http.js` 可 import `axios`。Token 由 request interceptor 帶入，不在每個 wrapper 手動傳 headers；baseURL 取自 `VITE_API_BASE_URL`。
@@ -32,4 +32,4 @@ description: Apply the ERP.Vue frontend conventions when creating, modifying, re
 
 ## 例外處理
 
-`document/vueCodingStyle.md` 標示「現況落差」的既有程式（Options API、原生表單元件、寫死 baseURL、逐一傳 headers），只在被修改到該區域時順手收斂，新程式不得複製該寫法。若需動到 `http.js`、router、Layout 或全域 CSS，先向使用者確認範圍。
+`references/vueCodingStyle.md` 標示「現況落差」的既有程式（Options API、原生表單元件、寫死 baseURL、逐一傳 headers），只在被修改到該區域時順手收斂，新程式不得複製該寫法。若需動到 `http.js`、router、Layout 或全域 CSS，先向使用者確認範圍。

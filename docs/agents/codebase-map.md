@@ -11,11 +11,11 @@
 | `ERP.Approval` | 通用簽核引擎：`ApprovalWorkflowService`、`IApprovalTargetHandler`；引擎不維護單據狀態 |
 | `ERP.Library` | Enum（`Enums/`）、ViewModel（`ViewModels/`）、Helper、Extension |
 | `EntityModels` | EF Core：`ERP.EntityModels/Models/`（資料表類別）、`Context/ERPDbContext.cs` |
-| `ERP.DB` | SQL Server 資料庫專案（`dbo/Tables/*.sql`）；新資料表另附部署腳本於 `document/sql/` |
+| `ERP.DB` | SQL Server 資料庫專案（`dbo/Tables/*.sql`）；新資料表另附部署腳本於 `docs/sql/` |
 | `ERP.Tests` | xUnit；每個 Service 一個測試檔，輔助在 `Support/` |
 | `ERP.Vue` | 前端：`views/`、`api/`、`utils/`、`router/index.js`、選單在 `components/DashboardLayout.vue` |
 
-命名慣例：服務與控制器以資料表編號開頭（例如 `_1060BusinessTrip`），資料表 `t_1060BusinessTrip`。細節規範見 `document/codingStyle.md`、`document/vueCodingStyle.md`。
+命名慣例：服務與控制器以資料表編號開頭（例如 `_1060BusinessTrip`），資料表 `t_1060BusinessTrip`。細節規範見 `backend-coding-style` 與 `vue-coding-style` skill 的 `references/`。
 
 ## 自動接線，不用手動註冊
 
@@ -29,7 +29,7 @@
 1. `ERP.Library/Enums/Other/TableType.cs`：新增單據類型。
 2. `ERP.Library/Enums/Login/PermissionType.cs`：新增功能權限（出差單 = 1060、出差單管理 = 1061）。
 3. `ERP.Library/Enums/<分群>/XxxStatus.cs`、`ViewModels/<分群>/XxxVM.cs`：狀態與 VM。
-4. 資料表：`EntityModels/.../Models/t_NNNNXxx.cs`、`ERPDbContext.cs` 加 `DbSet` 與設定、`ERP.DB/dbo/Tables/t_NNNNXxx.sql`、`ERP.DB.sqlproj` 加入、部署腳本放 `document/sql/`。
+4. 資料表：`EntityModels/.../Models/t_NNNNXxx.cs`、`ERPDbContext.cs` 加 `DbSet` 與設定、`ERP.DB/dbo/Tables/t_NNNNXxx.sql`、`ERP.DB.sqlproj` 加入、部署腳本放 `docs/sql/`。
 5. `ERP.Service/API/<分群>/_NNNNXxxService.cs`：單據狀態在此維護，簽核動作（送簽、核准、拒絕、撤銷、作廢）與狀態在同一交易（見 `docs/inventory/adr/0001`、`docs/attendance/adr/0001`）。單號用 `ISerialService`。
 6. `ERP.Service/API/Approval/XxxApprovalTargetHandler.cs`，並在 `ApprovalServiceCollectionExtensions.cs` 手動註冊 `IApprovalTargetHandler`。
 7. `ERP.WebAPI/Controllers/<分群>/_NNNNXxxController.cs`：專屬簽核端點。

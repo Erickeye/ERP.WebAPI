@@ -1,6 +1,6 @@
 # ERP.Vue 前端 Coding Style
 
-本文件是 `src/ERP.Vue` 前端修改的共同規範，後端請見 `document/codingStyle.md`。
+本文件是 `src/ERP.Vue` 前端修改的共同規範，後端請見 `backend-coding-style` skill 的 `references/codingStyle.md`。
 
 規範以 ERP.Vue 實際使用的技術為準：**Vue 3、Vue Router、Element Plus、Axios、Vite**（`@` alias 指向 `src`）。目前沒有 Pinia、ESLint、Prettier；需要時再導入，導入時同步更新本文件。若需求需要改變架構，先說明影響範圍，再修改本文件與程式碼。
 

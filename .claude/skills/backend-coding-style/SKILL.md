@@ -9,7 +9,7 @@ description: Apply the ERP.WebAPI backend coding style when creating, modifying,
 
 ## 必讀來源
 
-修改、審查或產生後端程式碼前，先讀 `document/codingStyle.md`。該檔是本專案後端風格的唯一來源；本 skill 只固定執行順序與完成前檢查，不複製整份規範。
+修改、審查或產生後端程式碼前，先讀 `references/codingStyle.md`（本 skill 資料夾內）。該檔是本專案後端風格的唯一來源；本 skill 只固定執行順序與完成前檢查，不複製整份規範。
 
 ## 工作流程
 
@@ -28,7 +28,7 @@ description: Apply the ERP.WebAPI backend coding style when creating, modifying,
 ## 完成前檢查
 
 - 以 `rg` 確認 Controller 沒有注入 `ERPDbContext`、Service 沒有回傳裸型別。
-- 確認新 Action 的 Attribute 與 `document/codingStyle.md` 第 18 節檢查清單一致。
+- 確認新 Action 的 Attribute 與 `references/codingStyle.md` 第 18 節檢查清單一致。
 - 確認沒有字串拼接 SQL、沒有把密碼／Token／連線字串寫進程式碼或 Log。
 - 確認錯誤沒有被吞掉（catch 後要記錄或回傳 `ResultModel.Error`）。
 
@@ -38,4 +38,4 @@ description: Apply the ERP.WebAPI backend coding style when creating, modifying,
 
 ## 例外處理
 
-`document/codingStyle.md` 標示「現況落差」的既有程式，只在被修改到該區域時順手收斂。不得因此擴大修改範圍；若需改動 Program.cs 全域設定、Middleware 或 `ErrorCodeType` 既有數值，先向使用者確認。
+`references/codingStyle.md` 標示「現況落差」的既有程式，只在被修改到該區域時順手收斂。不得因此擴大修改範圍；若需改動 Program.cs 全域設定、Middleware 或 `ErrorCodeType` 既有數值，先向使用者確認。

@@ -1,7 +1,7 @@
 # ERP.WebAPI 後端 Coding Style
 
 > 本文件依照 ERP.WebAPI 目前架構整理，適用範圍包含 `Controller`、`Service / Interface`、`ViewModels`、`EntityModels`、共用 Helper / Extension、API 回傳格式、Log、授權與外部服務。
-> 前端請見 `document/vueCodingStyle.md`。
+> 前端請見 `vue-coding-style` skill 的 `references/vueCodingStyle.md`。
 > 文件中標示「**現況落差**」的段落，代表程式碼目前尚未完全符合規範，新程式請依規範撰寫，舊程式不需為此另開重構。
 
 ## 1. 專案分層

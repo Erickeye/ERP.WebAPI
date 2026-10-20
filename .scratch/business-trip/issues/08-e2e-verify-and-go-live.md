@@ -21,7 +21,7 @@
 前置：ticket 01–07 已實作，工作樹尚未 commit；後端 `ERP.Tests` 完整 276 項通過（SQLite 記憶體庫）。以下是記憶體庫驗證不了、必須在真實環境確認的項目。
 
 **A. 資料庫**
-1. 在既有 SQL Server 執行 `document/sql/出差單資料表.sql`（可重複執行）；新環境以 ERP.DB 專案發佈。
+1. 在既有 SQL Server 執行 `docs/sql/出差單資料表.sql`（可重複執行）；新環境以 ERP.DB 專案發佈。
 2. 確認 `t_1060BusinessTrip` 的 `StartDate`、`EndDate` 為 `DATE`、`No` 有唯一索引、`CK_t_1060BusinessTrip_Dates` 存在。
 3. 確認實體模型與 DbContext（agent 手寫，非 scaffold 產出）與實際資料表一致；有空可重新 scaffold 比對。
 
