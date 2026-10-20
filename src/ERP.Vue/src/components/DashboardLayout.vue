@@ -16,6 +16,7 @@ const cards = [
     subItems: [
       { id: 'staff-list', title: '員工' },
       { id: 'dayoff-create', title: '請假單', path: '/dayoff/create' },
+      { id: 'business-trip-list', title: '出差單', path: '/business-trip/index' },
       { id: 'overtime-list', title: '加班單' },
     ]
   },

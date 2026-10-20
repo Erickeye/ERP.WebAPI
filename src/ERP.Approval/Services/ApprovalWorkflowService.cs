@@ -199,6 +199,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             return ResultModel.Error(ErrorCodeType.NotYetTurnForApprovalStep);
         }
 
+        record.UserId = _userContext.UserId;
         record.Date = DateTime.Now;
         record.Status = (int)ApprovalStatus.Approved;
         record.Memo = data.Memo;
@@ -279,20 +280,24 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .OrderByDescending(x => x.StepOrder)
             .ToListAsync();
 
-        var record = recordList.FirstOrDefault();
-        if (record == null)
+        // 送簽時系統建立 StepOrder 為 0 的紀錄，其 UserId 即送簽人；重送時取最新一筆
+        var sendRecord = recordList
+            .Where(x => x.StepOrder == 0)
+            .OrderByDescending(x => x.Id)
+            .FirstOrDefault();
+        if (sendRecord == null)
         {
             return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到簽核紀錄");
         }
 
-        if (record.Status != (int)ApprovalStatus.Pending)
+        if (!recordList.Any(x => x.Status == (int)ApprovalStatus.Pending))
         {
             return ResultModel.Error(ErrorCodeType.InvalidUserOperation, "目前狀態不可撤回簽核");
         }
 
-        if (record.UserId != _userContext.UserId)
+        if (sendRecord.UserId != _userContext.UserId)
         {
-            return ResultModel.Error(ErrorCodeType.NotFoundData, "只能撤回自己的簽核");
+            return ResultModel.Error(ErrorCodeType.NotFoundData, "只能撤回自己送出的簽核");
         }
 
         foreach (var recordItem in recordList.Where(x => x.Status == (int)ApprovalStatus.Pending))
@@ -306,20 +311,30 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
 
     public async Task<ResultModel<string>> VoidApproval(ApprovalVM data)
     {
+        // 被拒絕後重送時，舊一輪的 Rejected 與 GetRejected 紀錄仍留在流程中，只能看最近一輪送簽之後的紀錄；
+        // 一輪的界線是最新一筆 StepOrder 為 0 的送簽紀錄（與撤銷檢查取送簽紀錄的方式一致）
+        var latestSendRecordId = await _context.ApprovalRecord
+            .Where(x => x.TableType == (int)data.TableType &&
+                        x.TableId == data.TableId &&
+                        x.StepOrder == 0)
+            .MaxAsync(x => (int?)x.Id) ?? 0;
+
         var recordList = await _context.ApprovalRecord
             .Where(x => x.TableType == (int)data.TableType &&
                         x.TableId == data.TableId &&
+                        x.Id >= latestSendRecordId &&
                         x.Status != (int)ApprovalStatus.GetRevoked)
             .OrderByDescending(x => x.StepOrder)
             .ToListAsync();
 
-        var record = recordList.FirstOrDefault();
-        if (!recordList.Any() || record == null)
+        var lastStepOrder = recordList.FirstOrDefault()?.StepOrder;
+        if (lastStepOrder == null)
         {
             return ResultModel.Error(ErrorCodeType.NotFoundData, "找不到簽核紀錄");
         }
 
-        if (record.UserId != _userContext.UserId)
+        // 最後一關的簽核人（指定人員為設定的人員，指定角色為核准時記錄的人員）
+        if (!recordList.Any(x => x.StepOrder == lastStepOrder && x.UserId == _userContext.UserId))
         {
             return ResultModel.Error(ErrorCodeType.NotFoundData, "只能作廢自己的簽核");
         }

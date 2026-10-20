@@ -29,7 +29,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [HttpPost, Route("SendApprovalProcess")]
         public async Task<IActionResult> SendApprovalProcess(ApprovalVM data)
         {
-            if (data.TableType == TableType.領料單) return Ok(MaterialIssueBlocked());
+            if (IsHandledByModule(data.TableType)) return Ok(ModuleBlocked(data.TableType));
             var result = await _workflowService.SendApprovalProcess(data);
             return Ok(result);
         }
@@ -47,7 +47,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [Log(OperationActionType.Approval, "簽核作業")]
         public async Task<IActionResult> Approval(ApprovalVM data)
         {
-            if (data.TableType == TableType.領料單) return Ok(MaterialIssueBlocked());
+            if (IsHandledByModule(data.TableType)) return Ok(ModuleBlocked(data.TableType));
             var result = await _workflowService.Approval(data);
             return Ok(result);
         }
@@ -56,7 +56,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [HttpPost, Route("RejectApproval")]
         public async Task<IActionResult> RejectApproval(ApprovalVM data)
         {
-            if (data.TableType == TableType.領料單) return Ok(MaterialIssueBlocked());
+            if (IsHandledByModule(data.TableType)) return Ok(ModuleBlocked(data.TableType));
             var result = await _workflowService.RejectApproval(data);
             return Ok(result);
         }
@@ -120,7 +120,7 @@ namespace ERP.WebAPI.Controllers.Approval
         [Log(OperationActionType.RevokeApproval, "撤銷簽核作業")]
         public async Task<IActionResult> RevokeApproval(ApprovalVM data)
         {
-            if (data.TableType == TableType.領料單) return Ok(MaterialIssueBlocked());
+            if (IsHandledByModule(data.TableType)) return Ok(ModuleBlocked(data.TableType));
             var result = await _workflowService.RevokeApproval(data);
             return Ok(result);
         }
@@ -130,17 +130,23 @@ namespace ERP.WebAPI.Controllers.Approval
         [Log(OperationActionType.RevokeApproval, "撤銷簽核作業")]
         public async Task<IActionResult> VoidApproval(ApprovalVM data)
         {
-            if (data.TableType == TableType.領料單) return Ok(MaterialIssueBlocked());
+            if (IsHandledByModule(data.TableType)) return Ok(ModuleBlocked(data.TableType));
             var result = await _workflowService.VoidApproval(data);
             return Ok(result);
         }
 
         /// <summary>
-        /// 領料單的簽核動作需與扣庫存同一交易，必須走領料單專用端點
+        /// 領料單、出差單的簽核動作需與單據狀態（領料單另含庫存）同一交易，必須走各自的專用端點
         /// </summary>
-        private static ResultModel<string> MaterialIssueBlocked()
+        private static bool IsHandledByModule(TableType tableType)
         {
-            return ResultModel.Error(ErrorCodeType.InvalidApproval, "領料單請使用領料單專用的簽核功能");
+            return tableType == TableType.領料單 || tableType == TableType.出差單;
+        }
+
+        private static ResultModel<string> ModuleBlocked(TableType tableType)
+        {
+            var name = tableType == TableType.出差單 ? "出差單" : "領料單";
+            return ResultModel.Error(ErrorCodeType.InvalidApproval, $"{name}請使用{name}專用的簽核功能");
         }
     }
 }

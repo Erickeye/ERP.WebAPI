@@ -13,4 +13,15 @@ export const getHeaders = () => {
   return headers;
 };
 
+// 自動帶入 Authorization，新的 API wrapper 不需要再各自傳 headers
+http.interceptors.request.use((config) => {
+  if (!config.headers.Authorization) {
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 export default http

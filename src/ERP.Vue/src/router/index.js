@@ -2,13 +2,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Layout from '../components/DashboardLayout.vue'
 import DayOffCreate from '@/views/DayOffCreate.vue'
 import DayOffList from '@/views/DayOffList.vue'
+import BusinessTripList from '@/views/BusinessTripList.vue'
+import BusinessTripEdit from '@/views/BusinessTripEdit.vue'
 import LoginPage from '../views/LoginPage.vue'
 
 const routes = [
   { path: '/', name: 'login', component: LoginPage },
   { path: '/layout', name: 'layout', component: Layout },
   { path: '/dayoff/create', component: DayOffCreate },
-  { path: '/dayoff/index', component: DayOffList }
+  { path: '/dayoff/index', component: DayOffList },
+  { path: '/business-trip/index', name: 'business-trip-list', component: BusinessTripList },
+  { path: '/business-trip/create', name: 'business-trip-create', component: BusinessTripEdit },
+  { path: '/business-trip/:id(\\d+)', name: 'business-trip-edit', component: BusinessTripEdit }
 ]
 
 const router = createRouter({

@@ -71,6 +71,7 @@
     <Build Include="dbo\Tables\t_1101DepartmentUnit.sql" />
     <Build Include="dbo\Tables\t_1100Department.sql" />
     <Build Include="dbo\Tables\t_1080Company.sql" />
+    <Build Include="dbo\Tables\t_1060BusinessTrip.sql" />
     <Build Include="dbo\Tables\t_1050WorkOver.sql" />
     <Build Include="dbo\Tables\t_1040Document.sql" />
     <Build Include="dbo\Tables\t_1039DayoffProxy.sql" />

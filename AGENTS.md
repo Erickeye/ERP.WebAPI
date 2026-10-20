@@ -19,7 +19,7 @@ Issues and specs live as local markdown files under `.scratch/`. See `docs/agent
 
 ### Domain docs
 
-Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Multi-context: 根目錄 `GLOSSARY-MAP.md` 指向各 context 的術語表（庫存管理為根目錄 `GLOSSARY.md`，差勤為 `docs/attendance/GLOSSARY.md`）。系統層級 ADR 放 `docs/adr/`，差勤專屬 ADR 放 `docs/attendance/adr/`。See `docs/agents/domain.md`.
 
 ## 編譯與測試（agent 工作階段）
 

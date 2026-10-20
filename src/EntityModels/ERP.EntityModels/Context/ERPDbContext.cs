@@ -50,6 +50,8 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<t_1050WorkOver> t_1050WorkOver { get; set; }
 
+    public virtual DbSet<t_1060BusinessTrip> t_1060BusinessTrip { get; set; }
+
     public virtual DbSet<t_1080Company> t_1080Company { get; set; }
 
     public virtual DbSet<t_1100Department> t_1100Department { get; set; }
@@ -286,6 +288,44 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.OverTimeHours).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.Reason).HasMaxLength(64);
             entity.Property(e => e.SignaturePath).HasMaxLength(64);
+        });
+
+        modelBuilder.Entity<t_1060BusinessTrip>(entity =>
+        {
+            entity.HasIndex(e => e.CreateUserId, "IX_t_1060BusinessTrip_CreateUserId");
+
+            entity.HasIndex(e => e.No, "IX_t_1060BusinessTrip_No").IsUnique();
+
+            entity.HasIndex(e => e.StartDate, "IX_t_1060BusinessTrip_StartDate");
+
+            entity.HasIndex(e => e.Status, "IX_t_1060BusinessTrip_Status");
+
+            entity.HasIndex(e => new { e.TravelerStaffId, e.StartDate, e.EndDate }, "IX_t_1060BusinessTrip_TravelerStaffId");
+
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.Destination).HasMaxLength(128);
+            entity.Property(e => e.EndDate).HasColumnType("date");
+            entity.Property(e => e.No)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.Note).HasMaxLength(1024);
+            entity.Property(e => e.Reason).HasMaxLength(256);
+            entity.Property(e => e.StartDate).HasColumnType("date");
+            entity.Property(e => e.Status).HasDefaultValue(0);
+
+            entity.HasOne(d => d.CreateUser).WithMany()
+                .HasForeignKey(d => d.CreateUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_1060BusinessTrip_CreateUser");
+
+            entity.HasOne(d => d.Customer).WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("FK_t_1060BusinessTrip_Customer");
+
+            entity.HasOne(d => d.TravelerStaff).WithMany()
+                .HasForeignKey(d => d.TravelerStaffId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_1060BusinessTrip_Traveler");
         });
 
         modelBuilder.Entity<t_1080Company>(entity =>

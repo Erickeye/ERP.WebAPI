@@ -38,7 +38,25 @@ public class FakeApprovalWorkflowService : IApprovalWorkflowService
 
     public Func<Task>? OnApproval { get; set; }
 
-    public Task<ResultModel<string>> SendApprovalProcess(ApprovalVM data) => Task.FromResult(SendResult);
+    public Func<Task>? OnReject { get; set; }
+
+    public Func<Task>? OnSend { get; set; }
+
+    public Func<Task>? OnRevoke { get; set; }
+
+    public Func<Task>? OnVoid { get; set; }
+
+    /// <summary>引擎「待簽核」查詢回傳的項目（目前登入者輪到簽的單據）。</summary>
+    public List<GetApprovalNotifyVM> PendingNotify { get; set; } = new();
+
+    public async Task<ResultModel<string>> SendApprovalProcess(ApprovalVM data)
+    {
+        if (OnSend != null)
+        {
+            await OnSend();
+        }
+        return SendResult;
+    }
 
     public async Task<ResultModel<string>> Approval(ApprovalVM data)
     {
@@ -49,13 +67,36 @@ public class FakeApprovalWorkflowService : IApprovalWorkflowService
         return ApprovalResult;
     }
 
-    public Task<ResultModel<string>> RejectApproval(ApprovalVM data) => Task.FromResult(RejectResult);
-    public Task<ResultModel<string>> RevokeApproval(ApprovalVM data) => Task.FromResult(RevokeResult);
-    public Task<ResultModel<string>> VoidApproval(ApprovalVM data) => Task.FromResult(VoidResult);
+    public async Task<ResultModel<string>> RejectApproval(ApprovalVM data)
+    {
+        if (OnReject != null)
+        {
+            await OnReject();
+        }
+        return RejectResult;
+    }
+
+    public async Task<ResultModel<string>> RevokeApproval(ApprovalVM data)
+    {
+        if (OnRevoke != null)
+        {
+            await OnRevoke();
+        }
+        return RevokeResult;
+    }
+
+    public async Task<ResultModel<string>> VoidApproval(ApprovalVM data)
+    {
+        if (OnVoid != null)
+        {
+            await OnVoid();
+        }
+        return VoidResult;
+    }
 
     public Task<ResultModel<ListResult<GetApprovalProgressVM>>> GetApprovalProgress(ApprovalVM data)
         => throw new NotSupportedException();
 
     public Task<ResultModel<ListResult<GetApprovalNotifyVM>>> GetApprovalNotify()
-        => throw new NotSupportedException();
+        => Task.FromResult(ResultModel.Ok(PendingNotify.ToList()));
 }
