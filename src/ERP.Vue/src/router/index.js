@@ -4,6 +4,8 @@ import DayOffCreate from '@/views/DayOffCreate.vue'
 import DayOffList from '@/views/DayOffList.vue'
 import BusinessTripList from '@/views/BusinessTripList.vue'
 import BusinessTripEdit from '@/views/BusinessTripEdit.vue'
+import CompanyList from '@/views/CompanyList.vue'
+import CompanyEdit from '@/views/CompanyEdit.vue'
 import LoginPage from '../views/LoginPage.vue'
 
 const routes = [
@@ -13,7 +15,10 @@ const routes = [
   { path: '/dayoff/index', component: DayOffList },
   { path: '/business-trip/index', name: 'business-trip-list', component: BusinessTripList },
   { path: '/business-trip/create', name: 'business-trip-create', component: BusinessTripEdit },
-  { path: '/business-trip/:id(\\d+)', name: 'business-trip-edit', component: BusinessTripEdit }
+  { path: '/business-trip/:id(\\d+)', name: 'business-trip-edit', component: BusinessTripEdit },
+  { path: '/company/index', name: 'company-list', component: CompanyList },
+  { path: '/company/create', name: 'company-create', component: CompanyEdit },
+  { path: '/company/:id(\\d+)', name: 'company-edit', component: CompanyEdit }
 ]
 
 const router = createRouter({

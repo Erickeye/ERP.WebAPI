@@ -38,4 +38,6 @@ public partial class t_1080Company
     public DateTime? FoundedDate { get; set; }
 
     public string? InvoiceForm { get; set; }
+
+    public bool IsActive { get; set; }
 }

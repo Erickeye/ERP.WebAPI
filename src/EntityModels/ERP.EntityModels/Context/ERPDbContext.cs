@@ -330,6 +330,10 @@ public partial class ERPDbContext : DbContext
 
         modelBuilder.Entity<t_1080Company>(entity =>
         {
+            entity.HasIndex(e => e.AttribName, "IX_t_1080Company_AttribName").IsUnique();
+
+            entity.HasIndex(e => e.TaxInvoiceNumber, "IX_t_1080Company_TaxInvoiceNumber").IsUnique();
+
             entity.Property(e => e.AttribName).HasMaxLength(32);
             entity.Property(e => e.BankName).HasMaxLength(32);
             entity.Property(e => e.CheckingAccount).HasMaxLength(32);
@@ -337,6 +341,7 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.DeliveryAddress).HasMaxLength(64);
             entity.Property(e => e.FaxPhone).HasMaxLength(32);
             entity.Property(e => e.InvoiceForm).HasMaxLength(8);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(32);
             entity.Property(e => e.Owner).HasMaxLength(32);
             entity.Property(e => e.PayDays).HasMaxLength(8);

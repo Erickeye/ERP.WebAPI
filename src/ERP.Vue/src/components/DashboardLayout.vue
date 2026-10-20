@@ -28,6 +28,7 @@ const cards = [
   },
   { id: 'settings', title: '模組設定', desc: '系統模組與權限設定', color: 'var(--card-orange)',
     subItems: [
+      { id: 'company-list', title: '公司管理', path: '/company/index' },
       { id: 'module-list', title: '模組' },
       { id: 'permission-list', title: '權限' },
     ]

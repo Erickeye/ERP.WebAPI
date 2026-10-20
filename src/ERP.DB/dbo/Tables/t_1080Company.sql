@@ -16,6 +16,14 @@
     [PayDays]           NVARCHAR (8)  NULL,
     [FoundedDate]       DATETIME2 (7) NULL,
     [InvoiceForm]       NVARCHAR (8)  NULL,
+    [IsActive]          BIT           NOT NULL DEFAULT 1,
     CONSTRAINT [PK_t_1080Company] PRIMARY KEY CLUSTERED ([Id] ASC)
 );
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_t_1080Company_AttribName]
+ON [dbo].[t_1080Company] ([AttribName]);
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_t_1080Company_TaxInvoiceNumber]
+ON [dbo].[t_1080Company] ([TaxInvoiceNumber]);
+GO
 
