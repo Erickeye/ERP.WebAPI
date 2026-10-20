@@ -1,6 +1,8 @@
 # 出差單（出差事前申請與簽核）
 
-Status: ready-for-agent
+Status: resolved
+
+> 實作完成於 `feat/business-trip`（ticket 01–07，2026-10-20）；ticket 08（真實環境驗證與上線準備）暫緩，已知缺口與待決定事項記錄在該 ticket 的 Comments。
 
 相關文件：`GLOSSARY-MAP.md`（差勤 context，術語以 `docs/attendance/GLOSSARY.md` 為準）、`docs/attendance/adr/0001`（出差單狀態由自己維護、簽核動作走專屬端點）、`docs/adr/0001`（領料單的同一做法，本規格比照其結構）。
 

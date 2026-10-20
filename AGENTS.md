@@ -14,7 +14,7 @@
 
 ### Issue tracker
 
-Issues and specs live as local markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+Issues and specs live as local markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`; when work is finished or deferred, update the spec and ticket statuses as described in its "On completion" section.
 
 ### Domain docs
 

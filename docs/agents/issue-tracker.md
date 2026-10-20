@@ -7,8 +7,25 @@ Issues and specs for this repo live as markdown files in `.scratch/`.
 - One feature per directory: `.scratch/<feature-slug>/`
 - The spec is `.scratch/<feature-slug>/spec.md`
 - Implementation issues are one file per ticket at `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01`, never a single combined tickets file
-- Triage state is recorded as a `Status:` line near the top of each issue file (see `triage-labels.md` for the role strings)
+- Triage state is recorded as a `Status:` line near the top of each issue file (values and when to change them: see "Status values" and "On completion" below)
 - Comments and conversation history append to the bottom of the file under a `## Comments` heading
+
+## Status values
+
+- `ready-for-agent`: the spec or ticket is confirmed and implementation can start.
+- `claimed`: someone (an agent) has started it (used by wayfinding).
+- `resolved`: done.
+- `deferred`: deliberately postponed, not being done now. The reason must be recorded.
+
+## On completion
+
+When implementation is finished (after `implement` and `code-review`) or the work is deliberately postponed, come back and update the records. No skill does this for you.
+
+1. Set the ticket's `Status:` to `resolved`, or to `deferred` if it is postponed.
+2. Tick acceptance criteria only when there is evidence: passing tests, a review confirmation, or hands-on verification. Leave unverified ones unticked and say why in Comments (for example "frontend not verified manually in a browser").
+3. Append a completion record to the ticket's `## Comments`: date, commit, how it was verified and the result, and why any criteria remain unticked. For a postponed ticket, write a status record instead: who decided, why, and where to resume.
+4. When every ticket under a spec is `resolved` or `deferred`, set the spec's `Status:` to `resolved` and note which tickets were deferred.
+5. For a feature with only a spec and no tickets, set the spec's `Status:` to `resolved` when it is done.
 
 ## When a skill says "publish to the issue tracker"
 

@@ -1,6 +1,6 @@
 # 領料單（內部領用出庫）與庫存異動紀錄
 
-Status: ready-for-agent
+Status: resolved
 
 相關文件：`GLOSSARY.md`（術語以此為準）、`docs/adr/0001`（簽核動作與同一交易）、`docs/adr/0002`（異動不建品項主檔）。
 
