@@ -43,3 +43,6 @@
 
 `IsReferencedAsync` 已補上領料單判斷（commit `5c2d228`）；出差單的判斷待 ticket 03。
 
+### 後續更新（2026-10-20，ticket 03）
+
+`IsReferencedAsync` 已補上出差單判斷（commit `8812589`）；被領料單與出差單引用過的公司不可刪除，兩者都已有測試（`CompanyServiceTests`）。

@@ -1,6 +1,8 @@
 # 公司管理（多公司主檔與單據公司）
 
-Status: ready-for-agent
+Status: resolved
+
+> 三張 ticket 皆為 resolved；領料單前端因專案尚無領料單頁面而延後（後端 API 已就緒）。SQL 腳本與前端畫面仍待使用者在真實環境驗證，細節見各 ticket 的 Comments。
 
 相關文件：`GLOSSARY-MAP.md`（公司管理 context，術語以 `docs/company/GLOSSARY.md` 為準；單據相關術語見庫存管理與差勤的詞彙表）、`docs/company/adr/0001`（單據只記公司外鍵，不存名稱快照）、`docs/inventory/adr/0001` 與 `docs/attendance/adr/0001`（領料單、出差單的狀態與簽核動作由單據自己維護，本規格不改動這些流程）。
 
