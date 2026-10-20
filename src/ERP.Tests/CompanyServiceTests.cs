@@ -10,8 +10,7 @@ namespace ERP.Tests;
 
 /// <summary>
 /// 公司服務的行為測試：新增、編輯、欄位驗證、簡稱與統編唯一、停用與啟用、刪除、填單選單與列表。
-/// 注意：「被領料單、出差單引用過的公司不可刪除」要等 ticket 02、03 為兩張單據加上公司欄位後才有東西可測，
-/// 目前引用檢查只有占位實作，測試在那兩張 ticket 補上。
+/// 被領料單引用過的公司不可刪除已涵蓋（ticket 02）；被出差單引用的部分在 ticket 03 補上。
 /// </summary>
 public class CompanyServiceTests : IDisposable
 {
@@ -438,6 +437,43 @@ public class CompanyServiceTests : IDisposable
         Assert.Equal(ErrorCodeType.InvalidRequest, result.ErrorCode);
         Assert.Contains("至少", result.ErrorMessage);
         Assert.Equal(2, db.t_1080Company.Count());
+    }
+
+    [Fact]
+    public async Task Delete_ACompanyUsedByAMaterialIssue_IsRejectedButCanBeDisabled()
+    {
+        var used = SeedCompany("甲公司", "12345678");
+        var other = SeedCompany("乙公司", "87654321");
+        using (var seed = _testDb.CreateContext())
+        {
+            seed.t_4030MaterialIssue.Add(new t_4030MaterialIssue
+            {
+                No = "IS11510001",
+                IssueDate = new DateTime(2026, 10, 1),
+                PurposeId = 1,
+                LocationId = 1,
+                ReceiverStaffId = 1,
+                CompanyId = used,
+                Status = 0,
+                CreateTime = DateTime.Now,
+                CreateUserId = 1
+            });
+            seed.SaveChanges();
+        }
+
+        using var db = _testDb.CreateContext();
+        var service = CreateService(db);
+
+        var deleted = await service.Delete(used);
+        Assert.False(deleted.IsSuccess);
+        Assert.Contains("停用", deleted.ErrorMessage);
+        Assert.NotNull(LoadCompany(used));
+
+        // 被引用的公司仍可停用（還有另一間啟用中）
+        var disabled = await service.Disable(used);
+        Assert.True(disabled.IsSuccess, disabled.ErrorMessage);
+        Assert.False(LoadCompany(used).IsActive);
+        Assert.True(LoadCompany(other).IsActive);
     }
 
     [Fact]

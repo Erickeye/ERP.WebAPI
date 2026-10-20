@@ -82,6 +82,7 @@ namespace ERP.Service.API._4000Inventory
         private const string LocationConfigType = "InventoryLocation";
         private const string SerialPrefix = "IS";
         private const string ConcurrencyMessage = "庫存已被異動，請重新操作";
+        private const string CompanyDisabledMessage = "所選公司已停用，請改選其他公司";
 
         private readonly ERPDbContext _db;
         private readonly ICurrentUserService _currentUserService;
@@ -154,6 +155,7 @@ namespace ERP.Service.API._4000Inventory
                 PurposeName = x.PurposeName,
                 LocationName = x.LocationName,
                 ReceiverName = x.ReceiverName,
+                CompanyName = x.CompanyName,
                 CustomerName = x.CustomerName,
                 ProjectName = x.ProjectName,
                 StatusDisplay = GetStatusDisplay(x.Status),
@@ -201,6 +203,10 @@ namespace ERP.Service.API._4000Inventory
                     LocationName = x.Location.Name,
                     ReceiverStaffId = x.ReceiverStaffId,
                     ReceiverName = x.ReceiverStaff.ChineseName,
+                    CompanyId = x.CompanyId,
+                    CompanyName = x.Company.AttribName,
+                    CompanyTaxInvoiceNumber = x.Company.TaxInvoiceNumber,
+                    CompanyIsActive = x.Company.IsActive,
                     CustomerId = x.CustomerId,
                     CustomerName = x.Customer!.Name,
                     ProjectName = x.ProjectName,
@@ -368,6 +374,23 @@ namespace ERP.Service.API._4000Inventory
                 return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "領料人必須是在職員工");
             }
 
+            // 單據公司必填且必須存在；啟用中才可選。
+            // 例外：編輯時維持原本的公司（即使它後來被停用）不阻擋儲存其他欄位，送簽時才擋停用的公司。
+            var company = await _db.t_1080Company
+                .AsNoTracking()
+                .Where(x => x.Id == vm.CompanyId)
+                .Select(x => new { x.IsActive })
+                .FirstOrDefaultAsync();
+            if (company == null)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "單據公司必填，且公司必須存在");
+            }
+
+            if (!company.IsActive && entity.CompanyId != vm.CompanyId)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, CompanyDisabledMessage);
+            }
+
             if (vm.CustomerId.HasValue)
             {
                 var customerExists = await _db.t_2000Customer.AnyAsync(x => x.Id == vm.CustomerId.Value);
@@ -403,6 +426,7 @@ namespace ERP.Service.API._4000Inventory
             entity.PurposeId = vm.PurposeId;
             entity.LocationId = vm.LocationId;
             entity.ReceiverStaffId = vm.ReceiverStaffId;
+            entity.CompanyId = vm.CompanyId;
             entity.CustomerId = vm.CustomerId;
             entity.ProjectName = string.IsNullOrWhiteSpace(vm.ProjectName) ? null : vm.ProjectName;
             entity.Note = vm.Note;
@@ -463,6 +487,15 @@ namespace ERP.Service.API._4000Inventory
             {
                 return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
                     $"目前狀態為【{GetStatusDisplay(issue.Status)}】，不可送出簽核");
+            }
+
+            // 單據公司已停用就不可送簽；送簽之後的簽核、核准、撤銷、作廢不受公司停用影響
+            var companyActive = await _db.t_1080Company
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == issue.CompanyId && x.IsActive);
+            if (!companyActive)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, CompanyDisabledMessage);
             }
 
             // 送簽前先檢查庫存，不足就拒絕送簽並列出品項（不鎖定庫存）

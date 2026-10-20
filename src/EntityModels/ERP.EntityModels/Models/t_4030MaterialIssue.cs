@@ -29,6 +29,10 @@ public partial class t_4030MaterialIssue
 
     public int CreateUserId { get; set; }
 
+    public int CompanyId { get; set; }
+
+    public virtual t_1080Company Company { get; set; } = null!;
+
     public virtual User CreateUser { get; set; } = null!;
 
     public virtual t_2000Customer? Customer { get; set; }

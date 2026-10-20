@@ -55,8 +55,40 @@ public class MaterialIssueServiceTests : IDisposable
             PurposeId = _basics.PurposeId,
             LocationId = _basics.LocationId,
             ReceiverStaffId = _basics.StaffId,
+            CompanyId = _basics.CompanyId,
             Items = items.Select(x => new MaterialIssueAddItemVM { InventoryId = x.InventoryId, Quantity = x.Quantity }).ToList()
         };
+    }
+
+    private int AddCompany(string attribName, string taxInvoiceNumber, bool isActive = true)
+    {
+        using var db = _testDb.CreateContext();
+        return SeedData.CreateCompany(db, attribName, taxInvoiceNumber, isActive).Id;
+    }
+
+    /// <summary>
+    /// 列表與詳情查詢會 join 建單人（Id 7，與 CreateService 的假使用者一致）；寫入資料的測試不需要，所以只在查詢測試建立
+    /// </summary>
+    private void SeedCreateUser()
+    {
+        using var db = _testDb.CreateContext();
+        db.User.Add(new User
+        {
+            Id = 7,
+            RoleId = 1,
+            CreateDate = new DateTime(2026, 1, 1),
+            Name = "建單人",
+            Account = "creator",
+            Pwd = "x"
+        });
+        db.SaveChanges();
+    }
+
+    private void SetCompanyActive(int companyId, bool isActive)
+    {
+        using var db = _testDb.CreateContext();
+        db.t_1080Company.Single(x => x.Id == companyId).IsActive = isActive;
+        db.SaveChanges();
     }
 
     private static ApprovalVM Vm(string no) => new ApprovalVM { TableId = no };
@@ -140,6 +172,51 @@ public class MaterialIssueServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Add_記錄單據公司()
+    {
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.CompanyId = companyB;
+
+        var (service, _) = CreateService();
+        var result = await service.Add(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(companyB, LoadIssue(result.Data!.No).CompanyId);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(9999)]
+    public async Task Add_公司未選或不存在被拒絕(int companyId)
+    {
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.CompanyId = companyId;
+
+        var (service, _) = CreateService();
+        var result = await service.Add(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("公司", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task Add_公司已停用被拒絕()
+    {
+        var disabled = AddCompany("停用公司", "22222222", isActive: false);
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.CompanyId = disabled;
+
+        var (service, _) = CreateService();
+        var result = await service.Add(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("已停用", result.ErrorMessage);
+    }
+
+    [Fact]
     public async Task Add_沒有明細被拒絕()
     {
         var (service, _) = CreateService();
@@ -220,6 +297,96 @@ public class MaterialIssueServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Edit_草稿可更換單據公司()
+    {
+        var no = await AddDraftAsync((_inventoryA.Id, 1m));
+        var companyB = AddCompany("乙公司", "11111111");
+
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.Id = LoadIssue(no).Id;
+        vm.CompanyId = companyB;
+        var (service, _) = CreateService();
+        var result = await service.Edit(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(companyB, LoadIssue(no).CompanyId);
+    }
+
+    [Fact]
+    public async Task Edit_草稿原公司被停用_維持原公司仍可儲存其他欄位()
+    {
+        var companyB = AddCompany("乙公司", "11111111");
+        var addVm = NewIssue((_inventoryA.Id, 1m));
+        addVm.CompanyId = companyB;
+        var (addService, _) = CreateService();
+        var no = (await addService.Add(addVm)).Data!.No;
+        SetCompanyActive(companyB, false);
+
+        var vm = NewIssue((_inventoryA.Id, 2m));
+        vm.Id = LoadIssue(no).Id;
+        vm.CompanyId = companyB;
+        var (service, _) = CreateService();
+        var result = await service.Edit(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var issue = LoadIssue(no);
+        Assert.Equal(companyB, issue.CompanyId);
+        Assert.Equal(2m, Assert.Single(issue.t_4031MaterialIssueDetail).Quantity);
+    }
+
+    [Fact]
+    public async Task Edit_草稿改選已停用的其他公司被拒絕()
+    {
+        var no = await AddDraftAsync((_inventoryA.Id, 1m));
+        var disabled = AddCompany("停用公司", "22222222", isActive: false);
+
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.Id = LoadIssue(no).Id;
+        vm.CompanyId = disabled;
+        var (service, _) = CreateService();
+        var result = await service.Edit(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Equal(_basics.CompanyId, LoadIssue(no).CompanyId);
+    }
+
+    [Fact]
+    public async Task Edit_簽核中不可更換單據公司()
+    {
+        var no = await AddSubmittedAsync((_inventoryA.Id, 1m));
+        var companyB = AddCompany("乙公司", "11111111");
+
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.Id = LoadIssue(no).Id;
+        vm.CompanyId = companyB;
+        var (service, _) = CreateService();
+        var result = await service.Edit(vm);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Equal(_basics.CompanyId, LoadIssue(no).CompanyId);
+    }
+
+    [Fact]
+    public async Task Edit_已退回可更換單據公司()
+    {
+        var no = await AddSubmittedAsync((_inventoryA.Id, 1m));
+        var (rejectService, _) = CreateService();
+        Assert.True((await rejectService.RejectApproval(Vm(no))).IsSuccess);
+        var companyB = AddCompany("乙公司", "11111111");
+
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.Id = LoadIssue(no).Id;
+        vm.CompanyId = companyB;
+        var (service, _) = CreateService();
+        var result = await service.Edit(vm);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(companyB, LoadIssue(no).CompanyId);
+    }
+
+    [Fact]
     public async Task Edit_簽核中不可編輯()
     {
         var no = await AddSubmittedAsync((_inventoryA.Id, 1m));
@@ -270,6 +437,51 @@ public class MaterialIssueServiceTests : IDisposable
         Assert.Empty(db.t_4031MaterialIssueDetail.Where(x => x.Name == "品項A001"));
     }
 
+    // ---------- 查詢 ----------
+
+    [Fact]
+    public async Task Index_回傳公司簡稱並可依公司篩選()
+    {
+        SeedCreateUser();
+        var companyB = AddCompany("乙公司", "11111111");
+        var (addA, _) = CreateService();
+        Assert.True((await addA.Add(NewIssue((_inventoryA.Id, 1m)))).IsSuccess);
+        var vmB = NewIssue((_inventoryB.Id, 1m));
+        vmB.CompanyId = companyB;
+        var (addB, _) = CreateService();
+        var noB = (await addB.Add(vmB)).Data!.No;
+
+        var (all, _) = CreateService();
+        var allResult = await all.Index(new MaterialIssueSearchVM());
+        Assert.True(allResult.IsSuccess, allResult.ErrorMessage);
+        Assert.Equal(2, allResult.Data!.Items.Count);
+        Assert.Contains(allResult.Data.Items, x => x.CompanyName == "預設公司");
+        Assert.Contains(allResult.Data.Items, x => x.CompanyName == "乙公司");
+
+        var (filtered, _) = CreateService();
+        var filteredResult = await filtered.Index(new MaterialIssueSearchVM { CompanyId = companyB });
+        var item = Assert.Single(filteredResult.Data!.Items);
+        Assert.Equal(noB, item.No);
+        Assert.Equal(companyB, item.CompanyId);
+    }
+
+    [Fact]
+    public async Task Get_回傳公司簡稱_統編與啟用狀態()
+    {
+        SeedCreateUser();
+        var no = await AddDraftAsync((_inventoryA.Id, 1m));
+        SetCompanyActive(_basics.CompanyId, false);
+
+        var (service, _) = CreateService();
+        var result = await service.Get(LoadIssue(no).Id);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(_basics.CompanyId, result.Data!.CompanyId);
+        Assert.Equal("預設公司", result.Data.CompanyName);
+        Assert.Equal("00000000", result.Data.CompanyTaxInvoiceNumber);
+        Assert.False(result.Data.CompanyIsActive);
+    }
+
     // ---------- 送簽 ----------
 
     [Fact]
@@ -284,6 +496,63 @@ public class MaterialIssueServiceTests : IDisposable
         Assert.Equal(ErrorCodeType.InsufficientInventory, result.ErrorCode);
         Assert.Contains("A001", result.ErrorMessage);
         Assert.Equal((int)MaterialIssueStatus.草稿, LoadIssue(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_公司已停用被拒絕且狀態維持草稿()
+    {
+        var no = await AddDraftAsync((_inventoryA.Id, 1m));
+        SetCompanyActive(_basics.CompanyId, false);
+
+        var (service, _) = CreateService();
+        var result = await service.SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("公司已停用", result.ErrorMessage);
+        Assert.Equal((int)MaterialIssueStatus.草稿, LoadIssue(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_已退回的單公司已停用同樣被拒絕_改選啟用中公司後可送簽()
+    {
+        var no = await AddSubmittedAsync((_inventoryA.Id, 1m));
+        var (rejectService, _) = CreateService();
+        Assert.True((await rejectService.RejectApproval(Vm(no))).IsSuccess);
+        SetCompanyActive(_basics.CompanyId, false);
+
+        var (blockedService, _) = CreateService();
+        var blocked = await blockedService.SendApproval(Vm(no));
+        Assert.False(blocked.IsSuccess);
+        Assert.Equal((int)MaterialIssueStatus.已退回, LoadIssue(no).Status);
+
+        var companyB = AddCompany("乙公司", "11111111");
+        var vm = NewIssue((_inventoryA.Id, 1m));
+        vm.Id = LoadIssue(no).Id;
+        vm.CompanyId = companyB;
+        var (editService, _) = CreateService();
+        Assert.True((await editService.Edit(vm)).IsSuccess);
+
+        var (sendService, _) = CreateService();
+        var sent = await sendService.SendApproval(Vm(no));
+        Assert.True(sent.IsSuccess, sent.ErrorMessage);
+        Assert.Equal((int)MaterialIssueStatus.簽核中, LoadIssue(no).Status);
+    }
+
+    [Fact]
+    public async Task Approval_送簽後公司被停用_簽核與核准照常進行()
+    {
+        var no = await AddSubmittedAsync((_inventoryA.Id, 3m));
+        SetCompanyActive(_basics.CompanyId, false);
+
+        var (service, _) = CreateService();
+        var result = await service.Approval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var issue = LoadIssue(no);
+        Assert.Equal((int)MaterialIssueStatus.已核准, issue.Status);
+        Assert.Equal(_basics.CompanyId, issue.CompanyId);
+        Assert.Equal(7m, StockOf(_inventoryA.Id));
     }
 
     [Fact]

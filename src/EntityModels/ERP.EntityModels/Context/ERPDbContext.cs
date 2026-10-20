@@ -580,6 +580,8 @@ public partial class ERPDbContext : DbContext
 
         modelBuilder.Entity<t_4030MaterialIssue>(entity =>
         {
+            entity.HasIndex(e => e.CompanyId, "IX_t_4030MaterialIssue_CompanyId");
+
             entity.HasIndex(e => e.IssueDate, "IX_t_4030MaterialIssue_IssueDate");
 
             entity.HasIndex(e => e.LocationId, "IX_t_4030MaterialIssue_LocationId");
@@ -598,6 +600,11 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.Note).HasMaxLength(1024);
             entity.Property(e => e.ProjectName).HasMaxLength(128);
             entity.Property(e => e.Status).HasDefaultValue(0);
+
+            entity.HasOne(d => d.Company).WithMany()
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_4030MaterialIssue_Company");
 
             entity.HasOne(d => d.CreateUser).WithMany()
                 .HasForeignKey(d => d.CreateUserId)

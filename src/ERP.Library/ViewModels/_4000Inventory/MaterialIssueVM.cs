@@ -24,6 +24,10 @@ namespace ERP.Library.ViewModels._4000Inventory
         [SearchField("LocationId", SearchCompare.Equal)]
         public int? LocationId { get; set; }
 
+        [Display(Name = "單據公司識別碼")]
+        [SearchField("CompanyId", SearchCompare.Equal)]
+        public int? CompanyId { get; set; }
+
         [Display(Name = "客戶名稱")]
         [SearchField("Customer.Name", SearchCompare.Contains)]
         public string? CustomerName { get; set; }
@@ -82,6 +86,18 @@ namespace ERP.Library.ViewModels._4000Inventory
 
         [Display(Name = "領料人")]
         public string? ReceiverName { get; set; }
+
+        [Display(Name = "單據公司識別碼")]
+        public int CompanyId { get; set; }
+
+        [Display(Name = "單據公司(公司簡稱)")]
+        public string? CompanyName { get; set; }
+
+        [Display(Name = "單據公司統一編號")]
+        public string? CompanyTaxInvoiceNumber { get; set; }
+
+        [Display(Name = "單據公司是否啟用中(已停用的公司，畫面標示已停用)")]
+        public bool CompanyIsActive { get; set; }
 
         [Display(Name = "客戶識別碼")]
         public int? CustomerId { get; set; }
@@ -168,6 +184,10 @@ namespace ERP.Library.ViewModels._4000Inventory
         [Required(ErrorMessage = "{0}-必填欄位")]
         public int ReceiverStaffId { get; set; }
 
+        [Display(Name = "單據公司識別碼")]
+        [Required(ErrorMessage = "{0}-必填欄位")]
+        public int CompanyId { get; set; }
+
         [Display(Name = "客戶識別碼")]
         public int? CustomerId { get; set; }
 
@@ -232,6 +252,9 @@ namespace ERP.Library.ViewModels._4000Inventory
 
         [Display(Name = "領料人")]
         public string? ReceiverName { get; set; }
+
+        [Display(Name = "公司")]
+        public string? CompanyName { get; set; }
 
         [Display(Name = "客戶名稱")]
         public string? CustomerName { get; set; }

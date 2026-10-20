@@ -8,7 +8,7 @@ namespace ERP.Tests.Support;
 /// </summary>
 public static class SeedData
 {
-    public record Basics(int PurposeId, int LocationId, int OtherLocationId, int StaffId, int SupplierId);
+    public record Basics(int PurposeId, int LocationId, int OtherLocationId, int StaffId, int SupplierId, int CompanyId = 0);
 
     public static Basics CreateBasics(TestERPDbContext db)
     {
@@ -31,11 +31,39 @@ public static class SeedData
             LaborPension = 0,
             BloodType = 1
         };
+        var company = CreateCompany(db, "預設公司", "00000000", isActive: true);
         db.SystemConfig.AddRange(purpose, location, otherLocation);
         db.t_1000Staff.Add(staff);
         db.SaveChanges();
 
-        return new Basics(purpose.Id, location.Id, otherLocation.Id, staff.StaffId, SupplierId: 1);
+        return new Basics(purpose.Id, location.Id, otherLocation.Id, staff.StaffId, SupplierId: 1, CompanyId: company.Id);
+    }
+
+    /// <summary>
+    /// 建立一間公司（單據公司必填，種子資料先建一間，其他測試需要時再自行建立）
+    /// </summary>
+    public static t_1080Company CreateCompany(TestERPDbContext db, string attribName, string taxInvoiceNumber, bool isActive = true)
+    {
+        var company = new t_1080Company
+        {
+            AttribName = attribName,
+            Name = $"{attribName}股份有限公司",
+            TaxInvoiceNumber = taxInvoiceNumber,
+            TaxSerialNumber = "000000000",
+            Owner = "負責人",
+            RegisteredAddress = "測試地址",
+            IsActive = true
+        };
+        db.t_1080Company.Add(company);
+        db.SaveChanges();
+
+        // IsActive 的資料表預設值是 true，false 會被 EF 視為「未指定」；要停用就先存成啟用再改
+        if (!isActive)
+        {
+            company.IsActive = false;
+            db.SaveChanges();
+        }
+        return company;
     }
 
     public static t_4000Inventory CreateInventory(

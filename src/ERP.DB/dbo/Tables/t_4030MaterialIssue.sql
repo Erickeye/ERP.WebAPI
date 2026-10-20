@@ -12,6 +12,7 @@ CREATE TABLE [dbo].[t_4030MaterialIssue]
     [Status] INT NOT NULL DEFAULT 0,
     [CreateTime] DATETIME NOT NULL,
     [CreateUserId] INT NOT NULL,
+    [CompanyId] INT NOT NULL,
     -- Primary Key
     CONSTRAINT [PK_t_4030MaterialIssue] PRIMARY KEY CLUSTERED ([Id] DESC),
     -- Foreign Keys
@@ -19,7 +20,8 @@ CREATE TABLE [dbo].[t_4030MaterialIssue]
     CONSTRAINT [FK_t_4030MaterialIssue_Location] FOREIGN KEY ([LocationId])      REFERENCES [dbo].[SystemConfig] ([Id]),
     CONSTRAINT [FK_t_4030MaterialIssue_Receiver] FOREIGN KEY ([ReceiverStaffId]) REFERENCES [dbo].[t_1000Staff] ([StaffId]),
     CONSTRAINT [FK_t_4030MaterialIssue_Customer] FOREIGN KEY ([CustomerId])      REFERENCES [dbo].[t_2000Customer] ([Id]),
-    CONSTRAINT [FK_t_4030MaterialIssue_CreateUser] FOREIGN KEY ([CreateUserId])  REFERENCES [dbo].[User] ([Id])
+    CONSTRAINT [FK_t_4030MaterialIssue_CreateUser] FOREIGN KEY ([CreateUserId])  REFERENCES [dbo].[User] ([Id]),
+    CONSTRAINT [FK_t_4030MaterialIssue_Company] FOREIGN KEY ([CompanyId])        REFERENCES [dbo].[t_1080Company] ([Id])
 )
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_t_4030MaterialIssue_No]
@@ -36,4 +38,7 @@ ON [dbo].[t_4030MaterialIssue] ([LocationId]);
 GO
 CREATE NONCLUSTERED INDEX [IX_t_4030MaterialIssue_ReceiverStaffId]
 ON [dbo].[t_4030MaterialIssue] ([ReceiverStaffId]);
+GO
+CREATE NONCLUSTERED INDEX [IX_t_4030MaterialIssue_CompanyId]
+ON [dbo].[t_4030MaterialIssue] ([CompanyId]);
 GO
