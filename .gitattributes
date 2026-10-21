@@ -61,6 +61,3 @@
 *.PDF   diff=astextplain
 *.rtf   diff=astextplain
 *.RTF   diff=astextplain
-
-# agent 在 Linux VM 執行的腳本必須是 LF
-scripts/agent/*.sh text eol=lf
