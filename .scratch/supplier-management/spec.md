@@ -1,6 +1,8 @@
 # 供應商管理（供應商主檔與進貨單串接）
 
-Status: ready-for-agent
+Status: resolved
+
+> 三張 ticket 皆為 resolved。SQL 部署腳本、權限端點與前端畫面仍待使用者在真實環境驗證，細節見各 ticket 的 Comments；進貨單前端因專案尚無頁面而延後（後端 API 已就緒）。
 
 相關文件：`GLOSSARY-MAP.md`（庫存管理 context，術語以 `docs/inventory/GLOSSARY.md` 為準：供應商、供應商編號、停用（供應商））、`docs/inventory/adr/0003`（進貨單與庫存項目只記供應商外鍵，不存名稱快照）、`docs/inventory/adr/0002`（庫存以供應商＋庫位＋料號為單位）、`docs/company/adr/0001`（公司主檔的同型決策，供應商比照）。範本參考 `.scratch/company-management/spec.md`。
 

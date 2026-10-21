@@ -6,6 +6,8 @@ import BusinessTripList from '@/views/BusinessTripList.vue'
 import BusinessTripEdit from '@/views/BusinessTripEdit.vue'
 import CompanyList from '@/views/CompanyList.vue'
 import CompanyEdit from '@/views/CompanyEdit.vue'
+import SupplierList from '@/views/SupplierList.vue'
+import SupplierEdit from '@/views/SupplierEdit.vue'
 import LoginPage from '../views/LoginPage.vue'
 
 const routes = [
@@ -18,7 +20,10 @@ const routes = [
   { path: '/business-trip/:id(\\d+)', name: 'business-trip-edit', component: BusinessTripEdit },
   { path: '/company/index', name: 'company-list', component: CompanyList },
   { path: '/company/create', name: 'company-create', component: CompanyEdit },
-  { path: '/company/:id(\\d+)', name: 'company-edit', component: CompanyEdit }
+  { path: '/company/:id(\\d+)', name: 'company-edit', component: CompanyEdit },
+  { path: '/supplier/index', name: 'supplier-list', component: SupplierList },
+  { path: '/supplier/create', name: 'supplier-create', component: SupplierEdit },
+  { path: '/supplier/:id(\\d+)', name: 'supplier-edit', component: SupplierEdit }
 ]
 
 const router = createRouter({
