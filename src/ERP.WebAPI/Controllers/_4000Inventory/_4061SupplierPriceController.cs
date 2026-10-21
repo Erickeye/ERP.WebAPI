@@ -38,6 +38,16 @@ namespace ERP.WebAPI.Controllers._4000Inventory
             return Ok(result);
         }
 
+        // 填單查詢不要求「供應商檢視」：只要能編輯進貨單或庫存就能查到報價作為參考；查無、供應商停用或不存在都回成功且 Data 為 null
+        [SwaggerOperation("填單查詢供應商報價（料號完全相符；回品名、單位、單價，查無回空結果）")]
+        [PermissionAuthorize((int)PermissionType.進貨單編輯, (int)PermissionType.庫存編輯)]
+        [HttpGet, Route("Lookup")]
+        public async Task<IActionResult> Lookup([SwaggerParameter("供應商流水號")] int supplierId, [SwaggerParameter("料號")] string? no)
+        {
+            var result = await _service.Lookup(supplierId, no);
+            return Ok(result);
+        }
+
         [SwaggerOperation("新增供應商報價")]
         [PermissionAuthorize((int)PermissionType.供應商編輯)]
         [ValidateModel]

@@ -91,6 +91,24 @@ public class SupplierServiceTests : IDisposable
         db.SaveChanges();
     }
 
+    private void SeedPrice(int supplierId, string no)
+    {
+        using var db = _testDb.CreateContext();
+        db.t_4061SupplierPrice.Add(new t_4061SupplierPrice
+        {
+            SupplierId = supplierId,
+            No = no,
+            Name = "螺絲",
+            Unit = "個",
+            Price = 1m,
+            CreateTime = DateTime.Now,
+            CreateUserId = 1,
+            UpdateTime = DateTime.Now,
+            UpdateUserId = 1
+        });
+        db.SaveChanges();
+    }
+
     // ---------- 新增 ----------
 
     [Fact]
@@ -573,6 +591,46 @@ public class SupplierServiceTests : IDisposable
         Assert.Equal(ErrorCodeType.InvalidRequest, result.ErrorCode);
         Assert.Contains("停用", result.ErrorMessage);
         Assert.True(db.t_4060Supplier.Any(x => x.Id == id));
+    }
+
+    [Fact]
+    public async Task Delete_SupplierWithPrices_RemovesPricesTogether()
+    {
+        var id = SeedSupplier("S001", "甲");
+        var otherId = SeedSupplier("S002", "乙");
+        SeedPrice(id, "P001");
+        SeedPrice(id, "P002");
+        SeedPrice(otherId, "P001");
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).Delete(id);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        using var check = _testDb.CreateContext();
+        Assert.False(check.t_4060Supplier.Any(x => x.Id == id));
+        Assert.False(check.t_4061SupplierPrice.Any(x => x.SupplierId == id));
+        Assert.Equal(1, check.t_4061SupplierPrice.Count(x => x.SupplierId == otherId));
+    }
+
+    [Fact]
+    public async Task Delete_ReferencedSupplierWithPrices_IsRejectedAndKeepsPrices()
+    {
+        var purchaseSupplier = SeedSupplier("S001", "甲");
+        var inventorySupplier = SeedSupplier("S002", "乙");
+        SeedPurchase(purchaseSupplier);
+        SeedInventory(inventorySupplier);
+        SeedPrice(purchaseSupplier, "P001");
+        SeedPrice(inventorySupplier, "P001");
+        using var db = _testDb.CreateContext();
+        var service = CreateService(db);
+
+        var a = await service.Delete(purchaseSupplier);
+        var b = await service.Delete(inventorySupplier);
+
+        Assert.Equal(ErrorCodeType.InvalidRequest, a.ErrorCode);
+        Assert.Equal(ErrorCodeType.InvalidRequest, b.ErrorCode);
+        using var check = _testDb.CreateContext();
+        Assert.Equal(2, check.t_4061SupplierPrice.Count());
     }
 
     [Fact]

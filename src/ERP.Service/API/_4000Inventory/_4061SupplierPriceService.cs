@@ -38,6 +38,12 @@ namespace ERP.Service.API._4000Inventory
         Task<ResultModel<string>> Edit(SupplierPriceAddVM vm);
 
         /// <summary>
+        /// 填單查詢：依供應商與料號（去除前後空白後完全相符）取得目前的供應商報價，只回品名、單位、單價。
+        /// 查無報價、供應商已停用、供應商不存在都視為成功，Data 為 null（空結果），不是錯誤；供填單參考，不驗證、不阻擋。
+        /// </summary>
+        Task<ResultModel<SupplierPriceLookupVM?>> Lookup(int supplierId, string? no);
+
+        /// <summary>
         /// 刪除供應商報價（進貨單不引用報價，沒有引用限制）
         /// </summary>
         Task<ResultModel<string>> Delete(int id);
@@ -171,6 +177,29 @@ namespace ERP.Service.API._4000Inventory
             await _db.SaveChangesAsync();
 
             return ResultModel.Ok();
+        }
+
+        public async Task<ResultModel<SupplierPriceLookupVM?>> Lookup(int supplierId, string? no)
+        {
+            var key = no?.Trim();
+            if (string.IsNullOrEmpty(key))
+            {
+                return ResultModel<SupplierPriceLookupVM?>.Ok(null);
+            }
+
+            // 停用或不存在的供應商一律查不到（報價仍保留，重新啟用後即可命中）；料號完全相符，不做模糊比對
+            var data = await _db.t_4061SupplierPrice
+                .AsNoTracking()
+                .Where(x => x.SupplierId == supplierId && x.No == key && x.Supplier.IsActive)
+                .Select(x => new SupplierPriceLookupVM
+                {
+                    Name = x.Name,
+                    Unit = x.Unit,
+                    Price = x.Price
+                })
+                .FirstOrDefaultAsync();
+
+            return ResultModel<SupplierPriceLookupVM?>.Ok(data);
         }
 
         public async Task<ResultModel<string>> Delete(int id)

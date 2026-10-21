@@ -51,6 +51,21 @@ namespace ERP.Library.ViewModels._4000Inventory
     }
 
     /// <summary>
+    /// 查詢-進貨單填單用的供應商報價（只含品名、單位、單價，供填單參考）
+    /// </summary>
+    public class SupplierPriceLookupVM
+    {
+        [Display(Name = "品名")]
+        public string Name { get; set; } = string.Empty;
+
+        [Display(Name = "單位")]
+        public string Unit { get; set; } = string.Empty;
+
+        [Display(Name = "單價(新台幣未稅)")]
+        public decimal Price { get; set; }
+    }
+
+    /// <summary>
     /// 輸入-新增／修改供應商報價（新增時 Id 傳 0；修改時忽略 SupplierId，報價不能換供應商）
     /// </summary>
     public class SupplierPriceAddVM

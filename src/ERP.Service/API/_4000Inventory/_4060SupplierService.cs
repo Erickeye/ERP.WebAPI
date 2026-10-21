@@ -57,7 +57,7 @@ namespace ERP.Service.API._4000Inventory
         Task<ResultModel<string>> Enable(int id);
 
         /// <summary>
-        /// 刪除供應商（只有沒被任何進貨單或庫存項目引用過的供應商能刪）
+        /// 刪除供應商（只有沒被任何進貨單或庫存項目引用過的供應商能刪；不因存在報價而擋下，其供應商報價會一併刪除）
         /// </summary>
         Task<ResultModel<string>> Delete(int id);
     }
@@ -276,6 +276,9 @@ namespace ERP.Service.API._4000Inventory
                 return ResultModel.Error(ErrorCodeType.InvalidRequest, "供應商已被進貨單或庫存項目引用，無法刪除，請改用停用");
             }
 
+            // 資料庫外鍵雖設連帶刪除，但不依賴它（測試環境的 SQLite 不會連帶刪），由服務層明確刪除並同一交易儲存
+            var prices = await _db.t_4061SupplierPrice.Where(x => x.SupplierId == id).ToListAsync();
+            _db.t_4061SupplierPrice.RemoveRange(prices);
             _db.t_4060Supplier.Remove(entity);
             await _db.SaveChangesAsync();
 

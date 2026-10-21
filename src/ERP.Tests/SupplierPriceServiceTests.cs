@@ -1,5 +1,6 @@
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._4000Inventory;
 using ERP.Service.API._4000Inventory;
 using ERP.Tests.Support;
@@ -465,6 +466,122 @@ public class SupplierPriceServiceTests : IDisposable
         var result = await CreateService(db).Delete(id);
 
         Assert.True(result.IsSuccess);
+    }
+
+    // ---------- 填單查詢 ----------
+
+    private async Task<ResultModel<SupplierPriceLookupVM?>> Lookup(int supplierId, string? no)
+    {
+        using var db = _testDb.CreateContext();
+        return await CreateService(db).Lookup(supplierId, no);
+    }
+
+    [Fact]
+    public async Task Lookup_料號完全相符_回品名單位單價()
+    {
+        var supplierId = SeedSupplier();
+        await AddPrice(supplierId, no: "P001", price: 8.75m);
+
+        var result = await Lookup(supplierId, "P001");
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Data);
+        Assert.Equal("螺絲", result.Data!.Name);
+        Assert.Equal("個", result.Data.Unit);
+        Assert.Equal(8.75m, result.Data.Price);
+    }
+
+    [Fact]
+    public async Task Lookup_料號前後空白_去除後比對()
+    {
+        var supplierId = SeedSupplier();
+        await AddPrice(supplierId, no: "P001");
+
+        var result = await Lookup(supplierId, "  P001 ");
+
+        Assert.NotNull(result.Data);
+    }
+
+    [Theory]
+    [InlineData("P00")]
+    [InlineData("P0011")]
+    [InlineData("p001")]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public async Task Lookup_料號不完全相符_回空結果(string? no)
+    {
+        var supplierId = SeedSupplier();
+        await AddPrice(supplierId, no: "P001");
+
+        var result = await Lookup(supplierId, no);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Data);
+    }
+
+    [Fact]
+    public async Task Lookup_其他供應商的報價_回空結果()
+    {
+        var supplierA = SeedSupplier("S001", "甲");
+        var supplierB = SeedSupplier("S002", "乙");
+        await AddPrice(supplierA, no: "P001");
+
+        var result = await Lookup(supplierB, "P001");
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Data);
+    }
+
+    [Fact]
+    public async Task Lookup_查無報價_回空結果()
+    {
+        var supplierId = SeedSupplier();
+
+        var result = await Lookup(supplierId, "P001");
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Data);
+    }
+
+    [Fact]
+    public async Task Lookup_供應商已停用_回空結果_報價仍保留()
+    {
+        var supplierId = SeedSupplier();
+        var id = await AddPrice(supplierId, no: "P001");
+        DisableSupplier(supplierId);
+
+        var result = await Lookup(supplierId, "P001");
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Data);
+        Assert.Equal("P001", LoadPrice(id).No);
+    }
+
+    [Fact]
+    public async Task Lookup_供應商不存在_回空結果()
+    {
+        var result = await Lookup(999, "P001");
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Data);
+    }
+
+    [Fact]
+    public async Task Lookup_停用後重新啟用_又能命中()
+    {
+        var supplierId = SeedSupplier();
+        await AddPrice(supplierId, no: "P001", price: 5m);
+        DisableSupplier(supplierId);
+        using (var db = _testDb.CreateContext())
+        {
+            await new _4060SupplierService(db).Enable(supplierId);
+        }
+
+        var result = await Lookup(supplierId, "P001");
+
+        Assert.NotNull(result.Data);
+        Assert.Equal(5m, result.Data!.Price);
     }
 
     // ---------- 列表與詳情 ----------
