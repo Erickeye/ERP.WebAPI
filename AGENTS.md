@@ -23,7 +23,7 @@ Multi-context: 見 `GLOSSARY-MAP.md` 與 `docs/agents/domain.md`。
 
 ## 編譯與測試
 
-agent 不編譯、不跑測試，也不在專案資料夾內 restore 或 build；由使用者在本機執行並回報結果。分工與指令見 `docs/agents/build-and-test.md`。
+要編譯、跑測試或驗證前端建置時，先讀 `docs/agents/build-and-test.md`，並用 `bash scripts/agent/agent-test.sh` 與 `bash scripts/agent/agent-vue-build.sh`；不要在專案資料夾內 restore 或 build。
 
 ## Git
 
