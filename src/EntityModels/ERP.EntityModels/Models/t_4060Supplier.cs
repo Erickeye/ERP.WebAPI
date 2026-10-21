@@ -9,7 +9,7 @@ public partial class t_4060Supplier
 
     public string? No { get; set; }
 
-    public string? Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public string? TaxIdNumber { get; set; }
 
@@ -31,7 +31,7 @@ public partial class t_4060Supplier
 
     public string? RemittanceAccount { get; set; }
 
-    public DateTime? PayDays { get; set; }
+    public int? PayDays { get; set; }
 
     public decimal? CreditLine { get; set; }
 
@@ -40,6 +40,8 @@ public partial class t_4060Supplier
     public DateTime? LastTransDate { get; set; }
 
     public decimal? TemporaryAmount { get; set; }
+
+    public bool IsActive { get; set; }
 
     public virtual ICollection<t_4000Inventory> t_4000Inventory { get; set; } = new List<t_4000Inventory>();
 

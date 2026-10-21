@@ -689,7 +689,13 @@ public partial class ERPDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK_4060Supplier");
 
-            entity.HasIndex(e => e.No, "IX_t_4060Supplier_No");
+            entity.HasIndex(e => e.No, "IX_t_4060Supplier_No")
+                .IsUnique()
+                .HasFilter("[No] IS NOT NULL");
+
+            entity.HasIndex(e => e.TaxIdNumber, "IX_t_4060Supplier_TaxIdNumber")
+                .IsUnique()
+                .HasFilter("[TaxIdNumber] IS NOT NULL");
 
             entity.Property(e => e.Address).HasMaxLength(128);
             entity.Property(e => e.BankName).HasMaxLength(64);
@@ -698,11 +704,11 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.CreditBalance).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.CreditLine).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.FaxPhone).HasMaxLength(32);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LastTransDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(128);
             entity.Property(e => e.No).HasMaxLength(64);
             entity.Property(e => e.Owner).HasMaxLength(32);
-            entity.Property(e => e.PayDays).HasColumnType("datetime");
             entity.Property(e => e.RemittanceAccount).HasMaxLength(64);
             entity.Property(e => e.Salesperson).HasMaxLength(32);
             entity.Property(e => e.SubBankName).HasMaxLength(64);
