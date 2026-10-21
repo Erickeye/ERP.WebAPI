@@ -2,6 +2,9 @@
 -- 既有資料庫用：可重複執行，欄位、型別與索引已調整過時不會重複處理。
 -- 新環境由 ERP.DB 專案發佈即可建立最終結構，不需要執行此腳本。
 SET NOCOUNT ON;
+-- 篩選唯一索引（WHERE ...）需要 QUOTED_IDENTIFIER 與 ANSI_NULLS 為 ON；sqlcmd 預設是 OFF，所以在此明確設定。
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
 GO
 
 -- 1. 啟用旗標：既有的供應商一律視為啟用中
@@ -53,10 +56,12 @@ FROM [dbo].[t_4060Supplier]
 WHERE [No] IS NULL OR LTRIM(RTRIM([No])) = N'';
 GO
 
--- 5. 唯一索引：只在沒有重複資料時才建立；原本的供應商編號索引不是唯一的，無衝突時才換掉
-IF NOT EXISTS (SELECT 1 FROM [dbo].[t_4060Supplier] WHERE [No] IS NOT NULL GROUP BY [No] HAVING COUNT(*) > 1)
-   AND NOT EXISTS (SELECT 1 FROM sys.indexes
-                   WHERE name = N'IX_t_4060Supplier_No' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier') AND is_unique = 1)
+-- 5. 唯一索引：只在沒有重複資料時才建立；有重複就只提示、不動既有索引。
+--    供應商編號：原本的索引不是唯一的，無衝突時才換成唯一的篩選索引
+IF EXISTS (SELECT 1 FROM [dbo].[t_4060Supplier] WHERE [No] IS NOT NULL GROUP BY [No] HAVING COUNT(*) > 1)
+    PRINT N'供應商編號有重複，尚未建立唯一索引 IX_t_4060Supplier_No，請先處理上面列出的資料。';
+ELSE IF NOT EXISTS (SELECT 1 FROM sys.indexes
+                    WHERE name = N'IX_t_4060Supplier_No' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier') AND is_unique = 1)
 BEGIN
     IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_t_4060Supplier_No' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier'))
         DROP INDEX [IX_t_4060Supplier_No] ON [dbo].[t_4060Supplier];
@@ -65,17 +70,15 @@ BEGIN
     ON [dbo].[t_4060Supplier] ([No])
     WHERE [No] IS NOT NULL;
 END
-ELSE IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_t_4060Supplier_No' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier'))
-    PRINT N'供應商編號有重複，尚未建立唯一索引 IX_t_4060Supplier_No，請先處理上面列出的資料。';
 GO
 
-IF NOT EXISTS (SELECT 1 FROM [dbo].[t_4060Supplier] WHERE [TaxIdNumber] IS NOT NULL GROUP BY [TaxIdNumber] HAVING COUNT(*) > 1)
-   AND NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_t_4060Supplier_TaxIdNumber' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier'))
+--    統一編號
+IF EXISTS (SELECT 1 FROM [dbo].[t_4060Supplier] WHERE [TaxIdNumber] IS NOT NULL GROUP BY [TaxIdNumber] HAVING COUNT(*) > 1)
+    PRINT N'統一編號有重複，尚未建立唯一索引 IX_t_4060Supplier_TaxIdNumber，請先處理上面列出的資料。';
+ELSE IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_t_4060Supplier_TaxIdNumber' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier'))
     CREATE UNIQUE NONCLUSTERED INDEX [IX_t_4060Supplier_TaxIdNumber]
     ON [dbo].[t_4060Supplier] ([TaxIdNumber])
     WHERE [TaxIdNumber] IS NOT NULL;
-ELSE IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_t_4060Supplier_TaxIdNumber' AND object_id = OBJECT_ID(N'dbo.t_4060Supplier'))
-    PRINT N'統一編號有重複，尚未建立唯一索引 IX_t_4060Supplier_TaxIdNumber，請先處理上面列出的資料。';
 GO
 
 -- 功能權限「供應商檢視」（PermissionType = 4060）、「供應商編輯」（40600，含停用與啟用）、「供應商刪除」（40601）：

@@ -1,9 +1,11 @@
+using ERP.Library.Enums.Login;
 using ERP.Library.Enums._1000Company;
 using ERP.Library.Extensions;
 using ERP.Service.API;
 using ERP.Service.API._1000Company;
 using ERP.Service.API._2000Customer;
 using ERP.Service.API._4000Inventory;
+using ERP.WebAPI.CustomAttributes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -55,7 +57,9 @@ namespace ERP.WebAPI.Controllers
             var result = await _2000SCustomerService.GetCustomerSelect();
             return Ok(result);
         }
+        // 與供應商專屬端點 _4060Supplier/GetSelect 同一組權限：不開放給與進貨、庫存無關的登入者（供應商管理 Story 28）
         [SwaggerOperation("取得供應商下拉選單")]
+        [PermissionAuthorize((int)PermissionType.進貨單編輯, (int)PermissionType.庫存編輯)]
         [HttpGet, Route("GetSupplierSelect")]
         public async Task<IActionResult> GetSupplierSelect()
         {

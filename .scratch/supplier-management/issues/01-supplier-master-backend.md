@@ -35,3 +35,9 @@
 - 列表排序：啟用中優先，再依供應商編號（NULL 排最前），最後依 Id；可再用 `SortColumn` 覆寫。
 - `GetSupplierSelect`（下拉選單）原樣保留，改成只回傳啟用中並搬到專屬端點屬於 ticket 02。
 - 沒有新增詞彙，`docs/inventory/GLOSSARY.md` 已在規劃階段寫入供應商相關術語。
+
+### code-review 後續修正（2026-10-21）
+
+- 部署腳本開頭補上 `SET QUOTED_IDENTIFIER ON` 與 `SET ANSI_NULLS ON`：建立篩選唯一索引需要這兩個選項，sqlcmd 預設為 OFF 會失敗（SSMS 預設 ON，不會發現）。
+- 修正供應商編號有重複時「尚未建立唯一索引」的提示漏印（原本的非唯一索引存在時，ELSE 分支不會成立）；編號與統編兩段改成同樣的「有重複就只提示、無重複才建立」寫法。
+- 腳本仍未在 SQL Server 實際執行，只做了靜態審視。
