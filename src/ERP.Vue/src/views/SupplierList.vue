@@ -4,8 +4,13 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { supplierApi } from '@/api/supplierApi'
 import { getApiErrorMessage, isSuccess, unwrap } from '@/utils/api'
+import { hasPermission } from '@/utils/auth'
+import { PERMISSION } from '@/utils/permissions'
 
 const router = useRouter()
+
+// 報價入口依供應商檢視權限顯示（後端仍會驗證）
+const canViewPrice = hasPermission(PERMISSION.SUPPLIER_VIEW)
 
 const loading = ref(false)
 // 停用、啟用、刪除各自維護狀態，並記下正在處理的供應商，避免同一列重複送出
@@ -111,6 +116,10 @@ function changeSort({ prop, order }) {
 
 function openCreate() {
   router.push({ name: 'supplier-create' })
+}
+
+function openPrice(row) {
+  router.push({ name: 'supplier-price-list', params: { supplierId: row.id } })
 }
 
 function openRow(row) {
@@ -229,9 +238,10 @@ onMounted(loadRows)
           <el-tag :type="row.isActive ? 'success' : 'info'">{{ row.isActive ? '啟用中' : '已停用' }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column label="操作" width="280" fixed="right">
         <template #default="{ row }">
           <el-button link type="primary" @click="openRow(row)">編輯</el-button>
+          <el-button v-if="canViewPrice" link type="primary" @click="openPrice(row)">報價</el-button>
           <el-button
             link
             :type="row.isActive ? 'warning' : 'success'"

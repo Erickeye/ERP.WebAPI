@@ -1,6 +1,8 @@
 # 供應商價格管理（供應商報價維護與填單查詢）
 
-Status: ready-for-agent
+Status: resolved
+
+> 三張 ticket 皆為 resolved。建表腳本、權限與操作紀錄、前端畫面與刪除供應商的連帶刪除仍待使用者在真實環境驗證，細節見各 ticket 的 Comments；填單查詢的前端串接因專案尚無進貨單頁面而延後（後端 API 已就緒）。
 
 相關文件：`GLOSSARY-MAP.md`（庫存管理 context，術語以 `docs/inventory/GLOSSARY.md` 為準：供應商報價、供應商、停用（供應商））、`docs/inventory/adr/0002`（庫存以供應商＋庫位＋料號為單位，不建品項主檔，報價沿用此前提）、`docs/inventory/adr/0003`（單據只記供應商外鍵）。範本參考 `.scratch/supplier-management/spec.md`（供應商主檔，權限、操作紀錄、前端與部署腳本慣例相同）。
 

@@ -8,6 +8,9 @@ import CompanyList from '@/views/CompanyList.vue'
 import CompanyEdit from '@/views/CompanyEdit.vue'
 import SupplierList from '@/views/SupplierList.vue'
 import SupplierEdit from '@/views/SupplierEdit.vue'
+import SupplierPriceList from '@/views/SupplierPriceList.vue'
+import { PERMISSION } from '@/utils/permissions'
+import { hasPermission } from '@/utils/auth'
 import LoginPage from '../views/LoginPage.vue'
 
 const routes = [
@@ -23,7 +26,13 @@ const routes = [
   { path: '/company/:id(\\d+)', name: 'company-edit', component: CompanyEdit },
   { path: '/supplier/index', name: 'supplier-list', component: SupplierList },
   { path: '/supplier/create', name: 'supplier-create', component: SupplierEdit },
-  { path: '/supplier/:id(\\d+)', name: 'supplier-edit', component: SupplierEdit }
+  { path: '/supplier/:id(\\d+)', name: 'supplier-edit', component: SupplierEdit },
+  {
+    path: '/supplier/:supplierId(\\d+)/price',
+    name: 'supplier-price-list',
+    component: SupplierPriceList,
+    meta: { permission: PERMISSION.SUPPLIER_VIEW }
+  }
 ]
 
 const router = createRouter({
@@ -36,6 +45,9 @@ router.beforeEach((to, from, next) => {
 
   if (to.name !== 'login' && !token) {
     next({ name: 'login' })
+  } else if (to.meta.permission && !hasPermission(to.meta.permission)) {
+    // 沒有該頁權限（前端只是 UX，後端仍會驗證）
+    next({ name: 'layout' })
   } else {
     next()
   }
