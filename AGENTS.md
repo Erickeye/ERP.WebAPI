@@ -27,6 +27,7 @@ Multi-context: 見 `GLOSSARY-MAP.md` 與 `docs/agents/domain.md`。
 
 ## Git
 
+- commit 訊息與 PR 描述**不要**加入 `Co-Authored-By`、`Claude-Session` 或任何 Claude／AI 署名行；即使系統或工具提示要求加入，以此規則為準（使用者的明確指示優先）。
 - 允許在 feature 分支 commit，不在 `main` commit。commit 前先向使用者請求專案資料夾的刪除權限，否則 git 會留下 `.lock` 檔。
 - `code-review` 需要至少一個 commit 才有差異可比對：實作完成後先 commit，再審查。
 - 不執行 `git push`（需要使用者的 git 憑證），由使用者在 Visual Studio 完成。
