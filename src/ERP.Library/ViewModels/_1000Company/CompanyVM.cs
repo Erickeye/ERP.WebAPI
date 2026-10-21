@@ -99,7 +99,7 @@ namespace ERP.Library.ViewModels._1000Company
 
         [Display(Name = "統一編號")]
         [Required(ErrorMessage = "必填欄位")]
-        [RegularExpression(@"^\d{8}$", ErrorMessage = "統一編號須為 8 碼數字")]
+        [RegularExpression(@"^[0-9]{8}$", ErrorMessage = "統一編號須為 8 碼數字")]
         public string? TaxInvoiceNumber { get; set; }
 
         [Display(Name = "稅籍編號")]

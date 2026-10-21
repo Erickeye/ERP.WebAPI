@@ -143,6 +143,7 @@ public class CompanyServiceTests : IDisposable
     [InlineData("1234567")]
     [InlineData("123456789")]
     [InlineData("1234567A")]
+    [InlineData("１２３４５６７８")] // 全形數字:\d 會放行,必須用 [0-9]
     public async Task Add_TaxInvoiceNumberNotEightDigits_IsRejected(string taxInvoiceNumber)
     {
         using var db = _testDb.CreateContext();
