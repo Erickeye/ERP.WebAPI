@@ -46,4 +46,6 @@ public partial class t_4060Supplier
     public virtual ICollection<t_4000Inventory> t_4000Inventory { get; set; } = new List<t_4000Inventory>();
 
     public virtual ICollection<t_4010Purchase> t_4010Purchase { get; set; } = new List<t_4010Purchase>();
+
+    public virtual ICollection<t_4061SupplierPrice> t_4061SupplierPrice { get; set; } = new List<t_4061SupplierPrice>();
 }

@@ -84,6 +84,8 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<t_4060Supplier> t_4060Supplier { get; set; }
 
+    public virtual DbSet<t_4061SupplierPrice> t_4061SupplierPrice { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApprovalRecord>(entity =>
@@ -714,6 +716,26 @@ public partial class ERPDbContext : DbContext
             entity.Property(e => e.SubBankName).HasMaxLength(64);
             entity.Property(e => e.TaxIdNumber).HasMaxLength(8);
             entity.Property(e => e.TemporaryAmount).HasColumnType("decimal(12, 2)");
+        });
+
+        modelBuilder.Entity<t_4061SupplierPrice>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_4061SupplierPrice");
+
+            entity.HasIndex(e => new { e.SupplierId, e.No }, "IX_t_4061SupplierPrice_SupplierId_No").IsUnique();
+
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.Name).HasMaxLength(128);
+            entity.Property(e => e.No).HasMaxLength(64);
+            entity.Property(e => e.Note).HasMaxLength(256);
+            entity.Property(e => e.Price).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.Unit).HasMaxLength(16);
+            entity.Property(e => e.UpdateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Supplier).WithMany(p => p.t_4061SupplierPrice)
+                .HasForeignKey(d => d.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_4061SupplierPrice_SupplierId");
         });
 
         OnModelCreatingPartial(modelBuilder);

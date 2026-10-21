@@ -90,6 +90,7 @@
     <Build Include="dbo\Tables\ApprovalRecord.sql" />
     <Build Include="dbo\Tables\__EFMigrationsHistory.sql" />
     <Build Include="dbo\Tables\t_4060Supplier.sql" />
+    <Build Include="dbo\Tables\t_4061SupplierPrice.sql" />
     <Build Include="dbo\Tables\t_4000Inventory.sql" />
     <Build Include="dbo\Tables\t_4010Purchase.sql" />
     <Build Include="dbo\Tables\SystemConfig.sql" />
