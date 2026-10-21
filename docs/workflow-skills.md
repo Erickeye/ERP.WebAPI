@@ -93,5 +93,5 @@
 - **`to-tickets` 第一輪被略過**，直接由 spec 實作。
 - **`retro` 提到的 `CODING_STANDARDS.md`，本專案對應的是 `backend-coding-style/references/codingStyle.md`**，不是同名檔。
 - **規格與草稿放在 `.scratch/`**（由 `docs/agents/issue-tracker.md` 設定），是會結案的工作單據；`docs/<context>/adr/` 與 `docs/<context>/GLOSSARY.md` 是長期保留的參考文件。
-- **在 agent 的工作階段內編譯與測試**，請照 `AGENTS.md`「編譯與測試（agent 工作階段）」的離線還原方式；commit 與 push 由使用者在 Visual Studio 完成。
+- **在 agent 的工作階段內編譯與測試**，請照 `docs/agents/build-and-test.md`，在 Windows 本機直接用 `dotnet test` 與 `npm run build`；commit 與 push 由使用者在 Visual Studio 完成。
 - **agent 無法寫入 `.claude/` 資料夾**（遠端工具會拒絕），新增或更新 skill 需由使用者自己複製。

@@ -23,7 +23,7 @@ Multi-context: 見 `GLOSSARY-MAP.md` 與 `docs/agents/domain.md`。
 
 ## 編譯與測試
 
-要編譯、跑測試或驗證前端建置時，先讀 `docs/agents/build-and-test.md`，並用 `bash scripts/agent/agent-test.sh` 與 `bash scripts/agent/agent-vue-build.sh`；不要在專案資料夾內 restore 或 build。
+要編譯、跑測試或驗證前端建置時，先讀 `docs/agents/build-and-test.md`；agent 在 Windows 本機執行，直接用 `dotnet test` 與 `npm run build`。
 
 ## Git
 
