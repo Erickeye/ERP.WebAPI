@@ -139,6 +139,11 @@ namespace ERP.Service.API._4000Inventory
         }
         public async Task<ResultModel<string>> Add(PurchaseAddVM vm)
         {
+            if (!await _db.t_4060Supplier.AnyAsync(x => x.Id == vm.SupplierId))
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "供應商不存在");
+            }
+
             var entity = new t_4010Purchase
             {
                 CreateTime = DateTime.Now,
@@ -167,6 +172,11 @@ namespace ERP.Service.API._4000Inventory
             if (entity == null)
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            if (!await _db.t_4060Supplier.AnyAsync(x => x.Id == vm.SupplierId))
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "供應商不存在");
             }
 
             var result = Modify(vm, entity);
@@ -224,6 +234,17 @@ namespace ERP.Service.API._4000Inventory
         }
         public async Task<ResultModel<string>> SendApproval(ApprovalVM vm)
         {
+            // 停用的供應商不能被新送簽的進貨單使用；已送簽與已核准的進貨單不受停用影響，核准流程不檢查
+            var supplierIsActive = await _db.t_4010Purchase
+                .AsNoTracking()
+                .Where(x => x.No == vm.TableId)
+                .Select(x => (bool?)x.Supplier.IsActive)
+                .FirstOrDefaultAsync();
+            if (supplierIsActive == false)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidRequest, "供應商已停用，請改選其他供應商後再送簽");
+            }
+
             vm.TableType = TableType.進貨單;
             var result = await _approvalWorkflowService.SendApprovalProcess(vm);
             if (!result)

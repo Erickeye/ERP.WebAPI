@@ -38,6 +38,16 @@ namespace ERP.WebAPI.Controllers._4000Inventory
             return Ok(result);
         }
 
+        // 填單用選單不要求「供應商檢視」：只要能編輯進貨單或庫存就要選得到供應商
+        [SwaggerOperation("取得填單用的供應商選單（只列啟用中；includeId 為單據原本的供應商，已停用也一併回傳）")]
+        [PermissionAuthorize((int)PermissionType.進貨單編輯, (int)PermissionType.庫存編輯)]
+        [HttpGet, Route("GetSelect")]
+        public async Task<IActionResult> GetSelect([SwaggerParameter("單據原本的供應商流水號")] int? includeId)
+        {
+            var result = await _service.GetSelect(includeId);
+            return Ok(result);
+        }
+
         [SwaggerOperation("新增供應商")]
         [PermissionAuthorize((int)PermissionType.供應商編輯)]
         [ValidateModel]

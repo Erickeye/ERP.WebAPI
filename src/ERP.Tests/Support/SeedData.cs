@@ -32,11 +32,12 @@ public static class SeedData
             BloodType = 1
         };
         var company = CreateCompany(db, "預設公司", "00000000", isActive: true);
+        var supplier = CreateSupplier(db, "S001", "預設供應商");
         db.SystemConfig.AddRange(purpose, location, otherLocation);
         db.t_1000Staff.Add(staff);
         db.SaveChanges();
 
-        return new Basics(purpose.Id, location.Id, otherLocation.Id, staff.StaffId, SupplierId: 1, CompanyId: company.Id);
+        return new Basics(purpose.Id, location.Id, otherLocation.Id, staff.StaffId, SupplierId: supplier.Id, CompanyId: company.Id);
     }
 
     /// <summary>
@@ -64,6 +65,24 @@ public static class SeedData
             db.SaveChanges();
         }
         return company;
+    }
+
+    /// <summary>
+    /// 建立一間供應商（進貨單與庫存項目都引用供應商，種子資料先建一間，其他測試需要時再自行建立）
+    /// </summary>
+    public static t_4060Supplier CreateSupplier(TestERPDbContext db, string no, string name, bool isActive = true)
+    {
+        var supplier = new t_4060Supplier { No = no, Name = name, IsActive = true };
+        db.t_4060Supplier.Add(supplier);
+        db.SaveChanges();
+
+        // IsActive 的資料表預設值是 true，false 會被 EF 視為「未指定」；要停用就先存成啟用再改
+        if (!isActive)
+        {
+            supplier.IsActive = false;
+            db.SaveChanges();
+        }
+        return supplier;
     }
 
     public static t_4000Inventory CreateInventory(

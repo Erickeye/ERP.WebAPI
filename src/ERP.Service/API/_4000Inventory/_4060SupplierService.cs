@@ -17,9 +17,14 @@ namespace ERP.Service.API._4000Inventory
     public interface I_4060SupplierService
     {
         /// <summary>
-        /// 取得供應商下拉選單（目前列出全部供應商，供進貨單等既有呼叫使用）
+        /// 取得供應商下拉選單（只列啟用中的供應商；保留給 SharedController 既有呼叫，新程式請用 GetSelect）
         /// </summary>
         Task<ResultModel<ListResult<SelectModel>>> GetSupplierSelect();
+
+        /// <summary>
+        /// 取得填單用的供應商選單：只列啟用中的供應商；指定 includeId 時，該供應商即使已停用也一併回傳（標示已停用），供編輯草稿顯示原值
+        /// </summary>
+        Task<ResultModel<ListResult<SupplierSelectVM>>> GetSelect(int? includeId);
 
         /// <summary>
         /// 查詢供應商列表（分頁；可依關鍵字與啟用狀態篩選，預設啟用中的排在前面，再依供應商編號）
@@ -70,6 +75,7 @@ namespace ERP.Service.API._4000Inventory
         {
             var data = await _db.t_4060Supplier
                 .AsNoTracking()
+                .Where(x => x.IsActive)
                 .Select(x => new SelectModel
                 {
                     Value = x.Id,
@@ -78,6 +84,29 @@ namespace ERP.Service.API._4000Inventory
                 .ToListAsync();
 
             return ResultModel.Ok(data);
+        }
+
+        public async Task<ResultModel<ListResult<SupplierSelectVM>>> GetSelect(int? includeId)
+        {
+            var rows = await _db.t_4060Supplier
+                .AsNoTracking()
+                .Where(x => x.IsActive || x.Id == includeId)
+                .OrderBy(x => x.No)
+                .ThenBy(x => x.Id)
+                .Select(x => new { x.Id, x.No, x.Name, x.IsActive })
+                .ToListAsync();
+
+            // 文字在記憶體組合：同時顯示編號與名稱，沒有編號的舊資料只顯示名稱
+            var items = rows
+                .Select(x => new SupplierSelectVM
+                {
+                    Value = x.Id,
+                    Text = string.IsNullOrWhiteSpace(x.No) ? x.Name : $"{x.No} {x.Name}",
+                    IsActive = x.IsActive
+                })
+                .ToList();
+
+            return ResultModel.Ok(items);
         }
 
         public async Task<ResultModel<PagedResult<SupplierVM>>> Index(SupplierSearchVM vm)

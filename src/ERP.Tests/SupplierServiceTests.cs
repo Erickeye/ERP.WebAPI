@@ -677,4 +677,83 @@ public class SupplierServiceTests : IDisposable
 
         Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
     }
+
+    // ---------- 填單用選單 ----------
+
+    [Fact]
+    public async Task GetSelect_ListsOnlyActiveSuppliersWithNoAndName()
+    {
+        SeedSupplier("S002", "乙供應商");
+        SeedSupplier("S001", "甲供應商");
+        SeedSupplier("S003", "已停用供應商", isActive: false);
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).GetSelect(includeId: null);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal(new[] { "S001 甲供應商", "S002 乙供應商" }, result.Data.Items.Select(x => x.Text));
+        Assert.All(result.Data.Items, x => Assert.True(x.IsActive));
+    }
+
+    [Fact]
+    public async Task GetSelect_IncludeId_ReturnsDisabledSupplierMarkedInactive()
+    {
+        SeedSupplier("S001", "甲供應商");
+        var disabledId = SeedSupplier("S002", "已停用供應商", isActive: false);
+        SeedSupplier("S003", "另一間已停用", isActive: false);
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).GetSelect(disabledId);
+
+        Assert.Equal(2, result.Data.Items.Count());
+        var disabled = Assert.Single(result.Data.Items, x => x.Value == disabledId);
+        Assert.False(disabled.IsActive);
+        Assert.Equal("S002 已停用供應商", disabled.Text);
+    }
+
+    [Fact]
+    public async Task GetSelect_IncludeIdOfActiveSupplier_DoesNotDuplicate()
+    {
+        var id = SeedSupplier("S001", "甲供應商");
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).GetSelect(id);
+
+        Assert.Single(result.Data.Items);
+    }
+
+    [Fact]
+    public async Task GetSelect_SupplierWithoutNo_ShowsNameOnly()
+    {
+        SeedSupplier(null, "舊資料供應商");
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).GetSelect(null);
+
+        Assert.Equal("舊資料供應商", Assert.Single(result.Data.Items).Text);
+    }
+
+    [Fact]
+    public async Task GetSelect_SameNameSuppliers_AreToldApartByNo()
+    {
+        SeedSupplier("S001", "同名供應商");
+        SeedSupplier("S002", "同名供應商");
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).GetSelect(null);
+
+        Assert.Equal(new[] { "S001 同名供應商", "S002 同名供應商" }, result.Data.Items.Select(x => x.Text));
+    }
+
+    [Fact]
+    public async Task GetSupplierSelect_LegacySharedEndpoint_ListsOnlyActiveSuppliers()
+    {
+        SeedSupplier("S001", "啟用中");
+        SeedSupplier("S002", "已停用", isActive: false);
+        using var db = _testDb.CreateContext();
+
+        var result = await CreateService(db).GetSupplierSelect();
+
+        Assert.Equal("啟用中", Assert.Single(result.Data.Items).Text);
+    }
 }

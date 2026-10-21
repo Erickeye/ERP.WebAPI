@@ -139,4 +139,25 @@ namespace ERP.Library.ViewModels._4000Inventory
         [Range(0, 9999999999.99, ErrorMessage = "信用額度須介於 0 到 9,999,999,999.99")]
         public decimal? CreditLine { get; set; }
     }
+
+    /// <summary>
+    /// 查詢-填單用的供應商選單項目
+    /// </summary>
+    public class SupplierSelectVM
+    {
+        [Display(Name = "供應商識別碼")]
+        public int Value { get; set; }
+
+        /// <summary>
+        /// 顯示用文字：供應商編號與名稱（沒有編號時只顯示名稱），讓同名的供應商也分得出來
+        /// </summary>
+        [Display(Name = "供應商編號與名稱")]
+        public string Text { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 已停用的供應商只會在指定了 includeId 時出現，前端據此標示「已停用」
+        /// </summary>
+        [Display(Name = "是否啟用中")]
+        public bool IsActive { get; set; }
+    }
 }
