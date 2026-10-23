@@ -24,6 +24,9 @@
   │
   ▼
 /implement            實作（內部自動使用 tdd，完成後自動 code-review）
+  │
+  ▼
+/pr                   code-review 之後，撰寫 PR 描述（摘要、證據、合併風險）
 
 遇到 bug        →  /diagnosing-bugs
 定期檢視架構    →  /improve-codebase-architecture
@@ -55,6 +58,7 @@
 | `tdd` | 測試先行：紅燈 → 綠燈，一次一個垂直切片，並規範好測試與壞測試的樣子 |
 | `diagnosing-bugs` | 除錯紀律：沒有「一個指令就能重現這個 bug」之前，禁止先猜原因 |
 | `code-review` | 同時從兩個軸審查變更：**Standards**（是否符合規範）與 **Spec**（是否符合需求），兩軸分開呈現 |
+| `pr` | 撰寫 PR 描述的固定範本：**Summary**（用圖或樹呈現重點）、**Evidence**（前後對照的測試或畫面）、**Merge Danger**（單向或雙向門與影響範圍）；只產出文字，不建立 PR、不 push。放在 code-review 之後使用 |
 
 ## 被其他 skill 呼叫的底層 skill（通常不需直接用）
 
@@ -70,28 +74,13 @@
 ## 專案內的搭配規則
 
 - **規範來源**：`code-review` 的 Standards 軸，以兩個 coding-style skill 的 `references/`（`codingStyle.md`、`vueCodingStyle.md`）為準（已寫在 `AGENTS.md`）。
+- **PR 描述語言**：`pr` skill 的範本是英文，本專案在 `AGENTS.md` 規定標題與內文改以繁體中文撰寫，skill 本身不改。
 - **首次使用**：先執行 `/setup-matt-pocock-skills`，設定 issue tracker 後，`to-spec`、`to-tickets` 才能正常運作。
 
 ## 注意事項
 
 - 這組 skill 的重點是「少而深的模組」。`improve-codebase-architecture` 與 `codebase-design` 的建議，可能與本專案 Controller → Service 的分層規範不同，僅供參考，是否採用由人決定。
 - 部分範例以 TypeScript 撰寫，概念通用，實際以 C# / .NET 對應。
-- 來源 repo 的 skill 分在 `skills/engineering/` 與 `skills/productivity/` 兩個資料夾：`retro` 在 engineering，`handoff` 與 `writing-for-agents` 在 productivity。
+- 來源 repo 的 skill 分在 `skills/engineering/` 與 `skills/productivity/` 兩個資料夾：`retro` 與 `pr` 在 engineering，`handoff` 與 `writing-for-agents` 在 productivity。
 - 更新方式：重新從來源 repo 複製對應資料夾（Claude Code 不需要其中的 `agents/openai.yaml`，已移除）。
 - 在 Codex 使用時，skill 需放在 `.agents/skills/`，不是 `.claude/skills/`。
-
----
-
-## 實際跑完一輪（領料單功能）的經驗
-
-2026-10 以「領料單」功能完整跑過 grill-with-docs → to-spec → implement → code-review。實測發現：
-
-- **使用者呼叫型 skill 不能由 AI 自己啟動。** `implement`、`retro`、`handoff` 等標了 `disable-model-invocation: true`，AI 無法用 Skill 工具呼叫，必須由使用者輸入。
-- **`code-review` 在本機被 `skillOverrides` 停用了對模型的呼叫**（`code-review` 的 SKILL.md 本身沒有停用標記，來源是設定檔）。結果 `implement` 做到最後一步無法自動呼叫它，審查要由使用者另外觸發。要讓 `implement` 一次跑完 coding → tdd → review → commit，需先移除這個覆寫；移除前先確認當初為何停用（審查會開兩個子 agent，用量不小）。
-- **Claude 桌面 App（Cowork）輸入 `/code-review` 會顯示 Unknown skill**，專案內的 skill 要在實際支援的工具（例如 Claude Code）才能用斜線指令呼叫。
-- **`tdd` 要求先與使用者確認測試的 seam，再一次一個垂直切片做紅綠燈。** 第一輪是先寫完程式再補測試，不符合這個流程，下一個功能應照流程做。
-- **`to-tickets` 第一輪被略過**，直接由 spec 實作。
-- **`retro` 提到的 `CODING_STANDARDS.md`，本專案對應的是 `backend-coding-style/references/codingStyle.md`**，不是同名檔。
-- **規格與草稿放在 `.scratch/`**（由 `docs/agents/issue-tracker.md` 設定），是會結案的工作單據；`docs/<context>/adr/` 與 `docs/<context>/GLOSSARY.md` 是長期保留的參考文件。
-- **在 agent 的工作階段內編譯與測試**，請照 `docs/agents/build-and-test.md`，在 Windows 本機直接用 `dotnet test` 與 `npm run build`；commit 與 push 由使用者在 Visual Studio 完成。
-- **agent 無法寫入 `.claude/` 資料夾**（遠端工具會拒絕），新增或更新 skill 需由使用者自己複製。
