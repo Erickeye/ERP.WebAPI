@@ -24,6 +24,7 @@ const canEdit = hasPermission(PERMISSION.CONTRACT_EDIT)
 
 const loading = ref(false)
 const pageError = ref('')
+const optionsError = ref('')
 const rows = ref([])
 const search = reactive({
   pageNumber: 1,
@@ -72,18 +73,23 @@ function formatAmount(value) {
   return Number(value).toLocaleString('zh-TW', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-// 下拉選單載入失敗不影響列表查詢，只提示
+// 下拉選單載入失敗不影響列表查詢，但錯誤要看得見：顯示在選單錯誤區並提示
 async function loadSelect(request, target, message) {
   try {
     const response = await request()
     if (isSuccess(response)) {
       target.value = unwrap(response)?.items ?? []
     } else {
-      ElMessage.warning(getApiErrorMessage(response, message))
+      reportOptionsError(getApiErrorMessage(response, message))
     }
   } catch (error) {
-    ElMessage.warning(getApiErrorMessage(error, message))
+    reportOptionsError(getApiErrorMessage(error, message))
   }
+}
+
+function reportOptionsError(message) {
+  optionsError.value = message
+  ElMessage.error(message)
 }
 
 function loadOptions() {
@@ -249,6 +255,7 @@ onMounted(() => {
       </el-form-item>
     </el-form>
 
+    <el-alert v-if="optionsError" class="page-error" type="warning" :title="optionsError" :closable="false" show-icon />
     <el-alert v-if="pageError" class="page-error" type="error" :title="pageError" :closable="false" show-icon />
 
     <el-table

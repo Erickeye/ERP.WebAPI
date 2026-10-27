@@ -1,6 +1,8 @@
 # 合約管理（合約單：供應商合約與客戶合約）
 
-Status: ready-for-agent
+Status: resolved
+
+> 七張 ticket 中 01～06 為 resolved，07（端到端驗證與上線）為 deferred：真實 SQL Server、SFTP、簽核設定與瀏覽器操作尚未驗證，接續步驟見 `issues/07-e2e-verify-and-go-live.md` 的 Comments。`ERP.DB` 的新資料表 SQL 沒有被編譯驗證過。
 
 相關文件：`GLOSSARY-MAP.md`（合約管理 context，術語以 `docs/contract/GLOSSARY.md` 為準：合約單、供應商合約、客戶合約、合約對象、簽約公司、合約編號、合約總金額、合約單狀態、生效中、已到期、作廢）。簽核單據的做法參考 `docs/attendance/adr/0001`（簽核動作與單據狀態同一交易、走專屬端點）與 `.scratch/business-trip/spec.md`（五個狀態、列表可見範圍、最後一關簽核人作廢）。供應商與公司的「被引用就只能停用」規則見 `docs/inventory/GLOSSARY.md` 與 `docs/company/GLOSSARY.md`。程式導覽與新增簽核單據的檢查清單見 `docs/agents/codebase-map.md`。
 

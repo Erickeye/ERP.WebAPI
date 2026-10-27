@@ -31,3 +31,9 @@
 - 上傳前端先擋非 PDF 與超過 10 MB（後端仍會檢查）；下載走 `contractApi.downloadAttachment`（blob），後端失敗回 JSON 時顯示錯誤訊息而不是下載壞檔。
 - 重複程式：簽核動作（核准、拒絕、撤銷、作廢）在 `ContractEdit.vue` 內以 `runApprovalAction` 共用；與出差單頁面仍是兩份類似的簽核區塊與進度表，等第三個簽核單據頁面出現再抽共用元件。
 - 沒有新增前端自動化測試（專案沒有設定）。
+
+### code-review 結果（06）
+
+- Standards 軸（`vueCodingStyle.md`）：2 項硬違規、約 9 項判斷。已修正：(1) `ContractEdit.vue` 載入中切換單據時 `loading` 會卡住（舊請求的 finally 因 token 不符不恢復）——`loadContract` 開頭先恢復 `loading` 與 `progressLoading`；(2) 列表的下拉載入失敗只有警告提示——改為頁面上可見的錯誤區加 `ElMessage.error`；另修正：新增路由改要「合約單編輯」權限、下載中其他按鈕也鎖定（`downloading` 納入 `busy`）、頁面先載入客戶選單再載入單據（避免 `formError` 被蓋掉）、移除沒用到的 `CONTRACT_DELETE`。未處理的判斷：供應商、公司、客戶選單載入在列表與編輯頁各寫一份（第二次出現，可抽 composable）、`sendApproval` 沒走 `runApprovalAction`、狀態選項文字與後端 `statusDisplay` 重複、`CONTRACT_TABLE_TYPE` 是魔術數字（以註解對應後端）、下載遇 HTTP 4xx 時錯誤訊息只有預設文字（blob 內容讀不到）、儲存後 `unwrap(response).id` 沒有 null 防護。
+- Spec 軸：前後端契約（Route、查詢參數、儲存欄位、上傳表單欄位 `Id`／`File`、簽核 body、旗標欄位、權限碼、`TableType` 11）逐項比對沒有不一致，畫面沒有用到詞彙表 Avoid 的詞。已知限制：列表的供應商與公司篩選選單沿用填單用選單（只列啟用中），已停用對象的歷史合約單無法用這兩個篩選找出（仍可用關鍵字、類型、日期區間找到），要改需新增「含停用」的選單端點；導覽卡片沒有依權限隱藏（與供應商卡片現況一致）；沒有檢視權限的簽核人進不了頁面（見上面路由權限說明）。
+- 排序欄位（單號、合約編號、起日、迄日、合約總金額、狀態）是否都被後端排序白名單接受，由 `SortHelper` 依 `ContractVM` 屬性產生，測試只驗證了合約編號；金額排序須在真實資料庫驗證。

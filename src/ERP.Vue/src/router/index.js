@@ -25,7 +25,7 @@ const routes = [
   { path: '/business-trip/:id(\\d+)', name: 'business-trip-edit', component: BusinessTripEdit },
   // 合約單頁面要「合約單檢視」權限才能進入（前端只是 UX，後端依權限、建單人與簽核紀錄限縮可見範圍）
   { path: '/contract/index', name: 'contract-list', component: ContractList, meta: { permission: PERMISSION.CONTRACT_VIEW } },
-  { path: '/contract/create', name: 'contract-create', component: ContractEdit, meta: { permission: PERMISSION.CONTRACT_VIEW } },
+  { path: '/contract/create', name: 'contract-create', component: ContractEdit, meta: { permission: PERMISSION.CONTRACT_EDIT } },
   { path: '/contract/:id(\\d+)', name: 'contract-edit', component: ContractEdit, meta: { permission: PERMISSION.CONTRACT_VIEW } },
   { path: '/company/index', name: 'company-list', component: CompanyList },
   { path: '/company/create', name: 'company-create', component: CompanyEdit },

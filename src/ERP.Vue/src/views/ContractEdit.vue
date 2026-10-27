@@ -111,7 +111,8 @@ const busy = computed(
     rejecting.value ||
     revoking.value ||
     voiding.value ||
-    uploading.value
+    uploading.value ||
+    downloading.value
 )
 // 目前選的供應商或公司若已停用（只會出現在編輯原本的單據時），提醒送簽前要改選；後端送簽時也會擋下
 const selectedSupplierDisabled = computed(() => {
@@ -252,6 +253,9 @@ async function loadContract() {
   Object.assign(form, createEmptyForm())
   progressRows.value = []
   progressError.value = ''
+  // 新的載入接手後，舊請求的 finally 不會再恢復 loading（token 不符），所以在這裡先恢復，避免切換單據時卡在載入中
+  loading.value = false
+  progressLoading.value = false
 
   if (isCreate.value) {
     await loadSelectOptions(null, null, token)
@@ -543,9 +547,10 @@ function goBack() {
 
 watch(contractId, loadContract)
 
-onMounted(() => {
-  loadCustomerOptions()
-  loadContract()
+onMounted(async () => {
+  // 先載入客戶選單再載入單據：loadContract 開頭會清掉 formError，同時進行會蓋掉選單載入失敗的錯誤
+  await loadCustomerOptions()
+  await loadContract()
 })
 </script>
 
