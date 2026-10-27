@@ -1,5 +1,6 @@
 using ERP.Library.Enums;
 using ERP.Library.Enums.Login;
+using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._3000Contract;
 using ERP.Service.API._3000Contract;
 using ERP.WebAPI.CustomAttributes;
@@ -86,6 +87,60 @@ namespace ERP.WebAPI.Controllers._3000Contract
             }
 
             return File(result.Data.Content, "application/pdf", result.Data.FileName);
+        }
+
+        [SwaggerOperation("送出簽核合約單")]
+        [PermissionAuthorize((int)PermissionType.合約單編輯)]
+        [ValidateModel]
+        [HttpPost, Route("SendApproval")]
+        [Log(OperationActionType.Approval, "送出簽核合約單")]
+        public async Task<IActionResult> SendApproval(ApprovalVM vm)
+        {
+            var result = await _service.SendApproval(vm);
+            return Ok(result);
+        }
+
+        // 核准與拒絕不加功能權限：由簽核紀錄決定能否簽核（引擎檢查是否輪到）
+        [SwaggerOperation("簽核合約單")]
+        [ValidateModel]
+        [HttpPost, Route("Approval")]
+        [Log(OperationActionType.Approval, "簽核合約單")]
+        public async Task<IActionResult> Approval(ApprovalVM vm)
+        {
+            var result = await _service.Approval(vm);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("拒絕簽核合約單")]
+        [ValidateModel]
+        [HttpPost, Route("RejectApproval")]
+        [Log(OperationActionType.Approval, "拒絕簽核合約單")]
+        public async Task<IActionResult> RejectApproval(ApprovalVM vm)
+        {
+            var result = await _service.RejectApproval(vm);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("撤銷簽核合約單")]
+        [PermissionAuthorize((int)PermissionType.合約單編輯)]
+        [ValidateModel]
+        [HttpPost, Route("RevokeApproval")]
+        [Log(OperationActionType.RevokeApproval, "撤銷簽核合約單")]
+        public async Task<IActionResult> RevokeApproval(ApprovalVM vm)
+        {
+            var result = await _service.RevokeApproval(vm);
+            return Ok(result);
+        }
+
+        // 作廢不加功能權限：由簽核紀錄決定（引擎檢查是否為最後一關簽核人）
+        [SwaggerOperation("作廢合約單")]
+        [ValidateModel]
+        [HttpPost, Route("VoidApproval")]
+        [Log(OperationActionType.RevokeApproval, "作廢合約單")]
+        public async Task<IActionResult> VoidApproval(ApprovalVM vm)
+        {
+            var result = await _service.VoidApproval(vm);
+            return Ok(result);
         }
 
         [SwaggerOperation("刪除合約單")]

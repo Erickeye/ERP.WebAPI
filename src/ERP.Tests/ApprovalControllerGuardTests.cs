@@ -60,4 +60,21 @@ public class ApprovalControllerGuardTests
 
     [Fact]
     public async Task 作廢簽核_出差單被擋() => AssertBlocked(await CreateController().VoidApproval(BusinessTripVm()));
+
+    private static ApprovalVM ContractVm() => new ApprovalVM { TableType = TableType.合約單, TableId = "CT1151001" };
+
+    [Fact]
+    public async Task 送出簽核_合約單被擋() => AssertBlocked(await CreateController().SendApprovalProcess(ContractVm()));
+
+    [Fact]
+    public async Task 簽核_合約單被擋() => AssertBlocked(await CreateController().Approval(ContractVm()));
+
+    [Fact]
+    public async Task 拒絕簽核_合約單被擋() => AssertBlocked(await CreateController().RejectApproval(ContractVm()));
+
+    [Fact]
+    public async Task 撤銷簽核_合約單被擋() => AssertBlocked(await CreateController().RevokeApproval(ContractVm()));
+
+    [Fact]
+    public async Task 作廢簽核_合約單被擋() => AssertBlocked(await CreateController().VoidApproval(ContractVm()));
 }

@@ -1,6 +1,8 @@
+using ERP.Approval.Services;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._3000Contract;
+using ERP.Library.Enums.Other;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._3000Contract;
 using ERP.Service.API._3000Contract;
@@ -23,6 +25,7 @@ public class ContractServiceTests : IDisposable
     // 同一個測試內所有服務共用同一個流水號產生器，避免兩張單據拿到相同單號
     private readonly FakeSerialService _serial = new();
     private readonly FakeSftpService _sftp = new();
+    private readonly FakeApprovalWorkflowService _approval = new();
     private readonly int _supplierId;
     private readonly int _customerId;
     private readonly int _companyId;
@@ -65,9 +68,15 @@ public class ContractServiceTests : IDisposable
 
     private I_3050ContractService CreateService(int userId = CurrentUserId)
     {
-        var db = _testDb.CreateContext();
+        return CreateService(out _, userId);
+    }
+
+    // 需要讓假引擎在同一個 DbContext 內寫入紀錄（驗證失敗時整筆回滾）時，用這個多載取得服務使用的 DbContext
+    private I_3050ContractService CreateService(out TestERPDbContext db, int userId = CurrentUserId)
+    {
+        db = _testDb.CreateContext();
         return new _3050ContractService(db, new FakeCurrentUser { UserId = userId }, _serial, _sftp,
-            NullLogger<_3050ContractService>.Instance);
+            NullLogger<_3050ContractService>.Instance, _approval);
     }
 
     private ContractAddVM NewSupplierContract(string contractNo = "SC-001") => new ContractAddVM
@@ -994,6 +1003,446 @@ public class ContractServiceTests : IDisposable
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
+    }
+
+    // ---------- 簽核動作 ----------
+
+    private static ApprovalVM Vm(string no) => new ApprovalVM { TableType = TableType.合約單, TableId = no };
+
+    private async Task<string> AddDraftWithFileAsync(ContractAddVM? vm = null)
+    {
+        var added = await CreateService().Add(vm ?? NewSupplierContract());
+        Assert.True(added.IsSuccess, added.ErrorMessage);
+        var uploaded = await CreateService().UploadAttachment(NewAttachment(added.Data!.Id));
+        Assert.True(uploaded.IsSuccess, uploaded.ErrorMessage);
+        return added.Data.No;
+    }
+
+    private async Task<string> AddWithStatusAsync(ContractStatus status)
+    {
+        var no = await AddDraftWithFileAsync();
+        SetStatus(Load(no).Id, status);
+        return no;
+    }
+
+    private t_3050Contract Load(string no)
+    {
+        using var db = _testDb.CreateContext();
+        return db.t_3050Contract.Single(x => x.No == no);
+    }
+
+    private static async Task WriteEngineMarkerAsync(ERP.EntityModels.Context.ERPDbContext db)
+    {
+        db.SystemConfig.Add(new SystemConfig { ConfigType = "EngineMarker", Name = "引擎紀錄", Sort = 0, IsActive = true });
+        await db.SaveChangesAsync();
+    }
+
+    private bool EngineMarkerExists()
+    {
+        using var check = _testDb.CreateContext();
+        return check.SystemConfig.Any(x => x.ConfigType == "EngineMarker");
+    }
+
+    [Fact]
+    public async Task SendApproval_草稿送簽後變成簽核中()
+    {
+        var no = await AddDraftWithFileAsync();
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_客戶合約也能送簽()
+    {
+        var no = await AddDraftWithFileAsync(NewCustomerContract());
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_已退回可以重送()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.已退回);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_沒有上傳掃描檔被擋下()
+    {
+        var added = await CreateService().Add(NewSupplierContract());
+
+        var result = await CreateService().SendApproval(Vm(added.Data!.No));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("合約掃描檔", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.草稿, Load(added.Data.No).Status);
+    }
+
+    [Theory]
+    [InlineData(ContractStatus.簽核中)]
+    [InlineData(ContractStatus.已核准)]
+    [InlineData(ContractStatus.已作廢)]
+    public async Task SendApproval_簽核中已核准已作廢不可送簽且訊息帶目前狀態(ContractStatus status)
+    {
+        var no = await AddWithStatusAsync(status);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Contains(status.ToString(), result.ErrorMessage);
+        Assert.Equal((int)status, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_找不到單號回傳找不到資料()
+    {
+        var result = await CreateService().SendApproval(Vm("CT0000000"));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task SendApproval_簽約公司已停用被擋下()
+    {
+        var no = await AddDraftWithFileAsync();
+        SetCompanyActive(_companyId, false);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("已停用", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.草稿, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_供應商已停用被擋下()
+    {
+        var no = await AddDraftWithFileAsync();
+        SetSupplierActive(_supplierId, false);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("供應商", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.草稿, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_客戶合約不受供應商停用影響()
+    {
+        var no = await AddDraftWithFileAsync(NewCustomerContract());
+        SetSupplierActive(_supplierId, false);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task SendApproval_沒有啟用的簽核設定時原樣轉出引擎錯誤()
+    {
+        var no = await AddDraftWithFileAsync();
+        _approval.SendResult = ResultModel<string>.Error(ErrorCodeType.NotFoundData, "找不到啟用中的簽核設定");
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("找不到啟用中的簽核設定", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.草稿, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_有多組啟用的簽核設定時原樣轉出引擎錯誤()
+    {
+        var no = await AddDraftWithFileAsync();
+        _approval.SendResult = ResultModel<string>.Error(ErrorCodeType.MultipleApprovalSettingsExists);
+
+        var result = await CreateService().SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.MultipleApprovalSettingsExists, result.ErrorCode);
+        Assert.Equal((int)ContractStatus.草稿, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task SendApproval_引擎失敗時引擎寫入的紀錄與狀態一併回復()
+    {
+        var no = await AddDraftWithFileAsync();
+        var service = CreateService(out var db);
+        _approval.SendResult = ResultModel<string>.Error(ErrorCodeType.InvalidApproval, "引擎失敗");
+        _approval.OnSend = () => WriteEngineMarkerAsync(db);
+
+        var result = await service.SendApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal((int)ContractStatus.草稿, Load(no).Status);
+        Assert.False(EngineMarkerExists());
+    }
+
+    [Fact]
+    public async Task Approval_最後一關核准後變成已核准()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        _approval.ApprovalResult = ResultModel<string>.Ok(ApprovalWorkflowService.CompletedMessage);
+
+        var result = await CreateService(OtherUserId).Approval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.已核准, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task Approval_中間關卡核准時維持簽核中()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        _approval.ApprovalResult = ResultModel<string>.Ok("已核准，等待下一關");
+
+        var result = await CreateService(OtherUserId).Approval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Theory]
+    [InlineData(ContractStatus.草稿)]
+    [InlineData(ContractStatus.已核准)]
+    [InlineData(ContractStatus.已退回)]
+    [InlineData(ContractStatus.已作廢)]
+    public async Task Approval_非簽核中不可簽核且訊息帶目前狀態(ContractStatus status)
+    {
+        var no = await AddWithStatusAsync(status);
+
+        var result = await CreateService(OtherUserId).Approval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Contains(status.ToString(), result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task Approval_還沒輪到時原樣轉出引擎錯誤且狀態不變()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        _approval.ApprovalResult = ResultModel<string>.Error(ErrorCodeType.NotYetTurnForApprovalStep);
+
+        var result = await CreateService(OtherUserId).Approval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.NotYetTurnForApprovalStep, result.ErrorCode);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task Approval_引擎失敗時引擎寫入的紀錄一併回復()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        var service = CreateService(out var db, OtherUserId);
+        _approval.ApprovalResult = ResultModel<string>.Error(ErrorCodeType.InvalidApproval, "引擎失敗");
+        _approval.OnApproval = () => WriteEngineMarkerAsync(db);
+
+        var result = await service.Approval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+        Assert.False(EngineMarkerExists());
+    }
+
+    [Fact]
+    public async Task Approval_引擎成功時引擎寫入的紀錄與已核准狀態一併保留()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        var service = CreateService(out var db, OtherUserId);
+        _approval.ApprovalResult = ResultModel<string>.Ok(ApprovalWorkflowService.CompletedMessage);
+        _approval.OnApproval = () => WriteEngineMarkerAsync(db);
+
+        var result = await service.Approval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.已核准, Load(no).Status);
+        Assert.True(EngineMarkerExists());
+    }
+
+    [Fact]
+    public async Task RejectApproval_拒絕後變成已退回且可重新編輯()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+
+        var result = await CreateService(OtherUserId).RejectApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.已退回, Load(no).Status);
+        var vm = NewSupplierContract();
+        vm.Id = Load(no).Id;
+        vm.Amount = 1m;
+        Assert.True((await CreateService().Edit(vm)).IsSuccess);
+    }
+
+    [Fact]
+    public async Task RejectApproval_沒填原因時原樣轉出引擎錯誤且狀態不變()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        _approval.RejectResult = ResultModel<string>.Error(ErrorCodeType.IncompleteInfo, "請填寫駁回原因");
+
+        var result = await CreateService(OtherUserId).RejectApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("請填寫駁回原因", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Theory]
+    [InlineData(ContractStatus.草稿)]
+    [InlineData(ContractStatus.已核准)]
+    [InlineData(ContractStatus.已退回)]
+    [InlineData(ContractStatus.已作廢)]
+    public async Task RejectApproval_非簽核中不可拒絕且訊息帶目前狀態(ContractStatus status)
+    {
+        var no = await AddWithStatusAsync(status);
+
+        var result = await CreateService(OtherUserId).RejectApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Contains(status.ToString(), result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task RejectApproval_引擎失敗時引擎寫入的紀錄一併回復()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        var service = CreateService(out var db, OtherUserId);
+        _approval.RejectResult = ResultModel<string>.Error(ErrorCodeType.InvalidApproval, "引擎失敗");
+        _approval.OnReject = () => WriteEngineMarkerAsync(db);
+
+        var result = await service.RejectApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+        Assert.False(EngineMarkerExists());
+    }
+
+    [Fact]
+    public async Task RevokeApproval_撤銷後變成已退回()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+
+        var result = await CreateService().RevokeApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.已退回, Load(no).Status);
+    }
+
+    [Fact]
+    public async Task RevokeApproval_不是送簽人時原樣轉出引擎錯誤且狀態不變()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.簽核中);
+        _approval.RevokeResult = ResultModel<string>.Error(ErrorCodeType.NotFoundData, "只能撤回自己送出的簽核");
+
+        var result = await CreateService(OtherUserId).RevokeApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("只能撤回自己送出的簽核", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.簽核中, Load(no).Status);
+    }
+
+    [Theory]
+    [InlineData(ContractStatus.草稿)]
+    [InlineData(ContractStatus.已核准)]
+    [InlineData(ContractStatus.已退回)]
+    [InlineData(ContractStatus.已作廢)]
+    public async Task RevokeApproval_非簽核中不可撤銷且訊息帶目前狀態(ContractStatus status)
+    {
+        var no = await AddWithStatusAsync(status);
+
+        var result = await CreateService().RevokeApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Contains(status.ToString(), result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task VoidApproval_已核准作廢後變成已作廢且不可重送()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.已核准);
+
+        var result = await CreateService(OtherUserId).VoidApproval(Vm(no));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.已作廢, Load(no).Status);
+        var resend = await CreateService().SendApproval(Vm(no));
+        Assert.False(resend.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, resend.ErrorCode);
+    }
+
+    [Fact]
+    public async Task VoidApproval_不是最後一關簽核人時原樣轉出引擎錯誤且狀態不變()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.已核准);
+        _approval.VoidResult = ResultModel<string>.Error(ErrorCodeType.NotFoundData, "只能作廢自己的簽核");
+
+        var result = await CreateService(OtherUserId).VoidApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("只能作廢自己的簽核", result.ErrorMessage);
+        Assert.Equal((int)ContractStatus.已核准, Load(no).Status);
+    }
+
+    [Theory]
+    [InlineData(ContractStatus.草稿)]
+    [InlineData(ContractStatus.簽核中)]
+    [InlineData(ContractStatus.已退回)]
+    [InlineData(ContractStatus.已作廢)]
+    public async Task VoidApproval_只有已核准可以作廢且訊息帶目前狀態(ContractStatus status)
+    {
+        var no = await AddWithStatusAsync(status);
+
+        var result = await CreateService(OtherUserId).VoidApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Contains(status.ToString(), result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task VoidApproval_作廢後合約編號可以讓新單沿用()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.已核准);
+        await CreateService(OtherUserId).VoidApproval(Vm(no));
+
+        var reopened = await CreateService().Add(NewSupplierContract());
+
+        Assert.True(reopened.IsSuccess, reopened.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task VoidApproval_引擎失敗時引擎寫入的紀錄一併回復()
+    {
+        var no = await AddWithStatusAsync(ContractStatus.已核准);
+        var service = CreateService(out var db, OtherUserId);
+        _approval.VoidResult = ResultModel<string>.Error(ErrorCodeType.InvalidApproval, "引擎失敗");
+        _approval.OnVoid = () => WriteEngineMarkerAsync(db);
+
+        var result = await service.VoidApproval(Vm(no));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal((int)ContractStatus.已核准, Load(no).Status);
+        Assert.False(EngineMarkerExists());
     }
 
     // ---------- 列表 ----------

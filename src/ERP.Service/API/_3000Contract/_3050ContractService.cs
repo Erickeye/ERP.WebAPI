@@ -1,7 +1,10 @@
+using ERP.Approval.Abstractions;
+using ERP.Approval.Services;
 using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._3000Contract;
+using ERP.Library.Enums.Other;
 using ERP.Library.Extensions;
 using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
@@ -52,6 +55,31 @@ namespace ERP.Service.API._3000Contract
         /// 下載合約掃描檔
         /// </summary>
         Task<ResultModel<ContractAttachmentFileVM>> DownloadAttachment(int id);
+
+        /// <summary>
+        /// 送出簽核（草稿、已退回；送簽時必須已上傳合約掃描檔，並重新檢查供應商與簽約公司未停用）
+        /// </summary>
+        Task<ResultModel<string>> SendApproval(ApprovalVM vm);
+
+        /// <summary>
+        /// 核准（只有簽核中；最後一關核准後單據變成已核准）
+        /// </summary>
+        Task<ResultModel<string>> Approval(ApprovalVM vm);
+
+        /// <summary>
+        /// 拒絕（只有簽核中；必須填原因，成功後單據變成已退回）
+        /// </summary>
+        Task<ResultModel<string>> RejectApproval(ApprovalVM vm);
+
+        /// <summary>
+        /// 撤銷（只有簽核中；限送簽人；成功後單據變成已退回）
+        /// </summary>
+        Task<ResultModel<string>> RevokeApproval(ApprovalVM vm);
+
+        /// <summary>
+        /// 作廢（只有已核准；限最後一關簽核人；成功後單據變成已作廢，為終態）
+        /// </summary>
+        Task<ResultModel<string>> VoidApproval(ApprovalVM vm);
     }
 
     public class _3050ContractService : I_3050ContractService
@@ -69,19 +97,22 @@ namespace ERP.Service.API._3000Contract
         private readonly ISerialService _serialService;
         private readonly ISftpService _sftpService;
         private readonly ILogger<_3050ContractService> _logger;
+        private readonly IApprovalWorkflowService _approvalWorkflowService;
 
         public _3050ContractService(
             ERPDbContext db,
             ICurrentUserService currentUserService,
             ISerialService serialService,
             ISftpService sftpService,
-            ILogger<_3050ContractService> logger)
+            ILogger<_3050ContractService> logger,
+            IApprovalWorkflowService approvalWorkflowService)
         {
             _db = db;
             _currentUserService = currentUserService;
             _serialService = serialService;
             _sftpService = sftpService;
             _logger = logger;
+            _approvalWorkflowService = approvalWorkflowService;
         }
 
         #region 查詢
@@ -553,6 +584,243 @@ namespace ERP.Service.API._3000Contract
                 Content = download.Data,
                 FileName = $"{data.No}.pdf"
             });
+        }
+
+        #endregion
+
+        #region 簽核動作（與單據狀態同一交易，見差勤 ADR 0001）
+
+        public async Task<ResultModel<string>> SendApproval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.合約單;
+
+            var contract = await GetContractByNoAsync(vm.TableId);
+            if (contract == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            // 草稿與已退回可送簽；已作廢為終態，不可重送
+            if (contract.Status != (int)ContractStatus.草稿 &&
+                contract.Status != (int)ContractStatus.已退回)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
+                    $"目前狀態為【{GetStatusDisplay(contract.Status)}】，不可送出簽核");
+            }
+
+            // 簽核人要看掃描檔才能決定，所以沒上傳就不能送簽
+            if (string.IsNullOrEmpty(contract.AttachmentPath))
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "請先上傳合約掃描檔才能送出簽核");
+            }
+
+            // 草稿可能放了幾天，送簽時重新檢查簽約公司與供應商是否仍啟用；送簽之後的簽核、核准、撤銷、作廢不受停用影響
+            var companyActive = await _db.t_1080Company
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == contract.CompanyId && x.IsActive);
+            if (!companyActive)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, CompanyDisabledMessage);
+            }
+
+            if (contract.SupplierId.HasValue)
+            {
+                var supplierActive = await _db.t_4060Supplier
+                    .AsNoTracking()
+                    .AnyAsync(x => x.Id == contract.SupplierId.Value && x.IsActive);
+                if (!supplierActive)
+                {
+                    return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, SupplierDisabledMessage);
+                }
+            }
+
+            return await RunInTransactionAsync(async () =>
+            {
+                var result = await _approvalWorkflowService.SendApprovalProcess(vm);
+                if (!result)
+                {
+                    return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+                }
+
+                contract.Status = (int)ContractStatus.簽核中;
+                contract.UpdateTime = DateTime.Now;
+                contract.UpdateUserId = _currentUserService.UserId;
+                await _db.SaveChangesAsync();
+
+                return ResultModel.Ok($"{result.Data}");
+            });
+        }
+
+        public async Task<ResultModel<string>> Approval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.合約單;
+
+            var contract = await GetContractByNoAsync(vm.TableId);
+            if (contract == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            if (contract.Status != (int)ContractStatus.簽核中)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
+                    $"目前狀態為【{GetStatusDisplay(contract.Status)}】，不可簽核");
+            }
+
+            return await RunInTransactionAsync(async () =>
+            {
+                // 是否輪到目前使用者由引擎判斷，錯誤原樣轉出
+                var result = await _approvalWorkflowService.Approval(vm);
+                if (!result)
+                {
+                    return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+                }
+
+                // 以引擎回報流程完成為準；中間關卡或同關尚有人未核准時維持簽核中
+                if (result.Data == ApprovalWorkflowService.CompletedMessage)
+                {
+                    contract.Status = (int)ContractStatus.已核准;
+                    contract.UpdateTime = DateTime.Now;
+                    contract.UpdateUserId = _currentUserService.UserId;
+                    await _db.SaveChangesAsync();
+                }
+
+                return ResultModel.Ok($"{result.Data}");
+            });
+        }
+
+        public async Task<ResultModel<string>> RejectApproval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.合約單;
+
+            var contract = await GetContractByNoAsync(vm.TableId);
+            if (contract == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            if (contract.Status != (int)ContractStatus.簽核中)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
+                    $"目前狀態為【{GetStatusDisplay(contract.Status)}】，不可拒絕簽核");
+            }
+
+            return await RunInTransactionAsync(async () =>
+            {
+                // 拒絕原因必填由引擎檢查，錯誤原樣轉出
+                var result = await _approvalWorkflowService.RejectApproval(vm);
+                if (!result)
+                {
+                    return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+                }
+
+                contract.Status = (int)ContractStatus.已退回;
+                contract.UpdateTime = DateTime.Now;
+                contract.UpdateUserId = _currentUserService.UserId;
+                await _db.SaveChangesAsync();
+
+                return ResultModel.Ok($"{result.Data}");
+            });
+        }
+
+        public async Task<ResultModel<string>> RevokeApproval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.合約單;
+
+            var contract = await GetContractByNoAsync(vm.TableId);
+            if (contract == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            if (contract.Status != (int)ContractStatus.簽核中)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
+                    $"目前狀態為【{GetStatusDisplay(contract.Status)}】，不可撤銷簽核");
+            }
+
+            return await RunInTransactionAsync(async () =>
+            {
+                // 是否為送簽人由引擎檢查，錯誤原樣轉出
+                var result = await _approvalWorkflowService.RevokeApproval(vm);
+                if (!result)
+                {
+                    return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+                }
+
+                contract.Status = (int)ContractStatus.已退回;
+                contract.UpdateTime = DateTime.Now;
+                contract.UpdateUserId = _currentUserService.UserId;
+                await _db.SaveChangesAsync();
+
+                return ResultModel.Ok($"{result.Data}");
+            });
+        }
+
+        public async Task<ResultModel<string>> VoidApproval(ApprovalVM vm)
+        {
+            vm.TableType = TableType.合約單;
+
+            var contract = await GetContractByNoAsync(vm.TableId);
+            if (contract == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            if (contract.Status != (int)ContractStatus.已核准)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
+                    $"目前狀態為【{GetStatusDisplay(contract.Status)}】，只有已核准的合約單可以作廢");
+            }
+
+            return await RunInTransactionAsync(async () =>
+            {
+                // 是否為最後一關簽核人由引擎檢查（指定人員與指定角色兩種簽核模式都適用），錯誤原樣轉出
+                var result = await _approvalWorkflowService.VoidApproval(vm);
+                if (!result)
+                {
+                    return ResultModel.Error(result.ErrorCode, result.ErrorMessage);
+                }
+
+                // 合約單沒有庫存要沖回，作廢只是終止單據
+                contract.Status = (int)ContractStatus.已作廢;
+                contract.UpdateTime = DateTime.Now;
+                contract.UpdateUserId = _currentUserService.UserId;
+                await _db.SaveChangesAsync();
+
+                return ResultModel.Ok($"{result.Data}");
+            });
+        }
+
+        /// <summary>
+        /// 以單號取得合約單（追蹤中）。簽核引擎的 TableId 為單號。
+        /// </summary>
+        private Task<t_3050Contract?> GetContractByNoAsync(string tableId)
+        {
+            return _db.t_3050Contract
+                .Where(x => x.No == tableId)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// 在單一資料庫交易內執行動作：回傳失敗時整個回滾。
+        /// 簽核引擎與本服務共用同一個 DbContext，所以引擎的多次儲存也會被這個交易包住。
+        /// </summary>
+        private async Task<ResultModel<string>> RunInTransactionAsync(Func<Task<ResultModel<string>>> action)
+        {
+            await using var transaction = await _db.Database.BeginTransactionAsync();
+
+            var result = await action();
+            if (!result)
+            {
+                await transaction.RollbackAsync();
+                // 回滾後追蹤中的實體已與資料庫不一致，清除避免後續誤用
+                _db.ChangeTracker.Clear();
+                return result;
+            }
+
+            await transaction.CommitAsync();
+            return result;
         }
 
         #endregion

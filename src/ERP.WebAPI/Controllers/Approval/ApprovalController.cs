@@ -141,7 +141,8 @@ namespace ERP.WebAPI.Controllers.Approval
         private static readonly HashSet<TableType> ModuleHandledTypes = new()
         {
             TableType.領料單,
-            TableType.出差單
+            TableType.出差單,
+            TableType.合約單
         };
 
         private static bool IsHandledByModule(TableType tableType)
