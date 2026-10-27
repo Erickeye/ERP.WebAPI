@@ -2,6 +2,7 @@ using ERP.Approval.Services;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._3000Contract;
+using ERP.Library.Enums.Login;
 using ERP.Library.Enums.Other;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._3000Contract;
@@ -66,17 +67,28 @@ public class ContractServiceTests : IDisposable
         Pwd = "x"
     };
 
-    private I_3050ContractService CreateService(int userId = CurrentUserId)
+    private I_3050ContractService CreateService(int userId = CurrentUserId, int roleId = 1)
     {
-        return CreateService(out _, userId);
+        return CreateService(out _, userId, roleId);
     }
 
     // 需要讓假引擎在同一個 DbContext 內寫入紀錄（驗證失敗時整筆回滾）時，用這個多載取得服務使用的 DbContext
-    private I_3050ContractService CreateService(out TestERPDbContext db, int userId = CurrentUserId)
+    private I_3050ContractService CreateService(out TestERPDbContext db, int userId = CurrentUserId, int roleId = 1)
     {
         db = _testDb.CreateContext();
-        return new _3050ContractService(db, new FakeCurrentUser { UserId = userId }, _serial, _sftp,
+        return new _3050ContractService(db, new FakeCurrentUser { UserId = userId, RoleId = roleId }, _serial, _sftp,
             NullLogger<_3050ContractService>.Instance, _approval);
+    }
+
+    private void GrantPermission(int roleId, PermissionType permission)
+    {
+        using var db = _testDb.CreateContext();
+        if (!db.Role.Any(x => x.Id == roleId))
+        {
+            db.Role.Add(new Role { Id = roleId, RoleName = $"角色{roleId}" });
+        }
+        db.Permission.Add(new Permission { RoleId = roleId, PageId = (int)permission });
+        db.SaveChanges();
     }
 
     private ContractAddVM NewSupplierContract(string contractNo = "SC-001") => new ContractAddVM
@@ -1443,6 +1455,306 @@ public class ContractServiceTests : IDisposable
         Assert.False(result.IsSuccess);
         Assert.Equal((int)ContractStatus.已核准, Load(no).Status);
         Assert.False(EngineMarkerExists());
+    }
+
+    // ---------- 可見範圍、篩選、有效性與動作旗標 ----------
+
+    private const int ViewerRoleId = 2;
+    private const int PlainRoleId = 3;
+    private const int StrangerUserId = 30;
+    private const int SignerUserId = 31;
+
+    private void AddRecord(string no, int? userId = null, int? roleId = null, int stepOrder = 1,
+        ApprovalStatus status = ApprovalStatus.Pending)
+    {
+        using var db = _testDb.CreateContext();
+        db.ApprovalRecord.Add(new ApprovalRecord
+        {
+            ApprovalStepId = 0,
+            TableId = no,
+            TableType = (int)TableType.合約單,
+            StepOrder = stepOrder,
+            UserId = userId,
+            RoleId = roleId,
+            Status = (int)status
+        });
+        db.SaveChanges();
+    }
+
+    private void MakeMyTurn(string no) =>
+        _approval.PendingNotify.Add(new GetApprovalNotifyVM { TableType = (int)TableType.合約單, TableId = no });
+
+    private async Task<string> AddContractAsync(
+        string contractNo, DateTime? start = null, DateTime? end = null, ContractStatus status = ContractStatus.草稿,
+        ContractAddVM? template = null, int createdBy = CurrentUserId)
+    {
+        var vm = template ?? NewSupplierContract(contractNo);
+        vm.ContractNo = contractNo;
+        vm.StartDate = start ?? vm.StartDate;
+        vm.EndDate = end ?? vm.EndDate;
+        var added = await CreateService(createdBy).Add(vm);
+        Assert.True(added.IsSuccess, added.ErrorMessage);
+        if (status != ContractStatus.草稿)
+        {
+            SetStatus(added.Data!.Id, status);
+        }
+        return added.Data!.No;
+    }
+
+    private static IEnumerable<string?> Nos(ResultModel<PagedResult<ContractVM>> result) =>
+        result.Data!.Items.Select(x => x.ContractNo);
+
+    [Fact]
+    public async Task 有檢視權限者看得到全部合約單()
+    {
+        GrantPermission(ViewerRoleId, PermissionType.合約單檢視);
+        await AddContractAsync("BY-ME");
+        await AddContractAsync("BY-OTHER", createdBy: OtherUserId);
+
+        var result = await CreateService(StrangerUserId, ViewerRoleId).Index(new ContractSearchVM());
+
+        Assert.Equal(2, result.Data!.TotalCount);
+    }
+
+    [Fact]
+    public async Task 沒有檢視權限者只看得到自己建立的合約單()
+    {
+        await AddContractAsync("BY-ME");
+        await AddContractAsync("BY-OTHER", createdBy: OtherUserId);
+
+        var result = await CreateService(CurrentUserId, PlainRoleId).Index(new ContractSearchVM());
+
+        Assert.Equal(new[] { "BY-ME" }, Nos(result).ToArray());
+    }
+
+    [Fact]
+    public async Task 沒有檢視權限的簽核人看得到輪到自己簽核的合約單()
+    {
+        var no = await AddContractAsync("PENDING", status: ContractStatus.簽核中);
+        await AddContractAsync("OTHER", status: ContractStatus.簽核中);
+        MakeMyTurn(no);
+
+        var result = await CreateService(SignerUserId, PlainRoleId).Index(new ContractSearchVM());
+
+        Assert.Equal(new[] { "PENDING" }, Nos(result).ToArray());
+    }
+
+    [Fact]
+    public async Task 簽核紀錄中有自己的簽核人仍看得到簽完的合約單()
+    {
+        var no = await AddContractAsync("SIGNED", status: ContractStatus.已核准);
+        AddRecord(no, userId: SignerUserId, status: ApprovalStatus.Approved);
+
+        var result = await CreateService(SignerUserId, PlainRoleId).Index(new ContractSearchVM());
+
+        Assert.Equal(new[] { "SIGNED" }, Nos(result).ToArray());
+    }
+
+    [Fact]
+    public async Task 角色簽核正在待簽的人看得到合約單但送簽紀錄不算()
+    {
+        var waiting = await AddContractAsync("ROLE-WAIT", status: ContractStatus.簽核中);
+        var sendOnly = await AddContractAsync("ROLE-SEND", status: ContractStatus.簽核中);
+        AddRecord(waiting, roleId: PlainRoleId, stepOrder: 1, status: ApprovalStatus.Pending);
+        AddRecord(sendOnly, roleId: PlainRoleId, stepOrder: 0, status: ApprovalStatus.Pending);
+
+        var result = await CreateService(SignerUserId, PlainRoleId).Index(new ContractSearchVM());
+
+        Assert.Equal(new[] { "ROLE-WAIT" }, Nos(result).ToArray());
+    }
+
+    [Fact]
+    public async Task 與合約單無關的人看不到單筆也下載不到掃描檔()
+    {
+        var no = await AddDraftWithFileAsync();
+        var id = Load(no).Id;
+
+        var get = await CreateService(StrangerUserId, PlainRoleId).Get(id);
+        var download = await CreateService(StrangerUserId, PlainRoleId).DownloadAttachment(id);
+
+        Assert.Equal(ErrorCodeType.NotFoundData, get.ErrorCode);
+        Assert.Equal(ErrorCodeType.NotFoundData, download.ErrorCode);
+    }
+
+    [Fact]
+    public async Task 沒有檢視權限的簽核人可以檢視並下載待簽核單的掃描檔()
+    {
+        var no = await AddDraftWithFileAsync();
+        SetStatus(Load(no).Id, ContractStatus.簽核中);
+        MakeMyTurn(no);
+        var id = Load(no).Id;
+
+        var get = await CreateService(SignerUserId, PlainRoleId).Get(id);
+        var download = await CreateService(SignerUserId, PlainRoleId).DownloadAttachment(id);
+
+        Assert.True(get.IsSuccess, get.ErrorMessage);
+        Assert.True(download.IsSuccess, download.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task 篩選只縮小不擴大可見範圍()
+    {
+        await AddContractAsync("BY-OTHER", createdBy: OtherUserId);
+
+        var result = await CreateService(CurrentUserId, PlainRoleId).Index(new ContractSearchVM { Keyword = "BY-OTHER" });
+
+        Assert.Empty(result.Data!.Items);
+    }
+
+    [Fact]
+    public async Task 關鍵字比對單號與合約編號()
+    {
+        var no = await AddContractAsync("ABC-100");
+        await AddContractAsync("XYZ-200");
+
+        var byContractNo = await CreateService().Index(new ContractSearchVM { Keyword = "ABC" });
+        var byNo = await CreateService().Index(new ContractSearchVM { Keyword = no });
+
+        Assert.Equal(new[] { "ABC-100" }, Nos(byContractNo).ToArray());
+        Assert.Equal(new[] { "ABC-100" }, Nos(byNo).ToArray());
+    }
+
+    [Fact]
+    public async Task 可依類型對象簽約公司與狀態篩選()
+    {
+        var otherSupplier = AddSupplier("S002", "另一供應商");
+        var otherCompany = AddCompany("乙公司", "11111111");
+        await AddContractAsync("SUP-A");
+        var template = NewSupplierContract();
+        template.SupplierId = otherSupplier;
+        template.CompanyId = otherCompany;
+        await AddContractAsync("SUP-B", template: template, status: ContractStatus.已退回);
+        await AddContractAsync("CUS-A", template: NewCustomerContract());
+
+        Assert.Equal(new[] { "CUS-A" }, Nos(await CreateService().Index(new ContractSearchVM { Type = (int)ContractType.客戶合約 })).ToArray());
+        Assert.Equal(new[] { "SUP-B" }, Nos(await CreateService().Index(new ContractSearchVM { SupplierId = otherSupplier })).ToArray());
+        Assert.Equal(new[] { "CUS-A" }, Nos(await CreateService().Index(new ContractSearchVM { CustomerId = _customerId })).ToArray());
+        Assert.Equal(new[] { "SUP-B" }, Nos(await CreateService().Index(new ContractSearchVM { CompanyId = otherCompany })).ToArray());
+        Assert.Equal(new[] { "SUP-B" }, Nos(await CreateService().Index(new ContractSearchVM { Status = (int)ContractStatus.已退回 })).ToArray());
+    }
+
+    [Fact]
+    public async Task 日期區間以與合約起訖有交集為準且邊界日算有交集()
+    {
+        await AddContractAsync("JUN", new DateTime(2026, 6, 1), new DateTime(2026, 6, 30));
+        await AddContractAsync("JUL", new DateTime(2026, 7, 1), new DateTime(2026, 7, 31));
+
+        var touchEnd = await CreateService().Index(new ContractSearchVM { PeriodStart = new DateTime(2026, 6, 30), PeriodEnd = new DateTime(2026, 6, 30) });
+        var gap = await CreateService().Index(new ContractSearchVM { PeriodStart = new DateTime(2026, 8, 1), PeriodEnd = new DateTime(2026, 8, 31) });
+        var across = await CreateService().Index(new ContractSearchVM { PeriodStart = new DateTime(2026, 6, 15), PeriodEnd = new DateTime(2026, 7, 15) });
+        var openEnded = await CreateService().Index(new ContractSearchVM { PeriodStart = new DateTime(2026, 7, 15) });
+
+        Assert.Equal(new[] { "JUN" }, Nos(touchEnd).ToArray());
+        Assert.Empty(gap.Data!.Items);
+        Assert.Equal(2, across.Data!.TotalCount);
+        Assert.Equal(new[] { "JUL" }, Nos(openEnded).ToArray());
+    }
+
+    [Fact]
+    public async Task 日期區間結束早於開始被擋下()
+    {
+        var result = await CreateService().Index(new ContractSearchVM
+        {
+            PeriodStart = new DateTime(2026, 7, 1),
+            PeriodEnd = new DateTime(2026, 6, 1)
+        });
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task 待我簽核只列出輪到自己的簽核中合約單()
+    {
+        var mine = await AddContractAsync("MINE", status: ContractStatus.簽核中);
+        await AddContractAsync("NOT-MINE", status: ContractStatus.簽核中);
+        var staleNotify = await AddContractAsync("STALE", status: ContractStatus.已核准);
+        MakeMyTurn(mine);
+        MakeMyTurn(staleNotify);
+
+        var result = await CreateService().Index(new ContractSearchVM { PendingMyApproval = true });
+
+        Assert.Equal(new[] { "MINE" }, Nos(result).ToArray());
+    }
+
+    [Fact]
+    public async Task 有效性以已核准且起訖日含當天計算()
+    {
+        var today = DateTime.Today;
+        await AddContractAsync("START-TODAY", today, today.AddDays(30), ContractStatus.已核准);
+        await AddContractAsync("END-TODAY", today.AddDays(-30), today, ContractStatus.已核准);
+        await AddContractAsync("ENDED-YESTERDAY", today.AddDays(-30), today.AddDays(-1), ContractStatus.已核准);
+        await AddContractAsync("STARTS-TOMORROW", today.AddDays(1), today.AddDays(30), ContractStatus.已核准);
+        await AddContractAsync("DRAFT-IN-RANGE", today.AddDays(-1), today.AddDays(1));
+        await AddContractAsync("VOID-IN-RANGE", today.AddDays(-1), today.AddDays(1), ContractStatus.已作廢);
+
+        var all = (await CreateService().Index(new ContractSearchVM { PageSize = 50 })).Data!.Items
+            .ToDictionary(x => x.ContractNo!);
+        var effective = await CreateService().Index(new ContractSearchVM { Validity = ContractValidity.生效中 });
+        var expired = await CreateService().Index(new ContractSearchVM { Validity = ContractValidity.已到期 });
+
+        Assert.Equal("生效中", all["START-TODAY"].ValidityDisplay);
+        Assert.Equal("生效中", all["END-TODAY"].ValidityDisplay);
+        Assert.Equal("已到期", all["ENDED-YESTERDAY"].ValidityDisplay);
+        Assert.Null(all["STARTS-TOMORROW"].Validity);
+        Assert.Null(all["DRAFT-IN-RANGE"].Validity);
+        Assert.Null(all["VOID-IN-RANGE"].Validity);
+        Assert.Equal(new[] { "END-TODAY", "START-TODAY" }, Nos(effective).OrderBy(x => x).ToArray());
+        Assert.Equal(new[] { "ENDED-YESTERDAY" }, Nos(expired).ToArray());
+    }
+
+    [Fact]
+    public async Task 動作旗標依權限狀態與簽核紀錄由後端計算()
+    {
+        GrantPermission(ViewerRoleId, PermissionType.合約單檢視);
+        GrantPermission(ViewerRoleId, PermissionType.合約單編輯);
+        GrantPermission(ViewerRoleId, PermissionType.合約單刪除);
+        await AddContractAsync("DRAFT");
+        await AddContractAsync("RETURNED", status: ContractStatus.已退回);
+        var inApproval = await AddContractAsync("IN-APPROVAL", status: ContractStatus.簽核中);
+        var approved = await AddContractAsync("APPROVED", status: ContractStatus.已核准);
+        AddRecord(inApproval, userId: CurrentUserId, stepOrder: 0, status: ApprovalStatus.Approved);
+        AddRecord(inApproval, userId: SignerUserId, stepOrder: 1);
+        AddRecord(approved, userId: CurrentUserId, stepOrder: 0, status: ApprovalStatus.Approved);
+        AddRecord(approved, userId: SignerUserId, stepOrder: 1, status: ApprovalStatus.Approved);
+        MakeMyTurn(inApproval);
+
+        ContractVM Find(ResultModel<PagedResult<ContractVM>> r, string contractNo) =>
+            r.Data!.Items.Single(x => x.ContractNo == contractNo);
+
+        // 送簽人本人（有編輯與刪除權限）
+        var asSender = await CreateService(CurrentUserId, ViewerRoleId).Index(new ContractSearchVM { PageSize = 50 });
+        Assert.True(Find(asSender, "DRAFT").CanEdit);
+        Assert.True(Find(asSender, "DRAFT").CanDelete);
+        Assert.True(Find(asSender, "RETURNED").CanEdit);
+        Assert.False(Find(asSender, "RETURNED").CanDelete);
+        Assert.True(Find(asSender, "IN-APPROVAL").CanRevoke);
+        Assert.False(Find(asSender, "IN-APPROVAL").CanEdit);
+        Assert.True(Find(asSender, "IN-APPROVAL").CanApprove);
+        Assert.False(Find(asSender, "APPROVED").CanVoid);
+
+        // 最後一關簽核人：沒有編輯權限，只能作廢已核准的單
+        var asSigner = await CreateService(SignerUserId, PlainRoleId).Index(new ContractSearchVM { PageSize = 50 });
+        var signerApproved = Find(asSigner, "APPROVED");
+        Assert.True(signerApproved.CanVoid);
+        Assert.False(signerApproved.CanEdit);
+        Assert.False(signerApproved.CanRevoke);
+        Assert.False(Find(asSigner, "IN-APPROVAL").CanRevoke);
+    }
+
+    [Fact]
+    public async Task 單筆檢視也帶動作旗標與有效性()
+    {
+        GrantPermission(ViewerRoleId, PermissionType.合約單檢視);
+        GrantPermission(ViewerRoleId, PermissionType.合約單編輯);
+        var today = DateTime.Today;
+        var no = await AddContractAsync("ONE", today.AddDays(-1), today.AddDays(1));
+
+        var result = await CreateService(CurrentUserId, ViewerRoleId).Get(Load(no).Id);
+
+        Assert.True(result.Data!.CanEdit);
+        Assert.False(result.Data.CanDelete);
+        Assert.Null(result.Data.Validity);
     }
 
     // ---------- 列表 ----------

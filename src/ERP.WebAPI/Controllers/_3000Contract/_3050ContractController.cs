@@ -21,8 +21,8 @@ namespace ERP.WebAPI.Controllers._3000Contract
             _service = service;
         }
 
+        // 列表、單筆與下載不加功能權限：簽核人不需要額外權限，可見範圍由 Service 依權限、建單人與簽核紀錄限縮
         [SwaggerOperation("查詢合約單列表")]
-        [PermissionAuthorize((int)PermissionType.合約單檢視)]
         [HttpGet, Route("Index")]
         public async Task<IActionResult> Index([FromQuery] ContractSearchVM vm)
         {
@@ -31,7 +31,6 @@ namespace ERP.WebAPI.Controllers._3000Contract
         }
 
         [SwaggerOperation("取得合約單")]
-        [PermissionAuthorize((int)PermissionType.合約單檢視)]
         [HttpGet, Route("Get")]
         public async Task<IActionResult> Get([SwaggerParameter("合約單流水號")] int id)
         {
@@ -75,7 +74,6 @@ namespace ERP.WebAPI.Controllers._3000Contract
         }
 
         [SwaggerOperation("下載合約掃描檔")]
-        [PermissionAuthorize((int)PermissionType.合約單檢視)]
         [HttpGet, Route("DownloadAttachment")]
         [Log(OperationActionType.View, "下載合約掃描檔")]
         public async Task<IActionResult> DownloadAttachment([SwaggerParameter("合約單流水號")] int id)

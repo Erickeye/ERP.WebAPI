@@ -4,6 +4,7 @@ using ERP.EntityModels.Context;
 using ERP.EntityModels.Models;
 using ERP.Library.Enums;
 using ERP.Library.Enums._3000Contract;
+using ERP.Library.Enums.Login;
 using ERP.Library.Enums.Other;
 using ERP.Library.Extensions;
 using ERP.Library.Helpers;
@@ -119,8 +120,69 @@ namespace ERP.Service.API._3000Contract
 
         public async Task<ResultModel<PagedResult<ContractVM>>> Index(ContractSearchVM vm)
         {
-            var contracts = _db.t_3050Contract
-                .Where(SearchExpressionBuilder.Build<t_3050Contract>(vm));
+            if (vm.PeriodStart.HasValue && vm.PeriodEnd.HasValue &&
+                vm.PeriodEnd.Value.Date < vm.PeriodStart.Value.Date)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "合約期間結束不得早於開始");
+            }
+
+            var pending = await GetMyPendingContractNosAsync();
+            if (!pending)
+            {
+                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+            }
+            var pendingNos = pending.Data!;
+
+            var contracts = await ReadableContractsAsync(pendingNos);
+            if (vm.PendingMyApproval)
+            {
+                // 「待我簽核」取自引擎的待簽核查詢，並限定簽核中的合約單
+                contracts = contracts.Where(x => x.Status == (int)ContractStatus.簽核中 && pendingNos.Contains(x.No));
+            }
+
+            // 篩選條件只在可見範圍內再縮小，不會擴大可見範圍
+            contracts = contracts.Where(SearchExpressionBuilder.Build<t_3050Contract>(vm));
+
+            if (vm.SupplierId.HasValue)
+            {
+                var supplierId = vm.SupplierId.Value;
+                contracts = contracts.Where(x => x.SupplierId == supplierId);
+            }
+            if (vm.CustomerId.HasValue)
+            {
+                var customerId = vm.CustomerId.Value;
+                contracts = contracts.Where(x => x.CustomerId == customerId);
+            }
+
+            if (!string.IsNullOrWhiteSpace(vm.Keyword))
+            {
+                var keyword = vm.Keyword.Trim();
+                contracts = contracts.Where(x => x.No.Contains(keyword) || x.ContractNo.Contains(keyword));
+            }
+
+            // 生效中與已到期只存在於已核准的合約單，起訖日都含當天
+            var today = DateTime.Today;
+            if (vm.Validity == ContractValidity.生效中)
+            {
+                contracts = contracts.Where(x => x.Status == (int)ContractStatus.已核准 &&
+                                                 x.StartDate <= today && x.EndDate >= today);
+            }
+            else if (vm.Validity == ContractValidity.已到期)
+            {
+                contracts = contracts.Where(x => x.Status == (int)ContractStatus.已核准 && x.EndDate < today);
+            }
+
+            // 日期區間以「與合約起訖有交集」為準：合約迄日不早於區間開始，且合約起日不晚於區間結束（邊界日算有交集）
+            if (vm.PeriodStart.HasValue)
+            {
+                var periodStart = vm.PeriodStart.Value.Date;
+                contracts = contracts.Where(x => x.EndDate >= periodStart);
+            }
+            if (vm.PeriodEnd.HasValue)
+            {
+                var periodEnd = vm.PeriodEnd.Value.Date;
+                contracts = contracts.Where(x => x.StartDate <= periodEnd);
+            }
 
             // 預設依合約起日由新到舊，起日相同時新建立的在前
             IQueryable<ContractVM> query = QueryList(contracts)
@@ -129,22 +191,35 @@ namespace ERP.Service.API._3000Contract
 
             if (!string.IsNullOrWhiteSpace(vm.SortColumn))
             {
-                // 類型顯示與狀態顯示是輸出時才計算的欄位，不是資料庫欄位，不開放排序
+                // 顯示文字、有效性與目前使用者能做的動作是輸出時才計算的欄位，不是資料庫欄位，不開放排序
                 var sortColumns = SortHelper.GetColumns<ContractVM>();
                 sortColumns.Remove(nameof(ContractVM.TypeDisplay));
                 sortColumns.Remove(nameof(ContractVM.StatusDisplay));
+                sortColumns.Remove(nameof(ContractVM.Validity));
+                sortColumns.Remove(nameof(ContractVM.ValidityDisplay));
+                sortColumns.Remove(nameof(ContractVM.CanApprove));
+                sortColumns.Remove(nameof(ContractVM.CanEdit));
+                sortColumns.Remove(nameof(ContractVM.CanDelete));
+                sortColumns.Remove(nameof(ContractVM.CanRevoke));
+                sortColumns.Remove(nameof(ContractVM.CanVoid));
                 query = query.ApplySort(vm, sortColumns);
             }
 
             var pagedResult = await query.ToPagedResultAsync(vm);
-            FillDisplayFields(pagedResult.Items);
+            await FillComputedFieldsAsync(pagedResult.Items, pendingNos);
 
             return ResultModel.Ok(pagedResult);
         }
 
         public async Task<ResultModel<ContractVM>> Get(int id)
         {
-            var data = await QueryList(_db.t_3050Contract)
+            var pending = await GetMyPendingContractNosAsync();
+            if (!pending)
+            {
+                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+            }
+
+            var data = await QueryList(await ReadableContractsAsync(pending.Data!))
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
 
@@ -153,8 +228,67 @@ namespace ERP.Service.API._3000Contract
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
 
-            FillDisplayFields(new List<ContractVM> { data });
+            await FillComputedFieldsAsync(new List<ContractVM> { data }, pending.Data!);
             return ResultModel.Ok(data);
+        }
+
+        /// <summary>
+        /// 列表、單筆與下載的讀取範圍：有「合約單檢視」權限者看全部；其餘只看自己建立的，
+        /// 加上簽核人身分的合約單——輪到自己簽核的，或簽核紀錄中有自己（指定人員）／自己的角色正在待簽（指定角色）的。
+        /// 簽核人不必有檢視權限，所以簽核人與建單人才看得到各自相關的單；簽核動作（核准、拒絕、作廢）由引擎依簽核紀錄判斷，不看這個範圍。
+        /// </summary>
+        private async Task<IQueryable<t_3050Contract>> ReadableContractsAsync(List<string> pendingNos)
+        {
+            if (await HasPermissionAsync(PermissionType.合約單檢視))
+            {
+                return _db.t_3050Contract;
+            }
+
+            var userId = _currentUserService.UserId;
+            var roleId = _currentUserService.RoleId;
+            var tableType = (int)TableType.合約單;
+
+            // 送簽時引擎會建立一筆 StepOrder 為 0 的紀錄並帶送簽人的角色，不能拿它當簽核人依據，否則同角色的人都看得到
+            var signingRecords = _db.ApprovalRecord
+                .Where(r => r.TableType == tableType &&
+                            r.StepOrder >= 1 &&
+                            (r.UserId == userId ||
+                             (r.RoleId == roleId && r.Status == (int)ApprovalStatus.Pending)));
+
+            return _db.t_3050Contract
+                .Where(x => x.CreateUserId == userId ||
+                            pendingNos.Contains(x.No) ||
+                            signingRecords.Any(r => r.TableId == x.No));
+        }
+
+        /// <summary>
+        /// 目前使用者的角色是否有指定功能權限（與登入時寫入 JWT 的來源相同：Permission 表的角色與頁面識別碼）
+        /// </summary>
+        private Task<bool> HasPermissionAsync(PermissionType permission)
+        {
+            var roleId = _currentUserService.RoleId;
+            var pageId = (int)permission;
+
+            return _db.Permission.AnyAsync(x => x.RoleId == roleId && x.PageId == pageId);
+        }
+
+        /// <summary>
+        /// 取得引擎「待簽核」查詢中，輪到目前使用者簽的合約單單號
+        /// </summary>
+        private async Task<ResultModel<List<string>>> GetMyPendingContractNosAsync()
+        {
+            var notify = await _approvalWorkflowService.GetApprovalNotify();
+            if (!notify)
+            {
+                return ResultModel.Error(notify.ErrorCode, notify.ErrorMessage);
+            }
+
+            var nos = notify.Data!.Items
+                .Where(x => x.TableType == (int)TableType.合約單 && x.TableId != null)
+                .Select(x => x.TableId!)
+                .Distinct()
+                .ToList();
+            return ResultModel<List<string>>.Ok(nos);
         }
 
         private static IQueryable<ContractVM> QueryList(IQueryable<t_3050Contract> contracts)
@@ -188,15 +322,121 @@ namespace ERP.Service.API._3000Contract
         }
 
         /// <summary>
-        /// 填入輸出時才計算的顯示欄位：合約類型與合約單狀態的顯示文字
+        /// 填入輸出時才計算的欄位：類型與狀態的顯示文字、有效性（生效中、已到期），
+        /// 以及目前使用者能做的動作 CanApprove、CanEdit、CanDelete、CanRevoke、CanVoid（由後端判斷，前端不自行推算）
         /// </summary>
-        private static void FillDisplayFields(List<ContractVM> items)
+        private async Task FillComputedFieldsAsync(List<ContractVM> items, List<string> pendingNos)
         {
+            if (items.Count == 0)
+            {
+                return;
+            }
+
+            var userId = _currentUserService.UserId;
+            var hasEdit = await HasPermissionAsync(PermissionType.合約單編輯);
+            var hasDelete = await HasPermissionAsync(PermissionType.合約單刪除);
+
+            // 撤銷與作廢都看最近一輪的簽核紀錄
+            var roundNos = items
+                .Where(x => x.Status == (int)ContractStatus.簽核中 || x.Status == (int)ContractStatus.已核准)
+                .Select(x => x.No!)
+                .ToList();
+            var rounds = await LoadLatestRoundsAsync(roundNos);
+            var today = DateTime.Today;
+
             foreach (var item in items)
             {
+                rounds.TryGetValue(item.No!, out var round);
+
                 item.TypeDisplay = ((ContractType)item.Type).GetDisplayName();
                 item.StatusDisplay = GetStatusDisplay(item.Status);
+
+                var validity = GetValidity(item.Status, item.StartDate, item.EndDate, today);
+                item.Validity = validity.HasValue ? (int)validity.Value : null;
+                item.ValidityDisplay = validity?.GetDisplayName();
+
+                item.CanApprove = item.Status == (int)ContractStatus.簽核中 && pendingNos.Contains(item.No!);
+                item.CanEdit = hasEdit &&
+                               (item.Status == (int)ContractStatus.草稿 || item.Status == (int)ContractStatus.已退回);
+                item.CanDelete = hasDelete && item.Status == (int)ContractStatus.草稿;
+                item.CanRevoke = hasEdit &&
+                                 item.Status == (int)ContractStatus.簽核中 &&
+                                 round?.SenderUserId == userId;
+                item.CanVoid = item.Status == (int)ContractStatus.已核准 &&
+                               round != null &&
+                               round.LastStepUserIds.Contains(userId);
             }
+        }
+
+        /// <summary>
+        /// 已核准的合約單依今天的日期計算有效性：起訖日都含當天；尚未到起日或不是已核准的沒有有效性
+        /// </summary>
+        private static ContractValidity? GetValidity(int status, DateTime startDate, DateTime endDate, DateTime today)
+        {
+            if (status != (int)ContractStatus.已核准)
+            {
+                return null;
+            }
+
+            if (endDate.Date < today)
+            {
+                return ContractValidity.已到期;
+            }
+
+            return startDate.Date <= today ? ContractValidity.生效中 : null;
+        }
+
+        /// <summary>
+        /// 一輪送簽的簽核紀錄摘要：送簽人，以及最後一關（排除已撤銷）的簽核人
+        /// </summary>
+        private sealed class ApprovalRound
+        {
+            public int? SenderUserId { get; init; }
+
+            public HashSet<int> LastStepUserIds { get; init; } = new();
+        }
+
+        /// <summary>
+        /// 以單號取得最近一輪送簽的簽核紀錄摘要。一輪的界線是最新一筆 StepOrder 為 0 的送簽紀錄，
+        /// 被拒絕或撤銷後重送時，舊一輪的紀錄不算（與引擎的撤銷、作廢檢查一致）。
+        /// </summary>
+        private async Task<Dictionary<string, ApprovalRound>> LoadLatestRoundsAsync(List<string> nos)
+        {
+            var rounds = new Dictionary<string, ApprovalRound>();
+            if (nos.Count == 0)
+            {
+                return rounds;
+            }
+
+            var tableType = (int)TableType.合約單;
+            var records = await _db.ApprovalRecord
+                .AsNoTracking()
+                .Where(r => r.TableType == tableType && r.TableId != null && nos.Contains(r.TableId))
+                .Select(r => new { r.Id, TableId = r.TableId!, r.StepOrder, r.UserId, r.Status })
+                .ToListAsync();
+
+            foreach (var group in records.GroupBy(r => r.TableId))
+            {
+                var sendRecord = group
+                    .Where(r => r.StepOrder == 0)
+                    .OrderByDescending(r => r.Id)
+                    .FirstOrDefault();
+                var round = group
+                    .Where(r => r.Id >= (sendRecord?.Id ?? 0) && r.Status != (int)ApprovalStatus.GetRevoked)
+                    .ToList();
+                var lastStepOrder = round.Count == 0 ? (int?)null : round.Max(r => r.StepOrder);
+
+                rounds[group.Key] = new ApprovalRound
+                {
+                    SenderUserId = sendRecord?.UserId,
+                    LastStepUserIds = round
+                        .Where(r => r.StepOrder == lastStepOrder && r.UserId.HasValue)
+                        .Select(r => r.UserId!.Value)
+                        .ToHashSet()
+                };
+            }
+
+            return rounds;
         }
 
         #endregion
@@ -557,7 +797,14 @@ namespace ERP.Service.API._3000Contract
 
         public async Task<ResultModel<ContractAttachmentFileVM>> DownloadAttachment(int id)
         {
-            var data = await _db.t_3050Contract
+            // 下載與檢視同一個可見範圍：簽核人沒有檢視權限也能下載待簽核單的掃描檔
+            var pending = await GetMyPendingContractNosAsync();
+            if (!pending)
+            {
+                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+            }
+
+            var data = await (await ReadableContractsAsync(pending.Data!))
                 .AsNoTracking()
                 .Where(x => x.Id == id)
                 .Select(x => new { x.No, x.AttachmentPath })
