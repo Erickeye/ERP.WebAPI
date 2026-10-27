@@ -9,6 +9,7 @@ using ERP.Library.ViewModels._3000Contract;
 using ERP.Service.API.AMS;
 using ERP.Service.Sftp;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ERP.Service.API._3000Contract
 {
@@ -67,17 +68,20 @@ namespace ERP.Service.API._3000Contract
 
         private readonly ISerialService _serialService;
         private readonly ISftpService _sftpService;
+        private readonly ILogger<_3050ContractService> _logger;
 
         public _3050ContractService(
             ERPDbContext db,
             ICurrentUserService currentUserService,
             ISerialService serialService,
-            ISftpService sftpService)
+            ISftpService sftpService,
+            ILogger<_3050ContractService> logger)
         {
             _db = db;
             _currentUserService = currentUserService;
             _serialService = serialService;
             _sftpService = sftpService;
+            _logger = logger;
         }
 
         #region 查詢
@@ -495,17 +499,29 @@ namespace ERP.Service.API._3000Contract
             catch
             {
                 // 資料庫沒存成功就不留下剛上傳的檔案
-                _sftpService.DeleteFile(remotePath);
+                DeleteRemoteFile(remotePath);
                 throw;
             }
 
-            // 更換時清掉舊檔；刪除失敗只會留下孤兒檔案，不影響單據，所以不回報錯誤
+            // 更換時清掉舊檔；刪除失敗只會留下孤兒檔案，不影響單據，所以不回報錯誤（只記 Log 供追查）
             if (!string.IsNullOrEmpty(oldPath))
             {
-                _sftpService.DeleteFile(oldPath);
+                DeleteRemoteFile(oldPath);
             }
 
             return ResultModel.Ok("合約掃描檔已上傳");
+        }
+
+        /// <summary>
+        /// 刪除遠端的合約掃描檔；失敗不影響呼叫端流程，記錄警告以便追查孤兒檔案
+        /// </summary>
+        private void DeleteRemoteFile(string remotePath)
+        {
+            var result = _sftpService.DeleteFile(remotePath);
+            if (!result)
+            {
+                _logger.LogWarning("刪除遠端合約掃描檔失敗 {RemotePath}：{ErrorMessage}", remotePath, result.ErrorMessage);
+            }
         }
 
         public async Task<ResultModel<ContractAttachmentFileVM>> DownloadAttachment(int id)

@@ -64,6 +64,7 @@ namespace ERP.WebAPI.Controllers._3000Contract
         [SwaggerOperation("上傳或更換合約掃描檔")]
         [PermissionAuthorize((int)PermissionType.合約單編輯)]
         [ValidateModel]
+        [RequestSizeLimit(12 * 1024 * 1024)]
         [HttpPost, Route("UploadAttachment")]
         [Log(OperationActionType.Edit, "上傳合約掃描檔")]
         public async Task<IActionResult> UploadAttachment([FromForm] ContractAttachmentVM vm)

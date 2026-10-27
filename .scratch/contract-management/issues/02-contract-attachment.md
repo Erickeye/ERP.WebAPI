@@ -11,7 +11,8 @@
 - [x] 只接受 PDF（副檔名與內容類型皆檢查），大小上限 10 MB，不合規定回明確訊息
 - [x] 草稿與已退回的合約單可上傳或更換；簽核中、已核准、已作廢不可更換
 - [x] 更換掃描檔時舊檔的處理方式已決定並記錄在 Comments
-- [x] 下載走合約單自己的端點，套用檢視權限與「待我簽核」可見範圍
+- [x] 下載走合約單自己的端點，套用檢視權限
+- [ ] 下載的可見範圍涵蓋「待我簽核」的簽核人（沒有檢視權限也能下載）：留給 ticket 04，本 ticket 的下載端點目前只要「合約單檢視」權限
 - [x] 資料表只存 SFTP 遠端路徑，不存檔案內容
 - [x] 需要「有檔案」判斷時可由路徑得知（供送簽 ticket 使用）
 - [x] 測試以假的 SFTP 服務隔離，不實際連線，覆蓋格式、大小、可更換狀態與可見範圍
@@ -30,4 +31,6 @@
 - 為了指定遠端路徑，在 `ISftpService` 新增 `UploadStream(Stream, remotePath)`；既有 `UploadFile(IFormFile)` 一律存根目錄並沿用原檔名，不適合直接使用，沒有改動它。
 - 下載端點目前要「合約單檢視」權限（與列表、單筆相同）。ticket 04 讓簽核人沒有檢視權限也能看待簽核的單時，需要一併放寬這個端點的可見範圍；規格的「待我簽核可見範圍」在 ticket 04 補齊。
 - 上傳端點為 `UploadAttachment`（表單欄位 `Id`、`File`），下載端點為 `DownloadAttachment?id=`；控制器屬性（權限、`[Log]`、`[ValidateModel]`）以讀程式確認，沒有自動測試。
+- code-review 修正（02）：刪除遠端檔案失敗改為記錄警告 Log（`ILogger`，供追查孤兒檔案）；`ISftpService.UploadStream` 擋下相對路徑、`..` 與反斜線；上傳端點加 `[RequestSizeLimit]`（12 MB，略高於 10 MB 以容納表單開銷，服務層仍檢查 10 MB）；把「下載可見範圍涵蓋待我簽核」的勾選拆出並留給 ticket 04。
+- code-review 其餘判斷（未改）：`UploadAttachment` 約 80 行、PDF 失敗訊息重複、內容類型嚴格比對 `application/pdf`（部分舊掃描軟體可能送 `application/x-pdf`，若現場遇到再放寬）、`SftpService` 的例外訊息直接回前端是既有寫法。
 - 單檔大小也受 Kestrel／IIS 的請求大小上限影響（預設 30 MB 左右，高於 10 MB），未調整；10 MB 的檢查在服務層。

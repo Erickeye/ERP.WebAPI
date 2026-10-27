@@ -73,6 +73,15 @@ namespace ERP.Service.Sftp
 
         public ResultModel<string> UploadStream(Stream content, string remotePath)
         {
+            // 遠端路徑一律由呼叫端的程式產生；這裡仍擋下相對路徑與 .. 路徑穿越，避免日後被誤用
+            if (string.IsNullOrWhiteSpace(remotePath) ||
+                !remotePath.StartsWith('/') ||
+                remotePath.Contains("..") ||
+                remotePath.Contains('\\'))
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "遠端路徑不合法");
+            }
+
             try
             {
                 using var client = CreateClient();

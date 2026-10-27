@@ -6,6 +6,7 @@ using ERP.Library.ViewModels._3000Contract;
 using ERP.Service.API._3000Contract;
 using ERP.Tests.Support;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace ERP.Tests;
@@ -65,7 +66,8 @@ public class ContractServiceTests : IDisposable
     private I_3050ContractService CreateService(int userId = CurrentUserId)
     {
         var db = _testDb.CreateContext();
-        return new _3050ContractService(db, new FakeCurrentUser { UserId = userId }, _serial, _sftp);
+        return new _3050ContractService(db, new FakeCurrentUser { UserId = userId }, _serial, _sftp,
+            NullLogger<_3050ContractService>.Instance);
     }
 
     private ContractAddVM NewSupplierContract(string contractNo = "SC-001") => new ContractAddVM
