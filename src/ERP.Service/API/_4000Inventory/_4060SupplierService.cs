@@ -273,7 +273,7 @@ namespace ERP.Service.API._4000Inventory
 
             if (await IsReferencedAsync(id))
             {
-                return ResultModel.Error(ErrorCodeType.InvalidRequest, "供應商已被進貨單或庫存項目引用，無法刪除，請改用停用");
+                return ResultModel.Error(ErrorCodeType.InvalidRequest, "供應商已被進貨單、庫存項目或合約單引用，無法刪除，請改用停用");
             }
 
             // 資料庫外鍵雖設連帶刪除，但不依賴它（測試環境的 SQLite 不會連帶刪），由服務層明確刪除並同一交易儲存
@@ -362,7 +362,8 @@ namespace ERP.Service.API._4000Inventory
         private async Task<bool> IsReferencedAsync(int id)
         {
             return await _db.t_4010Purchase.AnyAsync(x => x.SupplierId == id)
-                || await _db.t_4000Inventory.AnyAsync(x => x.SupplierId == id);
+                || await _db.t_4000Inventory.AnyAsync(x => x.SupplierId == id)
+                || await _db.t_3050Contract.AnyAsync(x => x.SupplierId == id);
         }
 
         #endregion

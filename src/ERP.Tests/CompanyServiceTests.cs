@@ -441,6 +441,40 @@ public class CompanyServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Delete_ACompanyUsedByAContract_IsRejectedButCanBeDisabled()
+    {
+        var used = SeedCompany("甲公司", "12345678");
+        SeedCompany("乙公司", "87654321");
+        using (var seed = _testDb.CreateContext())
+        {
+            seed.t_3050Contract.Add(new t_3050Contract
+            {
+                No = "CT1151001",
+                ContractNo = "SC-001",
+                Type = 0,
+                SupplierId = 1,
+                CompanyId = used,
+                StartDate = new DateTime(2026, 1, 1),
+                EndDate = new DateTime(2026, 12, 31),
+                Amount = 1000m,
+                CreateTime = DateTime.Now,
+                CreateUserId = 1,
+                UpdateTime = DateTime.Now,
+                UpdateUserId = 1
+            });
+            seed.SaveChanges();
+        }
+        using var db = _testDb.CreateContext();
+        var service = CreateService(db);
+
+        var deleted = await service.Delete(used);
+        Assert.False(deleted.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidRequest, deleted.ErrorCode);
+        Assert.Contains("停用", deleted.ErrorMessage);
+        Assert.NotNull(LoadCompany(used));
+    }
+
+    [Fact]
     public async Task Delete_ACompanyUsedByAMaterialIssue_IsRejectedButCanBeDisabled()
     {
         var used = SeedCompany("甲公司", "12345678");

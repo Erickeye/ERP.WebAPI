@@ -98,6 +98,13 @@ namespace ERP.Service.API._2000Customer
             {
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
+
+            // 客戶沒有停用功能，被合約單引用就不能刪除（其他單據對客戶的引用檢查不在此範圍）
+            if (await _context.t_3050Contract.AnyAsync(x => x.CustomerId == id))
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidRequest, "客戶已被合約單引用，無法刪除");
+            }
+
             _context.Remove(entity);
             await _context.SaveChangesAsync();
             return ResultModel.Ok("資料已刪除");

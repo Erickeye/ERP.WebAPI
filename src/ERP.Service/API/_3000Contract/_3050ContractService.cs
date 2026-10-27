@@ -126,14 +126,14 @@ namespace ERP.Service.API._3000Contract
                 return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "合約期間結束不得早於開始");
             }
 
-            var pending = await GetMyPendingContractNosAsync();
-            if (!pending)
+            var scope = await GetReadableScopeAsync();
+            if (!scope)
             {
-                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+                return ResultModel.Error(scope.ErrorCode, scope.ErrorMessage);
             }
-            var pendingNos = pending.Data!;
+            var pendingNos = scope.Data!.PendingNos;
 
-            var contracts = await ReadableContractsAsync(pendingNos);
+            var contracts = scope.Data.Contracts;
             if (vm.PendingMyApproval)
             {
                 // 「待我簽核」取自引擎的待簽核查詢，並限定簽核中的合約單
@@ -213,13 +213,13 @@ namespace ERP.Service.API._3000Contract
 
         public async Task<ResultModel<ContractVM>> Get(int id)
         {
-            var pending = await GetMyPendingContractNosAsync();
-            if (!pending)
+            var scope = await GetReadableScopeAsync();
+            if (!scope)
             {
-                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+                return ResultModel.Error(scope.ErrorCode, scope.ErrorMessage);
             }
 
-            var data = await QueryList(await ReadableContractsAsync(pending.Data!))
+            var data = await QueryList(scope.Data!.Contracts)
                 .Where(x => x.Id == id)
                 .FirstOrDefaultAsync();
 
@@ -228,8 +228,34 @@ namespace ERP.Service.API._3000Contract
                 return ResultModel.Error(ErrorCodeType.NotFoundData);
             }
 
-            await FillComputedFieldsAsync(new List<ContractVM> { data }, pending.Data!);
+            await FillComputedFieldsAsync(new List<ContractVM> { data }, scope.Data.PendingNos);
             return ResultModel.Ok(data);
+        }
+
+        /// <summary>
+        /// 目前使用者可讀取的合約單範圍，連同輪到自己簽核的單號。列表、單筆與下載一律從這裡取得查詢起點，
+        /// 避免某個端點漏掉可見範圍限縮而變成資料隔離的缺口。
+        /// </summary>
+        private sealed class ReadableScope
+        {
+            public IQueryable<t_3050Contract> Contracts { get; init; } = null!;
+
+            public List<string> PendingNos { get; init; } = new();
+        }
+
+        private async Task<ResultModel<ReadableScope>> GetReadableScopeAsync()
+        {
+            var pending = await GetMyPendingContractNosAsync();
+            if (!pending)
+            {
+                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+            }
+
+            return ResultModel.Ok(new ReadableScope
+            {
+                Contracts = await ReadableContractsAsync(pending.Data!),
+                PendingNos = pending.Data!
+            });
         }
 
         /// <summary>
@@ -798,13 +824,13 @@ namespace ERP.Service.API._3000Contract
         public async Task<ResultModel<ContractAttachmentFileVM>> DownloadAttachment(int id)
         {
             // 下載與檢視同一個可見範圍：簽核人沒有檢視權限也能下載待簽核單的掃描檔
-            var pending = await GetMyPendingContractNosAsync();
-            if (!pending)
+            var scope = await GetReadableScopeAsync();
+            if (!scope)
             {
-                return ResultModel.Error(pending.ErrorCode, pending.ErrorMessage);
+                return ResultModel.Error(scope.ErrorCode, scope.ErrorMessage);
             }
 
-            var data = await (await ReadableContractsAsync(pending.Data!))
+            var data = await scope.Data!.Contracts
                 .AsNoTracking()
                 .Where(x => x.Id == id)
                 .Select(x => new { x.No, x.AttachmentPath })

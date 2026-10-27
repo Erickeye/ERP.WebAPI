@@ -594,6 +594,42 @@ public class SupplierServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Delete_SupplierReferencedByContract_IsRejectedWithHintToDisable()
+    {
+        var id = SeedSupplier("S001", "甲");
+        var otherId = SeedSupplier("S002", "乙");
+        using (var seed = _testDb.CreateContext())
+        {
+            seed.t_3050Contract.Add(new t_3050Contract
+            {
+                No = "CT1151001",
+                ContractNo = "SC-001",
+                Type = 0,
+                SupplierId = id,
+                CompanyId = 1,
+                StartDate = new DateTime(2026, 1, 1),
+                EndDate = new DateTime(2026, 12, 31),
+                Amount = 1000m,
+                CreateTime = DateTime.Now,
+                CreateUserId = 1,
+                UpdateTime = DateTime.Now,
+                UpdateUserId = 1
+            });
+            seed.SaveChanges();
+        }
+        using var db = _testDb.CreateContext();
+
+        var rejected = await CreateService(db).Delete(id);
+        var otherDeleted = await CreateService(db).Delete(otherId);
+
+        Assert.Equal(ErrorCodeType.InvalidRequest, rejected.ErrorCode);
+        Assert.Contains("合約單", rejected.ErrorMessage);
+        Assert.Contains("停用", rejected.ErrorMessage);
+        Assert.True(db.t_4060Supplier.Any(x => x.Id == id));
+        Assert.True(otherDeleted.IsSuccess, otherDeleted.ErrorMessage);
+    }
+
+    [Fact]
     public async Task Delete_SupplierWithPrices_RemovesPricesTogether()
     {
         var id = SeedSupplier("S001", "甲");

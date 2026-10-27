@@ -361,7 +361,8 @@ namespace ERP.Service.API._1000Company
         private async Task<bool> IsReferencedAsync(int id)
         {
             return await _db.t_4030MaterialIssue.AnyAsync(x => x.CompanyId == id)
-                || await _db.t_1060BusinessTrip.AnyAsync(x => x.CompanyId == id);
+                || await _db.t_1060BusinessTrip.AnyAsync(x => x.CompanyId == id)
+                || await _db.t_3050Contract.AnyAsync(x => x.CompanyId == id);
         }
 
         #endregion

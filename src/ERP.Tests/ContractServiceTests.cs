@@ -1457,6 +1457,50 @@ public class ContractServiceTests : IDisposable
         Assert.False(EngineMarkerExists());
     }
 
+    // ---------- 客戶被合約單引用時不能刪除 ----------
+
+    private async Task<ResultModel<string>> DeleteCustomerAsync(int customerId)
+    {
+        using var db = _testDb.CreateContext();
+        return await new ERP.Service.API._2000Customer._2000CustomerService(db).Delete(customerId);
+    }
+
+    [Fact]
+    public async Task 客戶被合約單引用時不能刪除()
+    {
+        await CreateService().Add(NewCustomerContract());
+
+        var result = await DeleteCustomerAsync(_customerId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidRequest, result.ErrorCode);
+        Assert.Contains("合約單", result.ErrorMessage);
+        using var db = _testDb.CreateContext();
+        Assert.True(db.t_2000Customer.Any(x => x.Id == _customerId));
+    }
+
+    [Fact]
+    public async Task 客戶沒被合約單引用時可以刪除()
+    {
+        var result = await DeleteCustomerAsync(_customerId);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        using var db = _testDb.CreateContext();
+        Assert.False(db.t_2000Customer.Any(x => x.Id == _customerId));
+    }
+
+    [Fact]
+    public async Task 客戶只被已作廢的合約單引用時仍不能刪除()
+    {
+        var no = await AddContractAsync("CC-VOID", template: NewCustomerContract(), status: ContractStatus.已作廢);
+
+        var result = await DeleteCustomerAsync(_customerId);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidRequest, result.ErrorCode);
+        Assert.NotNull(no);
+    }
+
     // ---------- 可見範圍、篩選、有效性與動作旗標 ----------
 
     private const int ViewerRoleId = 2;
