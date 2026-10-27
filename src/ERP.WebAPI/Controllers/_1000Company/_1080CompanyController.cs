@@ -38,9 +38,9 @@ namespace ERP.WebAPI.Controllers._1000Company
             return Ok(result);
         }
 
-        // 填單用選單不要求「公司檢視」：只要能編輯領料單或出差單就要選得到公司
+        // 填單用選單不要求「公司檢視」：只要能編輯領料單、出差單或合約單就要選得到公司（合約單檢視者篩選列表也會用到）
         [SwaggerOperation("取得填單用的公司選單（只列啟用中；includeId 為單據原本的公司，已停用也一併回傳）")]
-        [PermissionAuthorize((int)PermissionType.領料單編輯, (int)PermissionType.出差單)]
+        [PermissionAuthorize((int)PermissionType.領料單編輯, (int)PermissionType.出差單, (int)PermissionType.合約單編輯, (int)PermissionType.合約單檢視)]
         [HttpGet, Route("GetSelect")]
         public async Task<IActionResult> GetSelect([SwaggerParameter("單據原本的公司流水號")] int? includeId)
         {

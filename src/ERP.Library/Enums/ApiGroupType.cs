@@ -16,6 +16,8 @@ namespace ERP.Library.Enums
         [Display(Name = "客戶資料")]
         Customer,
         [Display(Name = "庫存管理")]
-        Inventory
+        Inventory,
+        [Display(Name = "合約管理")]
+        Contract
     }
 }

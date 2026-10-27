@@ -19,5 +19,6 @@ namespace ERP.Library.Enums.Other
         出貨單 = 8,
         領料單 = 9,
         出差單 = 10,
+        合約單 = 11,
     }
 }

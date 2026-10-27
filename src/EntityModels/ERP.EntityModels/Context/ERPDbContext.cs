@@ -86,6 +86,8 @@ public partial class ERPDbContext : DbContext
 
     public virtual DbSet<t_4061SupplierPrice> t_4061SupplierPrice { get; set; }
 
+    public virtual DbSet<t_3050Contract> t_3050Contract { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ApprovalRecord>(entity =>
@@ -736,6 +738,54 @@ public partial class ERPDbContext : DbContext
                 .HasForeignKey(d => d.SupplierId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_4061SupplierPrice_SupplierId");
+        });
+
+        modelBuilder.Entity<t_3050Contract>(entity =>
+        {
+            entity.HasIndex(e => e.CompanyId, "IX_t_3050Contract_CompanyId");
+
+            entity.HasIndex(e => e.ContractNo, "IX_t_3050Contract_ContractNo");
+
+            entity.HasIndex(e => e.CustomerId, "IX_t_3050Contract_CustomerId");
+
+            entity.HasIndex(e => e.No, "IX_t_3050Contract_No").IsUnique();
+
+            entity.HasIndex(e => new { e.StartDate, e.EndDate }, "IX_t_3050Contract_StartDate");
+
+            entity.HasIndex(e => e.Status, "IX_t_3050Contract_Status");
+
+            entity.HasIndex(e => e.SupplierId, "IX_t_3050Contract_SupplierId");
+
+            entity.Property(e => e.Amount).HasColumnType("decimal(12, 2)");
+            entity.Property(e => e.AttachmentPath).HasMaxLength(256);
+            entity.Property(e => e.ContractNo).HasMaxLength(64);
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+            entity.Property(e => e.EndDate).HasColumnType("date");
+            entity.Property(e => e.No)
+                .HasMaxLength(32)
+                .IsUnicode(false);
+            entity.Property(e => e.Remark).HasMaxLength(1024);
+            entity.Property(e => e.StartDate).HasColumnType("date");
+            entity.Property(e => e.Status).HasDefaultValue(0);
+            entity.Property(e => e.UpdateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Company).WithMany()
+                .HasForeignKey(d => d.CompanyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_3050Contract_Company");
+
+            entity.HasOne(d => d.CreateUser).WithMany()
+                .HasForeignKey(d => d.CreateUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_t_3050Contract_CreateUser");
+
+            entity.HasOne(d => d.Customer).WithMany()
+                .HasForeignKey(d => d.CustomerId)
+                .HasConstraintName("FK_t_3050Contract_Customer");
+
+            entity.HasOne(d => d.Supplier).WithMany()
+                .HasForeignKey(d => d.SupplierId)
+                .HasConstraintName("FK_t_3050Contract_Supplier");
         });
 
         OnModelCreatingPartial(modelBuilder);

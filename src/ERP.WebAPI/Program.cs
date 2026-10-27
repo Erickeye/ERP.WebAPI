@@ -260,6 +260,9 @@ public static class SwaggerGroupResolver
         if (ns.Contains("Inventory"))
             return ApiGroupType.Inventory.ToString();
 
+        if (ns.Contains("Contract"))
+            return ApiGroupType.Contract.ToString();
+
         return ApiGroupType.Home.ToString();
     }
 }
