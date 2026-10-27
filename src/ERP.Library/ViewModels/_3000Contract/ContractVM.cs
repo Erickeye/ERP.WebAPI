@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using ERP.Library.Enums._3000Contract;
+using Microsoft.AspNetCore.Http;
 
 namespace ERP.Library.ViewModels._3000Contract
 {
@@ -130,6 +131,30 @@ namespace ERP.Library.ViewModels._3000Contract
         [Display(Name = "備註")]
         [StringLength(1024, ErrorMessage = "{0}-長度不可超過 1024 個字元")]
         public string? Remark { get; set; }
+    }
+
+    /// <summary>
+    /// 上傳／更換-合約掃描檔輸入（multipart/form-data）
+    /// </summary>
+    public class ContractAttachmentVM
+    {
+        [Display(Name = "合約單流水號")]
+        [Required(ErrorMessage = "{0}-必填欄位")]
+        public int? Id { get; set; }
+
+        [Display(Name = "合約掃描檔(僅限 PDF，不超過 10 MB)")]
+        [Required(ErrorMessage = "{0}-必填欄位")]
+        public IFormFile? File { get; set; }
+    }
+
+    /// <summary>
+    /// 下載-合約掃描檔內容（由 Controller 轉成檔案回應）
+    /// </summary>
+    public class ContractAttachmentFileVM
+    {
+        public Stream Content { get; set; } = null!;
+
+        public string FileName { get; set; } = null!;
     }
 
     /// <summary>

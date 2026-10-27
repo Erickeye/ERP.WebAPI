@@ -38,3 +38,8 @@
 - 新增 Swagger 分組：`ApiGroupType.Contract`（合約管理）與 `Program.cs` 的 `SwaggerGroupResolver` 對應 namespace 判斷。未在 Swagger UI 實際確認。
 - 資料表與實體是手寫的（沒有資料庫可 scaffold），與 `t_4061SupplierPrice`、`t_1060BusinessTrip` 的 scaffold 風格一致；之後若重新 scaffold，請確認 `t_3050Contract` 的輸出與此一致。
 - 供應商、公司與客戶的刪除引用保護由 ticket 05 處理，本 ticket 沒有改動它們的刪除檢查。
+
+### code-review 結果（01）
+
+- Spec 軸：無缺漏。範圍外新增三項小的（Swagger 分組、供應商與公司選單加權限、`ContractVM` 多幾個顯示欄位）；停用規則與 Q22 字面不同，上面已記錄。自訂排序有取代預設排序，由 `Index_可依指定欄位排序` 證明。
+- Standards 軸：硬違規 1 項——`Add` 先取序號再儲存，兩步之間沒有明確交易，失敗時序號跳號（出差單 `Add` 同樣寫法，屬既有慣例，未改）。判斷類 5 項（驗證與 DataAnnotations 重複、`Type`／`Status` 用 `int`、`ContractSearchVM` 是空類別、`ModifyAsync` 約 100 行、長度常數沒抽出）。皆不影響正確性，未追加修正。

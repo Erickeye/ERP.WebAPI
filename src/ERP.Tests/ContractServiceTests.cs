@@ -5,6 +5,7 @@ using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._3000Contract;
 using ERP.Service.API._3000Contract;
 using ERP.Tests.Support;
+using Microsoft.AspNetCore.Http;
 using Xunit;
 
 namespace ERP.Tests;
@@ -20,6 +21,7 @@ public class ContractServiceTests : IDisposable
     private readonly TestDb _testDb = new();
     // 同一個測試內所有服務共用同一個流水號產生器，避免兩張單據拿到相同單號
     private readonly FakeSerialService _serial = new();
+    private readonly FakeSftpService _sftp = new();
     private readonly int _supplierId;
     private readonly int _customerId;
     private readonly int _companyId;
@@ -63,7 +65,7 @@ public class ContractServiceTests : IDisposable
     private I_3050ContractService CreateService(int userId = CurrentUserId)
     {
         var db = _testDb.CreateContext();
-        return new _3050ContractService(db, new FakeCurrentUser { UserId = userId }, _serial);
+        return new _3050ContractService(db, new FakeCurrentUser { UserId = userId }, _serial, _sftp);
     }
 
     private ContractAddVM NewSupplierContract(string contractNo = "SC-001") => new ContractAddVM
@@ -765,6 +767,228 @@ public class ContractServiceTests : IDisposable
     public async Task Get_找不到合約單回傳找不到資料()
     {
         var result = await CreateService().Get(99999);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
+    }
+
+    // ---------- 合約掃描檔 ----------
+
+    private static readonly byte[] PdfBytes = "%PDF-1.7\n合約內容\n%%EOF"u8.ToArray();
+
+    private static IFormFile NewFile(
+        byte[]? content = null, string fileName = "contract.pdf", string contentType = "application/pdf")
+    {
+        content ??= PdfBytes;
+        return new FormFile(new MemoryStream(content), 0, content.Length, "file", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = contentType
+        };
+    }
+
+    private static ContractAttachmentVM NewAttachment(int id, IFormFile? file = null) =>
+        new ContractAttachmentVM { Id = id, File = file ?? NewFile() };
+
+    [Fact]
+    public async Task UploadAttachment_草稿可以上傳PDF並只存遠端路徑()
+    {
+        var id = await AddSupplierContractAsync();
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var contract = Load(id);
+        Assert.False(string.IsNullOrEmpty(contract.AttachmentPath));
+        Assert.StartsWith($"/contract-{contract.No}-", contract.AttachmentPath);
+        Assert.EndsWith(".pdf", contract.AttachmentPath);
+        Assert.Equal(PdfBytes, _sftp.Files[contract.AttachmentPath!]);
+        Assert.True((await CreateService().Get(id)).Data!.HasAttachment);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_遠端路徑不使用上傳者提供的檔名()
+    {
+        var id = await AddSupplierContractAsync();
+
+        await CreateService().UploadAttachment(NewAttachment(id, NewFile(fileName: "../../etc/passwd.pdf")));
+
+        var path = Load(id).AttachmentPath!;
+        Assert.DoesNotContain("..", path);
+        Assert.DoesNotContain("passwd", path);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_已退回可以更換且舊檔被清掉()
+    {
+        var id = await AddSupplierContractAsync();
+        await CreateService().UploadAttachment(NewAttachment(id));
+        var oldPath = Load(id).AttachmentPath!;
+        SetStatus(id, ContractStatus.已退回);
+        var newContent = "%PDF-1.4\n新版"u8.ToArray();
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id, NewFile(newContent)));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        var newPath = Load(id).AttachmentPath!;
+        Assert.NotEqual(oldPath, newPath);
+        Assert.Equal(newContent, _sftp.Files[newPath]);
+        Assert.DoesNotContain(oldPath, _sftp.Files.Keys);
+    }
+
+    [Theory]
+    [InlineData(ContractStatus.簽核中)]
+    [InlineData(ContractStatus.已核准)]
+    [InlineData(ContractStatus.已作廢)]
+    public async Task UploadAttachment_簽核中已核准已作廢不可上傳且訊息帶目前狀態(ContractStatus status)
+    {
+        var id = await AddSupplierContractAsync();
+        SetStatus(id, status);
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.InvalidDocumentStatus, result.ErrorCode);
+        Assert.Contains(status.ToString(), result.ErrorMessage);
+        Assert.Empty(_sftp.Files);
+        Assert.Null(Load(id).AttachmentPath);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_找不到合約單回傳找不到資料()
+    {
+        var result = await CreateService().UploadAttachment(NewAttachment(99999));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
+    }
+
+    [Theory]
+    [InlineData("contract.docx", "application/pdf")]
+    [InlineData("contract.pdf", "image/png")]
+    [InlineData("contract", "application/pdf")]
+    public async Task UploadAttachment_副檔名或內容類型不是PDF被擋下(string fileName, string contentType)
+    {
+        var id = await AddSupplierContractAsync();
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id, NewFile(fileName: fileName, contentType: contentType)));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("PDF", result.ErrorMessage);
+        Assert.Empty(_sftp.Files);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_只改副檔名的非PDF檔被擋下()
+    {
+        var id = await AddSupplierContractAsync();
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id, NewFile("MZ 這不是 PDF"u8.ToArray())));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("PDF", result.ErrorMessage);
+        Assert.Empty(_sftp.Files);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_空檔被擋下()
+    {
+        var id = await AddSupplierContractAsync();
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id, NewFile(Array.Empty<byte>())));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_超過10MB被擋下()
+    {
+        var id = await AddSupplierContractAsync();
+        var big = new byte[10 * 1024 * 1024 + 1];
+        PdfBytes.CopyTo(big, 0);
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id, NewFile(big)));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.FieldValueIsInvalid, result.ErrorCode);
+        Assert.Contains("10 MB", result.ErrorMessage);
+        Assert.Empty(_sftp.Files);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_剛好10MB可以()
+    {
+        var id = await AddSupplierContractAsync();
+        var exact = new byte[10 * 1024 * 1024];
+        PdfBytes.CopyTo(exact, 0);
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id, NewFile(exact)));
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task UploadAttachment_SFTP失敗時不改動原本的掃描檔()
+    {
+        var id = await AddSupplierContractAsync();
+        await CreateService().UploadAttachment(NewAttachment(id));
+        var oldPath = Load(id).AttachmentPath!;
+        _sftp.FailUpload = true;
+
+        var result = await CreateService().UploadAttachment(NewAttachment(id));
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.Exception, result.ErrorCode);
+        Assert.Equal(oldPath, Load(id).AttachmentPath);
+        Assert.Contains(oldPath, _sftp.Files.Keys);
+    }
+
+    [Fact]
+    public async Task DownloadAttachment_回傳PDF內容與以單號命名的檔名()
+    {
+        var id = await AddSupplierContractAsync();
+        await CreateService().UploadAttachment(NewAttachment(id));
+
+        var result = await CreateService().DownloadAttachment(id);
+
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+        Assert.Equal($"{Load(id).No}.pdf", result.Data!.FileName);
+        using var buffer = new MemoryStream();
+        await result.Data.Content.CopyToAsync(buffer);
+        Assert.Equal(PdfBytes, buffer.ToArray());
+    }
+
+    [Fact]
+    public async Task DownloadAttachment_尚未上傳時回傳找不到資料()
+    {
+        var id = await AddSupplierContractAsync();
+
+        var result = await CreateService().DownloadAttachment(id);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
+        Assert.Contains("尚未上傳", result.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task DownloadAttachment_找不到合約單回傳找不到資料()
+    {
+        var result = await CreateService().DownloadAttachment(99999);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task DownloadAttachment_遠端檔案不存在時原樣轉出錯誤()
+    {
+        var id = await AddSupplierContractAsync();
+        await CreateService().UploadAttachment(NewAttachment(id));
+        _sftp.Files.Clear();
+
+        var result = await CreateService().DownloadAttachment(id);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodeType.NotFoundData, result.ErrorCode);

@@ -18,6 +18,10 @@ namespace ERP.Service.Sftp
     public interface ISftpService
     {
         ResultModel<string> UploadFile(IFormFile file);
+        /// <summary>
+        /// 以呼叫端指定的遠端路徑上傳檔案（同路徑會被覆蓋；成功時 Data 為遠端路徑）
+        /// </summary>
+        ResultModel<string> UploadStream(Stream content, string remotePath);
         ResultModel<Stream?> DownloadFile(string remotePath);
         ResultModel<string> DeleteFile(string remotePath);
         ResultModel<ListResult<string>> ListFiles();
@@ -56,6 +60,26 @@ namespace ERP.Service.Sftp
 
                 client.Disconnect();
                 return ResultModel.Ok($"檔案成功上傳至 {remoteFilePath}");
+            }
+            catch (SftpPermissionDeniedException ex)
+            {
+                return ResultModel.Error(ErrorCodeType.PermissionDenied, $"權限被拒絕：{ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return ResultModel.Error(ErrorCodeType.Exception, $"上傳失敗：{ex.Message}");
+            }
+        }
+
+        public ResultModel<string> UploadStream(Stream content, string remotePath)
+        {
+            try
+            {
+                using var client = CreateClient();
+                client.Connect();
+                client.UploadFile(content, remotePath);
+                client.Disconnect();
+                return ResultModel.Ok(remotePath);
             }
             catch (SftpPermissionDeniedException ex)
             {

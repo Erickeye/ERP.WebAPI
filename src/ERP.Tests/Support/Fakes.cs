@@ -1,7 +1,10 @@
 ﻿using ERP.Approval.Abstractions;
+using ERP.Library.Enums;
 using ERP.Library.ViewModels;
 using ERP.Service.API;
 using ERP.Service.API.AMS;
+using ERP.Service.Sftp;
+using Microsoft.AspNetCore.Http;
 
 namespace ERP.Tests.Support;
 
@@ -22,6 +25,50 @@ public class FakeSerialService : ISerialService
         _next++;
         return Task.FromResult($"{prefix}1151{_next:000}");
     }
+}
+
+/// <summary>
+/// 假的 SFTP 服務：檔案存在記憶體，不實際連線；可設定上傳或下載失敗。
+/// </summary>
+public class FakeSftpService : ISftpService
+{
+    public Dictionary<string, byte[]> Files { get; } = new();
+
+    public bool FailUpload { get; set; }
+
+    public ResultModel<string> UploadFile(IFormFile file) => throw new NotSupportedException();
+
+    public ResultModel<string> UploadStream(Stream content, string remotePath)
+    {
+        if (FailUpload)
+        {
+            return ResultModel.Error(ErrorCodeType.Exception, "上傳失敗：模擬連線錯誤");
+        }
+
+        using var buffer = new MemoryStream();
+        content.CopyTo(buffer);
+        Files[remotePath] = buffer.ToArray();
+        return ResultModel.Ok(remotePath);
+    }
+
+    public ResultModel<Stream?> DownloadFile(string remotePath)
+    {
+        if (!Files.TryGetValue(remotePath, out var bytes))
+        {
+            return ResultModel.Error(ErrorCodeType.NotFoundData);
+        }
+
+        return ResultModel.Ok((Stream?)new MemoryStream(bytes))!;
+    }
+
+    public ResultModel<string> DeleteFile(string remotePath)
+    {
+        return Files.Remove(remotePath)
+            ? ResultModel.Ok("檔案已成功刪除")
+            : ResultModel.Error(ErrorCodeType.NotFoundData);
+    }
+
+    public ResultModel<ListResult<string>> ListFiles() => ResultModel.Ok(Files.Keys.ToList());
 }
 
 /// <summary>

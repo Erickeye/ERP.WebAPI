@@ -7,6 +7,7 @@ using ERP.Library.Helpers;
 using ERP.Library.ViewModels;
 using ERP.Library.ViewModels._3000Contract;
 using ERP.Service.API.AMS;
+using ERP.Service.Sftp;
 using Microsoft.EntityFrameworkCore;
 
 namespace ERP.Service.API._3000Contract
@@ -40,6 +41,16 @@ namespace ERP.Service.API._3000Contract
         /// 刪除合約單（僅草稿）
         /// </summary>
         Task<ResultModel<string>> Delete(int id);
+
+        /// <summary>
+        /// 上傳或更換合約掃描檔（僅草稿、已退回；只接受 PDF，不超過 10 MB；存 SFTP，資料表只存遠端路徑）
+        /// </summary>
+        Task<ResultModel<string>> UploadAttachment(ContractAttachmentVM vm);
+
+        /// <summary>
+        /// 下載合約掃描檔
+        /// </summary>
+        Task<ResultModel<ContractAttachmentFileVM>> DownloadAttachment(int id);
     }
 
     public class _3050ContractService : I_3050ContractService
@@ -51,16 +62,22 @@ namespace ERP.Service.API._3000Contract
 
         private readonly ERPDbContext _db;
         private readonly ICurrentUserService _currentUserService;
+        private const long MaxAttachmentBytes = 10 * 1024 * 1024;
+        private static readonly byte[] PdfSignature = "%PDF-"u8.ToArray();
+
         private readonly ISerialService _serialService;
+        private readonly ISftpService _sftpService;
 
         public _3050ContractService(
             ERPDbContext db,
             ICurrentUserService currentUserService,
-            ISerialService serialService)
+            ISerialService serialService,
+            ISftpService sftpService)
         {
             _db = db;
             _currentUserService = currentUserService;
             _serialService = serialService;
+            _sftpService = sftpService;
         }
 
         #region 查詢
@@ -405,6 +422,121 @@ namespace ERP.Service.API._3000Contract
             }
 
             return ResultModel.Ok();
+        }
+
+        #endregion
+
+        #region 合約掃描檔
+
+        public async Task<ResultModel<string>> UploadAttachment(ContractAttachmentVM vm)
+        {
+            var entity = await _db.t_3050Contract
+                .Where(x => x.Id == vm.Id)
+                .FirstOrDefaultAsync();
+
+            if (entity == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            // 只有草稿與已退回可以上傳或更換，簽核中、已核准、已作廢的掃描檔不可再變動
+            if (entity.Status != (int)ContractStatus.草稿 &&
+                entity.Status != (int)ContractStatus.已退回)
+            {
+                return ResultModel.Error(ErrorCodeType.InvalidDocumentStatus,
+                    $"目前狀態為【{GetStatusDisplay(entity.Status)}】，不可上傳或更換合約掃描檔");
+            }
+
+            var file = vm.File;
+            if (file == null || file.Length == 0)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "請選擇要上傳的合約掃描檔");
+            }
+
+            if (file.Length > MaxAttachmentBytes)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "合約掃描檔大小不可超過 10 MB");
+            }
+
+            // 副檔名、內容類型與檔頭三者都要是 PDF，避免只改副檔名的其他檔案混進來
+            var isPdfName = string.Equals(Path.GetExtension(file.FileName), ".pdf", StringComparison.OrdinalIgnoreCase);
+            var isPdfType = string.Equals(file.ContentType, "application/pdf", StringComparison.OrdinalIgnoreCase);
+            if (!isPdfName || !isPdfType)
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "合約掃描檔只接受 PDF 檔案");
+            }
+
+            await using var stream = file.OpenReadStream();
+            var header = new byte[PdfSignature.Length];
+            var read = await stream.ReadAsync(header.AsMemory(0, header.Length));
+            if (read != header.Length || !header.AsSpan().SequenceEqual(PdfSignature))
+            {
+                return ResultModel.Error(ErrorCodeType.FieldValueIsInvalid, "合約掃描檔只接受 PDF 檔案");
+            }
+            stream.Position = 0;
+
+            // 遠端路徑由系統產生（單號加亂數），不使用上傳者提供的檔名，避免互相覆蓋與路徑穿越
+            var remotePath = $"/contract-{entity.No}-{Guid.NewGuid():N}.pdf";
+            var upload = _sftpService.UploadStream(stream, remotePath);
+            if (!upload)
+            {
+                return ResultModel.Error(upload.ErrorCode, upload.ErrorMessage);
+            }
+
+            var oldPath = entity.AttachmentPath;
+            entity.AttachmentPath = remotePath;
+            entity.UpdateTime = DateTime.Now;
+            entity.UpdateUserId = _currentUserService.UserId;
+
+            try
+            {
+                await _db.SaveChangesAsync();
+            }
+            catch
+            {
+                // 資料庫沒存成功就不留下剛上傳的檔案
+                _sftpService.DeleteFile(remotePath);
+                throw;
+            }
+
+            // 更換時清掉舊檔；刪除失敗只會留下孤兒檔案，不影響單據，所以不回報錯誤
+            if (!string.IsNullOrEmpty(oldPath))
+            {
+                _sftpService.DeleteFile(oldPath);
+            }
+
+            return ResultModel.Ok("合約掃描檔已上傳");
+        }
+
+        public async Task<ResultModel<ContractAttachmentFileVM>> DownloadAttachment(int id)
+        {
+            var data = await _db.t_3050Contract
+                .AsNoTracking()
+                .Where(x => x.Id == id)
+                .Select(x => new { x.No, x.AttachmentPath })
+                .FirstOrDefaultAsync();
+
+            if (data == null)
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData);
+            }
+
+            if (string.IsNullOrEmpty(data.AttachmentPath))
+            {
+                return ResultModel.Error(ErrorCodeType.NotFoundData, "此合約單尚未上傳合約掃描檔");
+            }
+
+            var download = _sftpService.DownloadFile(data.AttachmentPath);
+            if (!download || download.Data == null)
+            {
+                return ResultModel.Error(download.ErrorCode, download.ErrorMessage);
+            }
+
+            return ResultModel.Ok(new ContractAttachmentFileVM
+            {
+                Content = download.Data,
+                FileName = $"{data.No}.pdf"
+            });
         }
 
         #endregion

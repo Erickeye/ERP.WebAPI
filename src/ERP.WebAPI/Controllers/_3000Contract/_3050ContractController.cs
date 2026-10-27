@@ -60,6 +60,33 @@ namespace ERP.WebAPI.Controllers._3000Contract
             return Ok(result);
         }
 
+        // 上傳與更換限草稿、已退回，由 Service 檢查狀態；表單欄位為 id 與 file（PDF，10 MB 以內）
+        [SwaggerOperation("上傳或更換合約掃描檔")]
+        [PermissionAuthorize((int)PermissionType.合約單編輯)]
+        [ValidateModel]
+        [HttpPost, Route("UploadAttachment")]
+        [Log(OperationActionType.Edit, "上傳合約掃描檔")]
+        public async Task<IActionResult> UploadAttachment([FromForm] ContractAttachmentVM vm)
+        {
+            var result = await _service.UploadAttachment(vm);
+            return Ok(result);
+        }
+
+        [SwaggerOperation("下載合約掃描檔")]
+        [PermissionAuthorize((int)PermissionType.合約單檢視)]
+        [HttpGet, Route("DownloadAttachment")]
+        [Log(OperationActionType.View, "下載合約掃描檔")]
+        public async Task<IActionResult> DownloadAttachment([SwaggerParameter("合約單流水號")] int id)
+        {
+            var result = await _service.DownloadAttachment(id);
+            if (!result.IsSuccess || result.Data == null)
+            {
+                return Ok(result);
+            }
+
+            return File(result.Data.Content, "application/pdf", result.Data.FileName);
+        }
+
         [SwaggerOperation("刪除合約單")]
         [PermissionAuthorize((int)PermissionType.合約單刪除)]
         [HttpDelete, Route("Delete")]
