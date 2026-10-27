@@ -26,6 +26,11 @@ const cards = [
       { id: 'contact-list', title: '聯絡人' },
     ]
   },
+  { id: 'contract', title: '合約管理', desc: '供應商合約與客戶合約', color: 'var(--card-blue)',
+    subItems: [
+      { id: 'contract-list', title: '合約單', path: '/contract/index' },
+    ]
+  },
   { id: 'settings', title: '模組設定', desc: '系統模組與權限設定', color: 'var(--card-orange)',
     subItems: [
       { id: 'company-list', title: '公司管理', path: '/company/index' },

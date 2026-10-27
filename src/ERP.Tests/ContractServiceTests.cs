@@ -1492,13 +1492,14 @@ public class ContractServiceTests : IDisposable
     [Fact]
     public async Task 客戶只被已作廢的合約單引用時仍不能刪除()
     {
-        var no = await AddContractAsync("CC-VOID", template: NewCustomerContract(), status: ContractStatus.已作廢);
+        await AddContractAsync("CC-VOID", template: NewCustomerContract(), status: ContractStatus.已作廢);
 
         var result = await DeleteCustomerAsync(_customerId);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorCodeType.InvalidRequest, result.ErrorCode);
-        Assert.NotNull(no);
+        using var db = _testDb.CreateContext();
+        Assert.True(db.t_2000Customer.Any(x => x.Id == _customerId));
     }
 
     // ---------- 可見範圍、篩選、有效性與動作旗標 ----------
